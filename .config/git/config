@@ -1,3 +1,6 @@
 [user]
   name = Clark Dwain Luna
   email = 37160059+lclarkdwain@users.noreply.github.com
+
+[pull]
+  rebase = false
