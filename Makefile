@@ -4,8 +4,6 @@ PATH := $(DOTFILES_DIR)/.local/bin:$(PATH)
 
 export XDG_CONFIG_HOME = $(HOME)/.config
 
-$(info DOTFILES_DIR: $(DOTFILES_DIR))
-
 all: linux
 
 linux: core-linux link

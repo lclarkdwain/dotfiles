@@ -1,0 +1,8 @@
+ps0() {
+  unset PROMPT_COMMAND
+  PS1='$ '
+}
+
+ps1() {
+  source "$DOTFILES_DIR"/dots/.bash_prompt
+}
