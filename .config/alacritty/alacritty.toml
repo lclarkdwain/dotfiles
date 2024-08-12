@@ -5,56 +5,100 @@
 program = "C:\\Windows\\System32\\wsl.exe"
 args = ["~"]
 
-[env]
-WINIT_X11_SCALE_FACTOR = "1.0"
-
 [font]
-normal = { family = "Hack Nerd Font", style = "Regular" }
 size = 11
 # size = 13
 
-[scrolling]
-history = 10000
+# [font.normal]
+# family = "JetBrainsMono Nerd Font"
 
-[mouse]
-hide_when_typing = true
+[font.normal]
+family = "Hack Nerd Font"
+style = "Regular"
 
-[cursor]
-vi_mode_style = "Block"
-
-## keybindings
-# -----------------------------------------------------------------------------
+[cursor.style]
+blinking = "On"
 
 [[keyboard.bindings]]
-action = "SearchForward"
-key = "R"
-mode = "~Search"
-mods = "Control|Shift"
+action = "IncreaseFontSize"
+key = "Plus"
+mods = "Shift|Control"
 
 [[keyboard.bindings]]
-action = "CreateNewWindow"
-key = "T"
-mods = "Control|Shift"
+action = "DecreaseFontSize"
+key = "_"
+mods = "Shift|Control"
 
 [[keyboard.bindings]]
-key = "F"
-mods = "Control|Shift"
-command.program = "sh"
-command.args = ["-c", "alacritty msg create-window --command ranger \"$PWD\""]
+action = "ResetFontSize"
+key = 11
+mods = "Shift|Control"
 
-[[hints.enabled]]
-binding = { key = "X", mods = "Control|Shift" } # "U" conflicts with fcitx
-command = "xdg-open"
-hyperlinks = true
-post_processing = true
-mouse.enabled = true
-regex = """
-(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|
-git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"""
+[[keyboard.bindings]]
+chars = ""
+key = "Equals"
+mods = "Control"
 
+[[keyboard.bindings]]
+chars = "\u001F"
+key = "Minus"
+mods = "Control"
 
-## colors
-# -----------------------------------------------------------------------------
+[[keyboard.bindings]]
+chars = ""
+key = "Key0"
+mods = "Control"
+
+[[keyboard.bindings]]
+action = "Hide"
+key = "H"
+mods = "Shift|Control"
+
+[[keyboard.bindings]]
+action = "CopySelection"
+key = "X"
+mods = "Shift|Control"
+
+[[keyboard.bindings]]
+action = "PasteSelection"
+key = "P"
+mods = "Shift|Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[13;2u"
+key = "Return"
+mods = "Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[13;4u"
+key = "Return"
+mods = "Shift|Alt"
+
+[[keyboard.bindings]]
+chars = "\u001B[13;5u"
+key = "Return"
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[13;6u"
+key = "Return"
+mods = "Shift|Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[13;7u"
+key = "Return"
+mods = "Alt|Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[13;8u"
+key = "Return"
+mods = "Shift|Alt|Control"
+
+[selection]
+save_to_clipboard = true
+
+[window]
+opacity = 0.75
 
 [colors]
 draw_bold_text_with_bright_colors = true

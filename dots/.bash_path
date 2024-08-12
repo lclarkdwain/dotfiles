@@ -12,6 +12,7 @@ prepend-path "/usr/bin"
 prepend-path "/usr/sbin"
 prepend-path "/usr/local/bin"
 prepend-path "/opt/nvim-linux64/bin"
+prepend-path "$HOME/.cargo/bin"
 prepend-path "$DOTFILES_DIR/.local/bin"
 
 # Remove duplicates (preserving prepended items)

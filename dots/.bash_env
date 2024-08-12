@@ -1,3 +1,6 @@
+export EDITOR="nvim"
+export VISUAL="$EDITOR"
+
 # XDG Base Directory Specification (https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
 
 export XDG_CACHE_HOME="$HOME/.cache"

@@ -7,14 +7,13 @@ FONT_DIR="$DOTFILES_DIR/.local/share/fonts"
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-
 latest_release() {
   local repo=$1
   local result=$(curl --silent "https://api.github.com/repos/$repo/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
   echo "$result"
 }
 
-install_font() {
+install() {
   local fontname=$1
 
   local zip_url="https://github.com/$REPO/releases/download/$version/$fontname.zip"
@@ -27,7 +26,7 @@ install_font() {
     echo "Error unzipping $fontname."
     return 1
   }
-  
+
   rm "$zip_file"
 
   fc-cache -fv
@@ -48,5 +47,6 @@ mkdir -p "$FONT_DIR/fonts"
 # install_font VictorMono
 # install_font InconsolataGo
 # install_font Monofur
-install_font JetBrainsMono
+# install JetBrainsMono
 # install_font CascadiaCode
+install_font Hack
