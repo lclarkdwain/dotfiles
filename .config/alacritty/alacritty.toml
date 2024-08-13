@@ -13,7 +13,7 @@ size = 11
 # family = "JetBrainsMono Nerd Font"
 
 [font.normal]
-family = "Hack Nerd Font"
+family = "Hack Nerd Font Mono"
 style = "Regular"
 
 [cursor.style]
