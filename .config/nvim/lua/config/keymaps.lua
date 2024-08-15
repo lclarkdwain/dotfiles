@@ -5,8 +5,6 @@
 local keymap = vim.keymap
 local opts = { noremap = true, silent = true }
 
-keymap.set("n", "x", '"_x')
-
 -- Diagnostic
 keymap.set("n", "<C-j>", function()
   vim.diagnostic.goto_next()

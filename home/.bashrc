@@ -17,7 +17,7 @@ PATH="$DOTFILES_DIR/.local/bin:$PATH"
 
 # Loader
 
-for DOTFILE in "$DOTFILES_DIR"/dots/.bash_{function,function_*,path,env,aliases,prompt,completion}; do
+for DOTFILE in "$DOTFILES_DIR"/bash/.bash_{function,function_*,path,env,aliases,prompt,completion}; do
   . "$DOTFILE"
   if [[ -f "${DOTFILE}.local" ]]; then
     . "${DOTFILE}.local"

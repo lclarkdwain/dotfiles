@@ -1,4 +1,4 @@
-is-executable getconf && PATH=$($(command -v getconf) PATH)
+# is-executable getconf && PATH=$($(command -v getconf) PATH)
 
 prepend-path() {
   [ -d $1 ] && PATH="$1:$PATH"
