@@ -39,14 +39,14 @@ echo "==> Latest version is: $version"
 
 mkdir -p "$FONT_DIR/fonts"
 
-# install_font FiraCode
-# install_font Iosevka
-# install_font FantasqueSansMono
-# install_font Lekton
-# install_font Inconsolata
-# install_font VictorMono
-# install_font InconsolataGo
-# install_font Monofur
+# install FiraCode
+# install Iosevka
+# install FantasqueSansMono
+# install Lekton
+# install Inconsolata
+# install VictorMono
+# install InconsolataGo
+# install Monofur
 # install JetBrainsMono
-# install_font CascadiaCode
-install_font Hack
+# install CascadiaCode
+install Hack
