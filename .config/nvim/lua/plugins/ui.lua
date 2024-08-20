@@ -1,20 +1,15 @@
 return {
   {
-    "kristijanhusak/vim-dadbod-ui",
-    dependencies = {
-
-      { "tpope/vim-dadbod", lazy = true },
-      { "kristijanhusak/vim-dadbod-completion", ft = { "sql", "mysql", "plsql" }, lazy = true }, -- Optional
+    "folke/zen-mode.nvim",
+    cmd = "ZenMode",
+    opts = {
+      window = { backdrop = 0.7 },
+      plugins = {
+        gitsigns = true,
+        tmux = true,
+        kitty = { enabled = false, font = "+2" },
+      },
     },
-    cmd = {
-      "DBUI",
-      "DBUIToggle",
-      "DBUIAddConnection",
-      "DBUIFindBuffer",
-    },
-    init = function()
-      -- Your DBUI configuration
-      vim.g.db_ui_use_nerd_fonts = 1
-    end,
+    keys = { { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode" } },
   },
 }

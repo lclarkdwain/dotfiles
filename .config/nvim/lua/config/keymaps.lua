@@ -8,9 +8,5 @@ local opts = { noremap = true, silent = true }
 -- Do things without affecting the registers
 keymap.set("n", "x", '"_x')
 
--- Split window
-keymap.set("n", "ss", ":split<Return>", opts)
-keymap.set("n", "sv", ":vsplit<Return>", opts)
-
 -- Select all
 keymap.set("n", "<C-a>", "gg<S-v>G")
