@@ -4,7 +4,6 @@
 
 vim.g.mapleader = " "
 
-vim.g.root_spec = { "cwd" }
 vim.g.omni_sql_no_default_maps = 1
 
 vim.scriptencoding = "utf-8"
@@ -37,8 +36,12 @@ vim.opt.path:append({ "**" }) -- Finding files - Search down into subfolders
 vim.opt.wildignore:append({ "*/node_modules/*" })
 vim.opt.splitbelow = true -- Put new windows below current
 vim.opt.splitright = true -- Put new windows right of current
-vim.opt.splitkeep = "cursor"
-vim.opt.mouse = ""
+vim.opt.splitkeep = "screen"
+vim.opt.mouse = "a"
 
 -- Add asterisks in block comments
 vim.opt.formatoptions:append({ "r" })
+
+if vim.fn.has("win32") == 1 then
+  LazyVim.terminal.setup("pwsh")
+end
