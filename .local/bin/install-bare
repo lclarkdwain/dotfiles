@@ -25,6 +25,13 @@ function install() {
   git config status.showUntrackedFiles no
   git config core.worktree "$GIT_WORK_TREE"
   git sparse-checkout set "*" "${exclude[@]/#/\!}" --no-cone
+
+  if [ -f "$HOME/.bashrc" ]; then
+    cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
+  fi
+
+  touch .bashrc
+  echo "alias dotfiles='git --git-dir=$HOME/.dotfiles --work-tree=$HOME'" >>.bashrc
 }
 
 clone
