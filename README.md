@@ -24,7 +24,7 @@ cd ~/.dotfiles
 make
 ```
 
-### Using Bare Git Repository
+### Using Bare Git Repository (Only Config)
 
 ```bash
 bash <(curl -LfsS https://github.com/lclarkdwain/dotfiles/raw/main/.local/bin/install-bare)
