@@ -17,7 +17,7 @@ PATH="$DOTFILES_DIR/.local/bin:$PATH"
 
 # Loader
 
-for DOTFILE in "$DOTFILES_DIR"/bash/.bash_{function,function_*,path,env,aliases,prompt,completion}; do
+for DOTFILE in "$DOTFILES_DIR"/.config/bash/.bash_{function,function_*,path,env,aliases,prompt,completion}; do
   . "$DOTFILE"
   if [[ -f "${DOTFILE}.local" ]]; then
     . "${DOTFILE}.local"
@@ -29,6 +29,8 @@ done
 # Fin
 
 export DOTFILES_DIR
+
+# Some random stuffs not yet organized
 
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm

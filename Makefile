@@ -1,5 +1,4 @@
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-
 PATH := $(DOTFILES_DIR)/.local/bin:$(PATH)
 
 export XDG_CONFIG_HOME = $(HOME)/.config

@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -o errexit
+export GIT_WORK_TREE="$HOME"
+export GIT_DIR="$GIT_WORK_TREE/.dotfiles"
+backupdir="$GIT_WORK_TREE/dotfiles.bak"
+repository="https://github.com/lclarkdwain/dotfiles.git"
+exclude=(".editorconfig" ".gitignore" "Makefile" "README.md" "install.sh" ".local/bin/install-*" "home")
+
+function clone() {
+  git clone --bare "$repository" "$GIT_DIR"
+}
+
+function backup() {
+  for file in $(git ls-tree -r --name-only HEAD); do
+    if [[ -e "$file" ]]; then
+      mkdir -p "$backupdir"
+      mv "$file" "$backupdir"
+    fi
+  done
+}
+
+function install() {
+  git checkout
+  git config status.showUntrackedFiles no
+  git config core.worktree "$GIT_WORK_TREE"
+  git sparse-checkout set "*" "${exclude[@]/#/\!}" --no-cone
+}
+
+function move_bashrc() {
+  if [[ -e "$GIT_WORK_TREE/home/.bashrc" ]]; then
+    mv "$GIT_WORK_TREE/home/.bashrc" "$GIT_WORK_TREE/.bashrc"
+  fi
+}
+
+clone
+backup
+move_bashrc
+install
