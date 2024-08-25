@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personal dotfiles for (Windows + WSL:Ubuntu-20.04)
+Personal dotfiles for (Windows + WSL:Ubuntu-24.04)
 
 ## Installation
 

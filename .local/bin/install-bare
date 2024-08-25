@@ -5,7 +5,7 @@ export GIT_WORK_TREE="$HOME"
 export GIT_DIR="$GIT_WORK_TREE/.dotfiles"
 backupdir="$GIT_WORK_TREE/dotfiles.bak"
 repository="https://github.com/lclarkdwain/dotfiles.git"
-exclude=(".editorconfig" ".gitignore" "Makefile" "README.md" "install.sh" ".local" "home")
+exclude=(".editorconfig" ".gitignore" "Makefile" "README.md" "install.sh" ".local/**/*" "home/*")
 
 function clone() {
   git clone --bare "$repository" "$GIT_DIR"

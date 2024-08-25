@@ -20,3 +20,12 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.commentstring = "// %s"
   end,
 })
+
+local dotfiles_dir = vim.env.DOTFILES_DIR or vim.fn.expand("~/.dotfiles")
+
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = dotfiles_dir .. "/.config/bash/*",
+  callback = function()
+    vim.bo.filetype = "bash"
+  end,
+})
