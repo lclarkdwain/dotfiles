@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+# Completions
+zsh-users/zsh-completions path:src kind:fpath
+
+# Local Plugins
+$XDG_CONFIG_HOME/zsh/.zsh_aliases
+
+# Utilities
+romkatv/zsh-bench kind:path
+
+# Framework: Oh-My-Zsh
+getantidote/use-omz
+ohmyzsh/ohmyzsh path:plugins/nvm
+
+# Syntax highlighting
+# zsh-users/zsh-syntax-highlighting kind:defer
+zdharma-continuum/fast-syntax-highlighting kind:defer
+
+# Core
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-history-substring-search

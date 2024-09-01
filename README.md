@@ -24,15 +24,8 @@ cd ~/.dotfiles
 make
 ```
 
-### Using Bare Git Repository (Only Config)
-
-```bash
-bash <(curl -LfsS https://github.com/lclarkdwain/dotfiles/raw/main/.local/bin/install-bare)
-```
-
 ## Configuration Requirements
 
-- [Ble.sh](https://github.com/akinomyoga/ble.sh)
 - [NeoVim](https://github.com/neovim/neovim/blob/master/INSTALL.md#linux)
 - [TPM](https://github.com/tmux-plugins/tpm)
 - [lazygit](https://github.com/jesseduffield/lazygit)

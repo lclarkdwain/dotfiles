@@ -4,9 +4,6 @@ case $- in
 *) return ;;
 esac
 
-[[ $- == *i* ]] &&
-  source "$HOME/.local/share/blesh/ble.sh" --rcfile "$HOME/.blerc"
-
 # Make utilities available
 
 if [ -d "$HOME/.dotfiles" ]; then
@@ -32,5 +29,3 @@ done
 # Fin
 
 export DOTFILES_DIR
-
-[[ ${BLE_VERSION-} ]] && ble-attach

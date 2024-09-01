@@ -8,6 +8,8 @@ package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
 require("mouse").setup(config)
 require("links").setup(config)
 
+config.warn_about_missing_glyphs = false
+
 -- config.front_end = "WebGpu"
 -- config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
 config.enable_wayland = true
