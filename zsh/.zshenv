@@ -17,5 +17,9 @@ export VISUAL="$EDITOR"
 # Starship
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 
+# Man
+export MANPAGER='nvim --cmd ":lua vim.g.noplugins=1" +Man!'
+export MANWIDTH=999
+
 # Rust
 . "$HOME/.cargo/env"

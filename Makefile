@@ -16,7 +16,7 @@ linux: core-linux prepare packages link
 prepare:
 	mkdir -p \
 		$(HOME)/.{config,local} \
-		$(HOME)/.local/{bin,share,src,state,cache} \
+		$(HOME)/.local/{bin,share,src,state,cache}
 
 core-linux:
 	sudo apt update
