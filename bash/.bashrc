@@ -24,8 +24,8 @@ for DOTFILE in "$DOTFILES_DIR"/.config/bash/.bash_{function,function_*,path,env,
   fi
 done
 
-. "$HOME/.cargo/env"
 
 # Fin
 
 export DOTFILES_DIR
+. "$HOME/.cargo/env"

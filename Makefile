@@ -1,7 +1,7 @@
 # vim: set noexpandtab:
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 OS := linux
-PATH := $(DOTFILES_DIR)/.local/bin:$(PATH)
+PATH := $(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
 SHELL := /bin/bash
 
 export XDG_CONFIG_HOME = $(HOME)/.config
@@ -85,7 +85,8 @@ packages-common:
 	curl -sS https://starship.rs/install.sh | sh
 	# TMUX
 	@if [ ! -d $(XDG_CONFIG_HOME)/tmux/plugins/tpm ]; then \
-		git clone https://github.com/tmux-plugins/tpm $(XDG_CONFIG_HOME)/tmux/plugins/tpm; \
+		git clone --depth=1 https://github.com/tmux-plugins/tpm $(XDG_CONFIG_HOME)/tmux/plugins/tpm && \
+			$(HOME)/.config/tmux/plugins/tpm/bin/install_plugins; \
 	fi
 	# Setting up NVM
 	PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash' && \
