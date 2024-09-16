@@ -11,6 +11,7 @@ romkatv/zsh-bench kind:path
 
 # Framework: Oh-My-Zsh
 getantidote/use-omz
+ohmyzsh/ohmyzsh path:plugins/brew
 ohmyzsh/ohmyzsh path:plugins/nvm
 
 # Syntax highlighting
