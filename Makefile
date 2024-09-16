@@ -1,7 +1,8 @@
 # vim: set noexpandtab:
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 OS := $(shell .local/bin/is-supported .local/bin/is-macos macos linux)
-PATH := $(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
+HOMEBREW_PREFIX := $(shell .local/bin/is-supported .local/bin/is-macos $(shell .local/bin/is-supported .local/bin/is-arm64 /opt/homebrew /usr/local))
+PATH := $(HOMEBREW_PREFIX)/bin:$(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
 SHELL := /bin/bash
 
 export XDG_CONFIG_HOME = $(HOME)/.config
