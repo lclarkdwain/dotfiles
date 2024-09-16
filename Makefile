@@ -105,7 +105,7 @@ packages-common:
 		npm i -g neovim
 
 brew:
-	is-executable brew || curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
+	is-executable brew || curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh | bash
 
 git: brew
 	brew install git git-extras
