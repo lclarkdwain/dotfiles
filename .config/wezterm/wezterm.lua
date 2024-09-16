@@ -1,8 +1,6 @@
 local wezterm = require("wezterm") --[[@as Wezterm]]
 local config = wezterm.config_builder()
 
-config.default_domain = "WSL:Ubuntu-24.04"
-
 package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
 
 require("mouse").setup(config)
