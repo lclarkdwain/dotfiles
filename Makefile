@@ -9,7 +9,7 @@ BIN := $(HOMEBREW_PREFIX)/bin
 
 export XDG_CONFIG_HOME = $(HOME)/.config
 
-# export LAZYGIT_VERSION=$(shell curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+export LAZYGIT_VERSION=$(shell curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
 
 all: $(OS)
 
@@ -82,10 +82,10 @@ packages-linux:
 			sudo dpkg -i nvim-linux64.deb; \
 	fi
 	# Lazygit
-	# curl -Lo $(HOME)/.local/src/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_$(LAZYGIT_VERSION)_Linux_x86_64.tar.gz" && \
-	# 	cd $(HOME)/.local/src && \
-	# 	tar xf lazygit.tar.gz lazygit && \
-	# 	sudo install lazygit /usr/local/bin
+	curl -Lo $(HOME)/.local/src/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_$(LAZYGIT_VERSION)_Linux_x86_64.tar.gz" && \
+		cd $(HOME)/.local/src && \
+		tar xf lazygit.tar.gz lazygit && \
+		sudo install lazygit /usr/local/bin
 
 packages-common:
 	# Setting up Git Submodules
@@ -106,6 +106,7 @@ packages-common:
 		npm i -g neovim
 
 brew:
+	echo "Installing Homebrew $(HOMEBREW_PREFIX)"
 	is-executable brew || curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
 
 git: brew
