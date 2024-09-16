@@ -1,6 +1,6 @@
 # vim: set noexpandtab:
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-OS := $(shell .local/bin/is-supported bin/is-macos macos linux)
+OS := $(shell .local/bin/is-supported .local/bin/is-macos macos linux)
 PATH := $(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
 SHELL := /bin/bash
 
@@ -13,7 +13,7 @@ all: $(OS)
 # Ubuntu
 linux: core-linux prepare packages link
 
-macos: core-macos
+macos: core-macos prepare packages link
 
 prepare:
 	mkdir -p \
