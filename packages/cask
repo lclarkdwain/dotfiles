@@ -1,0 +1,6 @@
+tap "homebrew/cask-fonts"
+
+cask "docker"
+cask "font-fira-code"
+cask "font-hack"
+cask "visual-studio-code"

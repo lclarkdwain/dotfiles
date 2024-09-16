@@ -1,0 +1,22 @@
+tap "homebrew/bundle"
+
+# core
+brew "coreutils"
+brew "nano"
+brew "stow"
+brew "neovim"
+
+# fs
+brew "wget"
+
+# search
+brew "fd"
+brew "fzf"
+brew "jq"
+brew "ripgrep"
+
+# lang/tools
+brew "gh"
+brew "python"
+brew "rust"
+brew "shellcheck"

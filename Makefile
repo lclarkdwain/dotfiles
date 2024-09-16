@@ -1,6 +1,6 @@
 # vim: set noexpandtab:
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-OS := linux
+OS := $(shell .local/bin/is-supported bin/is-macos macos linux)
 PATH := $(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
 SHELL := /bin/bash
 
@@ -13,6 +13,8 @@ all: $(OS)
 # Ubuntu
 linux: core-linux prepare packages link
 
+macos: core-macos
+
 prepare:
 	mkdir -p \
 		$(HOME)/.{config,local} \
@@ -21,6 +23,8 @@ prepare:
 core-linux:
 	sudo apt update
 	sudo apt full-upgrade -y
+
+core-macos: brew git
 
 link: stow-$(OS)
 	for DIR in zsh bash; do \
@@ -44,7 +48,12 @@ unlink: stow-$(OS)
 stow-linux: core-linux
 	is-executable stow || sudo apt install stow -y
 
+stow-macos: brew
+	is-executable stow || brew install stow
+
 packages: packages-$(OS) packages-common rust-packages
+
+packages-macos: brew-packages cask-apps
 
 packages-linux:
 	sudo apt update && sudo apt install -y \
@@ -93,6 +102,24 @@ packages-common:
 		. $(XDG_CONFIG_HOME)/nvm/nvm.sh && \
 		nvm install lts/iron && \
 		npm i -g neovim
+
+brew:
+	is-executable brew || curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
+
+git: brew
+	brew install git git-extras
+
+brew-packages: brew
+	brew bundle --file=$(DOTFILES_DIR)/packages/brew || true
+
+cask-apps: brew
+	brew bundle --file=$(DOTFILES_DIR)/packages/cask || true
+
+vscode-extensions: cask-apps
+	# TODO: Add vscode extensions
+
+node-packages:
+	# TODO: Add node packages
 
 rust-packages:
 	cargo install $(shell cat packages/rust)
