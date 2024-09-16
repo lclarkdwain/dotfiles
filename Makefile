@@ -4,6 +4,8 @@ OS := $(shell .local/bin/is-supported .local/bin/is-macos macos linux)
 HOMEBREW_PREFIX := $(shell .local/bin/is-supported .local/bin/is-macos $(shell .local/bin/is-supported .local/bin/is-arm64 /opt/homebrew /usr/local) /home/linuxbrew/.linuxbrew)
 PATH := $(HOMEBREW_PREFIX)/bin:$(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
 SHELL := /bin/bash
+SHELLS := /private/etc/shells
+BIN := $(HOMEBREW_PREFIX)/bin
 
 export XDG_CONFIG_HOME = $(HOME)/.config
 
