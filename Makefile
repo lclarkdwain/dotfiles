@@ -86,19 +86,19 @@ packages-linux:
 		cd $(HOME)/.local/src && \
 		tar xf lazygit.tar.gz lazygit && \
 		sudo install lazygit /usr/local/bin
-
-packages-common:
-	# Setting up Git Submodules
-	git submodule update --init
-	# Setting up Rust
+		# Setting up Rust
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile default
-	# Insalling Starship
-	curl -sS https://starship.rs/install.sh | sh
 	# TMUX
 	@if [ ! -d $(XDG_CONFIG_HOME)/tmux/plugins/tpm ]; then \
 		git clone --depth=1 https://github.com/tmux-plugins/tpm $(XDG_CONFIG_HOME)/tmux/plugins/tpm && \
 			$(HOME)/.config/tmux/plugins/tpm/bin/install_plugins; \
 	fi
+
+packages-common:
+	# Setting up Git Submodules
+	git submodule update --init
+	# Insalling Starship
+	curl -sS https://starship.rs/install.sh | sh
 	# Setting up NVM
 	PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash' && \
 		. $(XDG_CONFIG_HOME)/nvm/nvm.sh && \
@@ -106,7 +106,6 @@ packages-common:
 		npm i -g neovim
 
 brew:
-	echo "Installing Homebrew $(HOMEBREW_PREFIX)"
 	is-executable brew || curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
 
 git: brew
