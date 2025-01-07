@@ -1,7 +1,10 @@
 tap "homebrew/bundle"
+tap "lotyp/homebrew-formulae"
 
 # core
+brew "bash"
 brew "coreutils"
+brew "lotyp/formulae/dockutil"
 brew "nano"
 brew "stow"
 brew "neovim"
@@ -14,6 +17,8 @@ brew "wget"
 brew "fd"
 brew "fzf"
 brew "jq"
+brew "grep"
+brew "psgrep"
 brew "ripgrep"
 
 # lang/tools

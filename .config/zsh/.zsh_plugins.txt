@@ -5,12 +5,14 @@ zsh-users/zsh-completions path:src kind:fpath
 
 # Local Plugins
 $XDG_CONFIG_HOME/zsh/.zsh_aliases
+mattmc3/ez-compinit
 
 # Utilities
 romkatv/zsh-bench kind:path
 
 # Framework: Oh-My-Zsh
 getantidote/use-omz
+ohmyzsh/ohmyzsh path:plugins/brew
 ohmyzsh/ohmyzsh path:plugins/nvm
 
 # Syntax highlighting

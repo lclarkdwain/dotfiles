@@ -1,7 +1,7 @@
 {
   "extras": [
-    "lazyvim.plugins.extras.coding.copilot",
-    "lazyvim.plugins.extras.coding.copilot-chat",
+    "lazyvim.plugins.extras.ai.copilot",
+    "lazyvim.plugins.extras.ai.copilot-chat",
     "lazyvim.plugins.extras.coding.mini-surround",
     "lazyvim.plugins.extras.coding.yanky",
     "lazyvim.plugins.extras.dap.core",
@@ -40,8 +40,8 @@
     "lazyvim.plugins.extras.util.rest"
   ],
   "news": {
-    "NEWS.md": "6520",
+    "NEWS.md": "10960",
     "doc/news.txt": "24450"
   },
-  "version": 6
+  "version": 7
 }

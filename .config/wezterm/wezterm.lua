@@ -26,7 +26,7 @@ config.colors = {
 config.window_background_opacity = 0.9
 
 -- Fonts
-config.font_size = 10
+config.font_size = 13
 config.font = wezterm.font({ family = "Fira Code" })
 config.bold_brightens_ansi_colors = true
 config.font_rules = {
