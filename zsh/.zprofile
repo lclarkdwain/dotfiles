@@ -11,5 +11,7 @@ path=(
   $HOME/{,s}bin(N)
   /opt/{homebrew,local}/{,s}bin(N)
   /usr/local/{,s}bin(N)
+  $HOME/.local/src/tmux-3.5a/{,s}bin(N)
+  /opt/nvim-linux-x86_64/{,s}bin(N)
   $path
 )

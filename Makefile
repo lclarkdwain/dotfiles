@@ -72,27 +72,29 @@ packages-linux:
 		ripgrep \
 		unzip \
 		zsh
-	# Building Neovim (Debian/Ubuntu)
-	@if [ ! -d $(HOME)/.local/src/neovim ]; then \
-		git clone --depth=1 https://github.com/neovim/neovim.git -b stable $(HOME)/.local/src/neovim && \
-			cd $(HOME)/.local/src/neovim && \
-			CMAKE_BUILD_TYPE=RelWithDebInfo make && \
-			cd build && \
-			cpack -G DEB && \
-			sudo dpkg -i nvim-linux64.deb; \
-	fi
+	# Neovim - from binary
+	curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+	sudo rm -rf /opt/nvim
+	sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+	sudo rm -rf nvim-linux-x86_64.tar.gz
 	# Lazygit
 	curl -Lo $(HOME)/.local/src/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_$(LAZYGIT_VERSION)_Linux_x86_64.tar.gz" && \
 		cd $(HOME)/.local/src && \
 		tar xf lazygit.tar.gz lazygit && \
 		sudo install lazygit /usr/local/bin
-		# Setting up Rust
+	# Setting up Rust
+	# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile default
 	# TMUX
-	@if [ ! -d $(XDG_CONFIG_HOME)/tmux/plugins/tpm ]; then \
-		git clone --depth=1 https://github.com/tmux-plugins/tpm $(XDG_CONFIG_HOME)/tmux/plugins/tpm && \
-			$(HOME)/.config/tmux/plugins/tpm/bin/install_plugins; \
+	@if [ ! -f "$(HOME)/.local/src/tmux-3.5a.tar.gz" ]; then \
+		curl -Lo "$(HOME)/.local/src/tmux-3.5a.tar.gz" "https://github.com/tmux/tmux/releases/download/3.5a/tmux-3.5a.tar.gz"; \
 	fi
+	@tar -xzf "$(HOME)/.local/src/tmux-3.5a.tar.gz" -C "$(HOME)/.local/src/tmux-3.5a"
+	@cd "$(HOME)/.local/src/tmux-3.5a" && \
+		sudo apt install -y libevent-dev libncurses-dev byacc && \
+		./configure && \
+		make && \
+		sudo make install
 
 packages-common:
 	# Setting up Git Submodules
@@ -100,7 +102,7 @@ packages-common:
 	# Insalling Starship
 	curl -sS https://starship.rs/install.sh | sh
 	# Setting up NVM
-	PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash' && \
+	PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash' && \
 		. $(XDG_CONFIG_HOME)/nvm/nvm.sh && \
 		nvm install lts/iron && \
 		npm i -g neovim
