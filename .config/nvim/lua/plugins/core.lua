@@ -1,9 +1,7 @@
 return {
   "LazyVim/LazyVim",
   opts = {
+    -- colorscheme = "gruvbox",
     colorscheme = "catppuccin",
   },
-  -- },
-  -- { "folke/tokyonight.nvim", enabled = false },
-  -- { "catppuccin/nvim", enabled = false },
 }

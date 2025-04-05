@@ -72,6 +72,17 @@ packages-linux:
 		ripgrep \
 		unzip \
 		zsh
+	# AWS CLI v2
+	if aws --version >/dev/null 2>&1; then \
+		echo "AWS CLI is already installed. Cleaning up existing installation..."; \
+		sudo rm /usr/local/bin/aws /usr/local/bin/aws_completer; \
+		sudo rm -rf /usr/local/aws-cli; \
+	fi
+	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+	unzip awscliv2.zip
+	sudo ./aws/install
+	rm -rf aws awscliv2.zip
+	aws --version
 	# Neovim - from binary
 	curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
 	sudo rm -rf /opt/nvim
@@ -99,7 +110,7 @@ packages-linux:
 packages-common:
 	# Setting up Git Submodules
 	git submodule update --init
-	# Insalling Starship
+	# Installing Starship
 	curl -sS https://starship.rs/install.sh | sh
 	# Setting up NVM
 	PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash' && \

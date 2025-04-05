@@ -32,10 +32,10 @@ vim.api.nvim_create_autocmd(
   -- See https://github.com/LazyVim/LazyVim/issues/80
   { group = au_filetypes, pattern = { "*" }, command = "set fo-=o" }
 )
--- vim.api.nvim_create_autocmd(
---   { "BufRead", "BufNewFile" },
---   { group = au_filetypes, pattern = { "*.conf", "*.ini" }, command = "setl filetype=dosini" }
--- )
+vim.api.nvim_create_autocmd(
+  { "BufRead", "BufNewFile" },
+  { group = au_filetypes, pattern = { "*.conf", "*.ini" }, command = "setl filetype=dosini" }
+)
 vim.api.nvim_create_autocmd(
   { "BufRead", "BufNewFile" },
   { group = au_filetypes, pattern = { "*.zsh" }, command = "setl filetype=sh" }
