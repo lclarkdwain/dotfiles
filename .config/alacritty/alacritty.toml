@@ -1,194 +1,105 @@
-[shell]
-program = "C:\\Windows\\System32\\wsl.exe"
-args = ["~"]
+## Configuration for Alacritty, the GPU enhanced terminal emulator.
+## It's a very basic and simple config file, for full configuration, Run `man 5 alacritty`
 
-[font]
-size = 10
+## GENERAL --------------------------------------------------------
 
-[font.normal]
-family = "MesloLGS NF"
-style = "Regular"
+[general]
+## Import additional configuration files.
+import = ["~/.config/alacritty/colors.toml", "~/.config/alacritty/fonts.toml"]
 
-[cursor.style]
-blinking = "On"
+## You can set shell.program to the path of your favorite shell, e.g. /bin/zsh.
+## Entries in shell.args are passed as arguments to the shell.
+#shell = { program = "/bin/zsh", args = ["--login"] }
 
-[[keyboard.bindings]]
-action = "IncreaseFontSize"
-key = "Plus"
-mods = "Shift|Control"
+## Directory the shell is started in. When this is unset, or "None",
+## the working directory of the parent process will be used.
+#working_directory = "None"
 
-[[keyboard.bindings]]
-action = "DecreaseFontSize"
-key = "_"
-mods = "Shift|Control"
+## Live config reload
+live_config_reload = true
 
-[[keyboard.bindings]]
-action = "ResetFontSize"
-key = 11
-mods = "Shift|Control"
+## Offer IPC using alacritty msg
+ipc_socket = true
 
-[[keyboard.bindings]]
-chars = ""
-key = "Equals"
-mods = "Control"
+## ENVIRONMENT ----------------------------------------------------
 
-[[keyboard.bindings]]
-chars = "\u001F"
-key = "Minus"
-mods = "Control"
+## All key-value pairs in the [env] section will be added as environment variables for any process spawned
+## by Alacritty, including its shell. Some entries may override variables set by alacritty itself.
+[env]
+TERM = "alacritty"
+WINIT_X11_SCALE_FACTOR = "1.0"
 
-[[keyboard.bindings]]
-chars = ""
-key = "Key0"
-mods = "Control"
+## WINDOW ---------------------------------------------------------
+[window]
+position = "None"
+dynamic_padding = true
+decorations = "full"
+opacity = 1.0
+blur = false
+startup_mode = "Windowed"
+dynamic_title = true
+class = { instance = "Alacritty", general = "Alacritty" }
+decorations_theme_variant = "None"
 
-[[keyboard.bindings]]
-action = "Hide"
-key = "H"
-mods = "Shift|Control"
+## Number of lines/columns (not pixels) in the terminal.
+[window.dimensions]
+columns = 95
+lines = 24
 
-[[keyboard.bindings]]
-action = "CopySelection"
-key = "X"
-mods = "Shift|Control"
+## Blank space added around the window in pixels.
+[window.padding]
+x = 12
+y = 12
 
-[[keyboard.bindings]]
-action = "PasteSelection"
-key = "P"
-mods = "Shift|Control"
+## SCROLLING ------------------------------------------------------
+[scrolling]
+history = 10000
+multiplier = 3
 
-[[keyboard.bindings]]
-chars = "\u001B[13;2u"
-key = "Return"
-mods = "Shift"
+## BELL -----------------------------------------------------------
+[bell]
+animation = "Linear"
+duration = 20
+command = { program = "paplay", args = [
+  "/usr/share/sounds/freedesktop/stereo/dialog-error.oga",
+] }
 
-[[keyboard.bindings]]
-chars = "\u001B[13;4u"
-key = "Return"
-mods = "Shift|Alt"
-
-[[keyboard.bindings]]
-chars = "\u001B[13;5u"
-key = "Return"
-mods = "Control"
-
-[[keyboard.bindings]]
-chars = "\u001B[13;6u"
-key = "Return"
-mods = "Shift|Control"
-
-[[keyboard.bindings]]
-chars = "\u001B[13;7u"
-key = "Return"
-mods = "Alt|Control"
-
-[[keyboard.bindings]]
-chars = "\u001B[13;8u"
-key = "Return"
-mods = "Shift|Alt|Control"
-
+## SELECTION ------------------------------------------------------
 [selection]
 save_to_clipboard = true
 
-[window]
-opacity = 0.95
-[colors]
-draw_bold_text_with_bright_colors = true
-indexed_colors = [
-  { index = 24, color = "#076678" },
-  { index = 66, color = "#458588" },
-  { index = 72, color = "#689d6a" },
-  { index = 88, color = "#9d0006" },
-  { index = 96, color = "#8f3f71" },
-  { index = 100, color = "#79740e" },
-  { index = 106, color = "#98971a" },
-  { index = 108, color = "#8ec07c" },
-  { index = 109, color = "#83a598" },
-  { index = 124, color = "#cc241d" },
-  { index = 130, color = "#af3a03" },
-  { index = 132, color = "#b16286" },
-  { index = 136, color = "#b57614" },
-  { index = 142, color = "#b8bb26" },
-  { index = 166, color = "#d65d0e" },
-  { index = 167, color = "#fb4934" },
-  { index = 172, color = "#d79921" },
-  { index = 175, color = "#d3869b" },
-  { index = 208, color = "#fe8019" },
-  { index = 214, color = "#fabd2f" },
-  { index = 223, color = "#ebdbb2" },
-  { index = 228, color = "#f2e5bc" },
-  { index = 229, color = "#fbf1c7" },
-  { index = 230, color = "#f9f5d7" },
-  { index = 234, color = "#1d2021" },
-  { index = 235, color = "#282828" },
-  { index = 236, color = "#32302f" },
-  { index = 237, color = "#3c3836" },
-  { index = 239, color = "#504945" },
-  { index = 241, color = "#665c54" },
-  { index = 243, color = "#7c6f64" },
-  { index = 244, color = "#928374" },
-  { index = 245, color = "#928374" },
-  { index = 246, color = "#a89984" },
-  { index = 248, color = "#bdae93" },
-  { index = 250, color = "#d5c4a1" },
-]
+## CURSOR ---------------------------------------------------------
+[cursor]
+vi_mode_style = "None"
+blink_interval = 750
+blink_timeout = 5
+unfocused_hollow = false
+thickness = 0.15
 
-[colors.normal]
-black = "#282828"
-blue = "#458588"
-cyan = "#689d6a"
-green = "#98971a"
-magenta = "#b16286"
-red = "#cc241d"
-white = "#a89984"
-yellow = "#d79921"
+[cursor.style]
+shape = "Block"
+blinking = "On"
 
-[colors.bright]
-black = "#928374"
-blue = "#83a598"
-cyan = "#8ec07c"
-green = "#b8bb26"
-magenta = "#d3869b"
-red = "#fb4934"
-white = "#ebdbb2"
-yellow = "#fabd2f"
+## MOUSE ----------------------------------------------------------
+[mouse]
+hide_when_typing = false
 
-[colors.primary]
-background = "#282828"
-foreground = "#ebdbb2"
+## HINTS ----------------------------------------------------------
+[[hints.enabled]]
+command = "xdg-open"
+hyperlinks = true
+post_processing = true
+persist = false
+mouse.enabled = true
+binding = { key = "U", mods = "Control|Shift" }
+regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩‘]+"
 
-[colors.cursor]
-cursor = "CellForeground"
-text = "CellBackground"
-
-[colors.vi_mode_cursor]
-cursor = "CellForeground"
-text = "CellBackground"
-
-[colors.selection]
-background = "#665c54"
-text = "CellForeground"
-
-[colors.search.matches]
-background = "#fabd2f"
-foreground = "#282828"
-
-[colors.search.focused_match]
-background = "#fe8019"
-foreground = "#282828"
-
-[colors.hints.start]
-background = "#fabd2f"
-foreground = "#282828"
-
-[colors.line_indicator]
-background = "None"
-foreground = "None"
-
-[colors.footer_bar]
-background = "#282828"
-foreground = "#ebdbb2"
-
-[colors.hints.end]
-background = "#282828"
-foreground = "#fabd2f"
+## DEBUG ----------------------------------------------------------
+[debug]
+render_timer = false
+persistent_logging = false
+log_level = "Warn"
+renderer = "None"
+print_events = false
+highlight_damage = false
+prefer_egl = false

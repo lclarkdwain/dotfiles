@@ -1,8 +1,8 @@
 # Dotfiles
 
-Personal dotfiles for (Windows + WSL:Ubuntu-24.04)
+Personal dotfiles for (Arch Linux | Ubuntu-24.04 | MacOS)
 
-## Installation
+## Installation (WIP)
 
 ### Using Make & Stow
 
@@ -31,3 +31,5 @@ make
 - [lazygit](https://github.com/jesseduffield/lazygit)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
 - [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
+
+## TODO automated installation and setup even on fresh environments

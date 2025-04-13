@@ -17,7 +17,7 @@ return {
         "meson",
         "ninja",
         "nix",
-        "org",
+        -- "org",
         "php",
         "scss",
         "sql",

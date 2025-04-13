@@ -10,8 +10,8 @@ require("links").setup(config)
 config.warn_about_missing_glyphs = false
 
 -- config.front_end = "WebGpu"
--- config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
-config.enable_wayland = true
+config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
+config.enable_wayland = false
 config.webgpu_power_preference = "HighPerformance"
 -- config.animation_fps = 1
 config.cursor_blink_ease_in = "Constant"
@@ -30,23 +30,23 @@ config.window_decorations = "RESIZE"
 
 -- Fonts
 config.font_size = 10
-config.font = wezterm.font({ family = "Maple Mono" })
+config.font = wezterm.font({ family = "Maple Mono NF" })
 config.bold_brightens_ansi_colors = true
 config.font_rules = {
   {
     intensity = "Bold",
     italic = true,
-    font = wezterm.font({ family = "Maple Mono", weight = "Bold", style = "Italic" }),
+    font = wezterm.font({ family = "Maple Mono NF", weight = "Bold", style = "Italic" }),
   },
   {
     italic = true,
     intensity = "Half",
-    font = wezterm.font({ family = "Maple Mono", weight = "DemiBold", style = "Italic" }),
+    font = wezterm.font({ family = "Maple Mono NF", weight = "DemiBold", style = "Italic" }),
   },
   {
     italic = true,
     intensity = "Normal",
-    font = wezterm.font({ family = "Maple Mono", style = "Italic" }),
+    font = wezterm.font({ family = "Maple Mono NF", style = "Italic" }),
   },
 }
 -- Disable ligatures

@@ -1,6 +1,6 @@
 # vim: set noexpandtab:
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-OS := $(shell .local/bin/is-supported .local/bin/is-macos macos linux)
+OS := $(shell .local/bin/is-supported .local/bin/is-macos macos ubuntu)
 HOMEBREW_PREFIX := $(shell .local/bin/is-supported .local/bin/is-macos $(shell .local/bin/is-supported .local/bin/is-arm64 /opt/homebrew /usr/local) /home/linuxbrew/.linuxbrew)
 PATH := $(HOMEBREW_PREFIX)/bin:$(HOME)/.cargo/bin:$(DOTFILES_DIR)/.local/bin:$(PATH)
 SHELL := env PATH=$(PATH) /bin/bash
@@ -13,7 +13,7 @@ export LAZYGIT_VERSION=$(shell curl -s "https://api.github.com/repos/jesseduffie
 
 all: $(OS)
 
-linux: core-linux prepare packages link
+ubuntu: core-ubuntu prepare packages link
 
 macos: core-macos prepare packages link
 
@@ -22,32 +22,30 @@ prepare:
 		$(HOME)/.{config,local} \
 		$(HOME)/.local/{bin,share,src,state,cache}
 
-core-linux:
+core-ubuntu:
 	sudo apt update
 	sudo apt full-upgrade -y
 
 core-macos: brew git
 
-link: stow-$(OS)
-	for DIR in zsh bash; do \
+link:
+	for DIR in zsh; do \
 		for FILE in $$(\ls -A $$DIR); do if [ -f $(HOME)/$$FILE -a ! -h $(HOME)/$$FILE ]; then \
 			mv -v $(HOME)/$$FILE $(HOME)/$$FILE.bak; fi; done; \
 	done
 	mkdir -p "$(XDG_CONFIG_HOME)"
-	stow -t "$(HOME)" bash
 	stow -t "$(HOME)" zsh
 	stow -t "$(XDG_CONFIG_HOME)" .config
 
-unlink: stow-$(OS)
-	stow --delete -t "$(HOME)" bash
+unlink:
 	stow --delete -t "$(HOME)" zsh
 	stow --delete -t "$(XDG_CONFIG_HOME)" .config
-	for DIR in zsh bash; do \
+	for DIR in zsh; do \
 		for FILE in $$(\ls -A $$DIR); do if [ -f $(HOME)/$$FILE.bak ]; then \
 			mv -v $(HOME)/$$FILE.bak $(HOME)/$${FILE%%.bak}; fi; done; \
 	done
 
-stow-linux: core-linux
+stow-ubuntu: core-ubuntu
 	is-executable stow || sudo apt install stow -y
 
 stow-macos: brew
@@ -55,9 +53,12 @@ stow-macos: brew
 
 packages: packages-$(OS) packages-common rust-packages
 
+# TODO properly do this one
+packages-arch: packages-common rust-packages
+
 packages-macos: brew-packages cask-apps
 
-packages-linux:
+packages-ubuntu:
 	sudo apt update && sudo apt install -y \
 		build-essential \
 		cmake \

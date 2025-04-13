@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Import Current Theme
+DIR="$HOME/.config/i3"
+RASI="$DIR/theme/rofi/windows.rasi"
+
+# Run
+rofi -show window -theme ${RASI}
