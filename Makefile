@@ -13,6 +13,8 @@ export LAZYGIT_VERSION=$(shell curl -s "https://api.github.com/repos/jesseduffie
 
 all: $(OS)
 
+arch: prepare packages-arch link
+
 ubuntu: core-ubuntu prepare packages link
 
 macos: core-macos prepare packages link
@@ -94,9 +96,6 @@ packages-ubuntu:
 		cd $(HOME)/.local/src && \
 		tar xf lazygit.tar.gz lazygit && \
 		sudo install lazygit /usr/local/bin
-	# Setting up Rust
-	# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile default
 	# TMUX
 	@if [ ! -f "$(HOME)/.local/src/tmux-3.5a.tar.gz" ]; then \
 		curl -Lo "$(HOME)/.local/src/tmux-3.5a.tar.gz" "https://github.com/tmux/tmux/releases/download/3.5a/tmux-3.5a.tar.gz"; \
@@ -116,8 +115,7 @@ packages-common:
 	# Setting up NVM
 	PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash' && \
 		. $(XDG_CONFIG_HOME)/nvm/nvm.sh && \
-		nvm install lts/iron && \
-		npm i -g neovim
+		nvm install lts/iron
 
 brew:
 	is-executable brew || curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
@@ -138,4 +136,7 @@ node-packages:
 	# TODO: Add node packages
 
 rust-packages:
+	# Setting up Rust
+	# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile default
 	cargo install $(shell cat packages/rust)

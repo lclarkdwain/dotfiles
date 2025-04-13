@@ -10,9 +10,10 @@ require("links").setup(config)
 config.warn_about_missing_glyphs = false
 
 -- config.front_end = "WebGpu"
-config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
-config.enable_wayland = false
-config.webgpu_power_preference = "HighPerformance"
+-- config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
+config.enable_wayland = true
+-- config.webgpu_power_preference = "HighPerformance"
+-- config.webgpu_force_fallback_adapter = true
 -- config.animation_fps = 1
 config.cursor_blink_ease_in = "Constant"
 config.cursor_blink_ease_out = "Constant"
@@ -71,7 +72,7 @@ config.command_palette_fg_color = "#828bb8"
 
 -- Tab bar
 config.window_frame = {
-  font = wezterm.font("Maple Mono", { weight = "Bold" }),
+  font = wezterm.font("Maple Mono NF", { weight = "Bold" }),
   font_size = 9,
 }
 
