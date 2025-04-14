@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+## Manage other monitors when lapton lid is open/close
+## Edit according to your setup
+
+LID="`ls /proc/acpi/button/lid | head -n1`"
+OUTPUT="`swaymsg -pt get_outputs | grep 'Output' | cut -d' ' -f2`"
+
+if grep -q open /proc/acpi/button/lid/${LID}/state; then
+    swaymsg output ${OUTPUT} enable
+else
+    swaymsg output ${OUTPUT} disable
+fi
