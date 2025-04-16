@@ -3,12 +3,12 @@
 ## Autostart Programs
 
 # Kill already running process
-_ps=(waybar mako)
-for _prs in "${_ps[@]}"; do
-  if [[ $(pidof ${_prs}) ]]; then
-    killall -9 ${_prs}
-  fi
-done
+#_ps=(waybar mako)
+# for _prs in "${_ps[@]}"; do
+#   if [[ $(pidof ${_prs}) ]]; then
+#     killall -9 ${_prs}
+#   fi
+# done
 
 # Polkit agent
 if [[ ! $(pidof xfce-polkit) ]]; then
@@ -16,7 +16,7 @@ if [[ ! $(pidof xfce-polkit) ]]; then
 fi
 
 # Lauch notification daemon (mako)
-# ~/.config/sway/scripts/notifications &
+~/.config/sway/scripts/notifications &
 
 # Lauch statusbar (waybar)
 ~/.config/sway/scripts/statusbar &

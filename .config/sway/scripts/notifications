@@ -4,6 +4,6 @@
 
 CONFIG="$HOME/.config/sway/mako/config"
 
-if [[ ! `pidof mako` ]]; then
-	mako --config ${CONFIG}
+if [[ ! $(pidof mako) ]]; then
+  mako --config ${CONFIG}
 fi

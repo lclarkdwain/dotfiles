@@ -1,4 +1,5 @@
 pipewire
+pipewire-audio
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
@@ -10,3 +11,4 @@ vim
 nano
 htop
 xdg-utils
+xdg-user-dirs

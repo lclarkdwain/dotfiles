@@ -1,0 +1,153 @@
+# -- General options
+
+# 24-bit colors
+set -g default-terminal "tmux-256color"
+set -sa terminal-features ",xterm-256color:RGB"
+set -ga terminal-overrides ",alacritty:RGB"
+
+# Support undercurl
+set -sa terminal-overrides ',*:Smulx=\E[4::%p1%dm'
+# Support colors for undercurl
+set -sa terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
+
+# Turn the mouse on
+set -g mouse on
+
+set -s focus-events on
+set -g base-index 1
+set -wg pane-base-index 1
+set -g renumber-windows on
+set -g mode-keys vi
+set -g status-keys vi
+set -g escape-time 0
+set -g history-limit 10000
+set -g editor nvim
+set -g set-titles on
+set -g status-interval 10
+set -s copy-command 'pbcopy'
+set -g allow-passthrough on
+
+# -- Status line
+set -g status on
+
+set -g status-style 'bg=default,fg=#cdd6f4'
+set -g status-left-length 80
+set -g status-right-length 80
+set -g status-justify centre
+set -g status-left "#[fg=#1e1e2e,bg=#89b4fa,bold]  [#{session_name}] #[fg=#93b4fa,bg=#1e1e2e]"
+set -g status-right "#[fg=#89b4fa,bg=#1e1e2e]#[fg=#1e1e2e,bg=#89b4fa,bold] #{=21:pane_title} #[fg=#89b4fa,bg=#1e1e2e] #[fg=#89b4fa,bg=#1e1e2e]#[fg=#1e1e2e,bg=#89b4fa,bold] %H:%M %d-%b-%y "
+# set -g window-status-format "#[fg=#a6e3a1,bg=#1e1e2e]#[fg=#1e1e2e,bg=#a6e3a1]  #I:#W#{?window_flags,#{window_flags}, } #[fg=#a6e3a1,bg=#1e1e2e]"
+set -g window-status-format "#[fg=#a6a6a6,bg=#1e1e2e]#[fg=#1e1e2e,bg=#a6a6a6]  #I:#W#{?window_flags,#{window_flags}, } #[fg=#a6a6a6,bg=#1e1e2e]"
+set -g window-status-current-format "#[fg=#f38ba8,bg=#1e1e2e]#[fg=#1e1e2e,bg=#f38ba8,bold]  #I:#W#{?window_flags,#{window_flags}, } #[fg=#f38ba8,bg=#1e1e2e]"
+
+# -- Pane border
+set -wg pane-border-status top
+set -wg pane-border-format '#[align=right] #{?#{&&:#{pane_active},#{client_prefix}},#[underscore],}\
+#{pane_current_command}  #{pane_tty} #{?pane_active,❐ #S:#I/#{session_windows} ,}\
+#{?window_zoomed_flag,⬢,❄} #P '
+set -wg pane-active-border-style '#{?pane_in_mode,fg=#cc6633,\
+#{?synchronize-panes,fg=#c586c0#,bold,#{?#{==:#{client_key_table},resize},fg=#c72e0f,fg=#16825d#,bold}}}'
+
+# -- Key bindings
+
+# Set CTRL-A as the prefix key
+unbind C-b
+set -g prefix C-a
+bind C-a send-prefix
+
+# Reload tmux configuration
+bind C-r source-file ~/.dotfiles/.config/tmux/tmux.conf \; display "tmux.conf is Reloaded!"
+
+# Copy mode key bindings
+bind -T copy-mode-vi v send -X begin-selection
+bind -T copy-mode-vi C-v send -X rectangle-toggle
+bind -T copy-mode-vi i send -X select-word
+bind -T copy-mode-vi y send -X copy-pipe-and-cancel
+bind -T copy-mode-vi * if -F '#{selection_active}' {
+  send -X copy-pipe
+  send -FX search-forward-text '#{buffer_sample}'
+} {
+  send -FX search-forward '#{copy_cursor_word}'
+}
+bind -T copy-mode-vi \# if -F '#{selection_active}' {
+  send -X copy-pipe
+  send -FX search-backward-text '#{buffer_sample}'
+  send -X search-again
+} {
+  send -FX search-backward '#{copy_cursor_word}'
+}
+bind -T copy-mode-vi C-u send -X halfpage-up
+bind -T copy-mode-vi C-d send -X halfpage-down
+bind -T copy-mode-vi C-b send -X page-up
+bind -T copy-mode-vi C-f send -X page-down
+
+# Create a new window
+bind c new-window -c '#{pane_current_path}'
+
+# Window swapping
+bind < swap-window -t -1 \; previous-window
+bind > swap-window -t +1 \; next-window
+
+# Split window
+unbind -
+unbind '\'
+bind - split-window -v -c '#{pane_current_path}'
+bind '\' split-window -h -c '#{pane_current_path}'
+
+# Pane navigation
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# Pane swapping
+# C-s: swap the current pane with the marked pane, and clear the mark
+if -F '#{==:#{pane_marked_set},1}' {
+  bind C-s {
+    swap-pane
+    select-pane -M
+  }
+}
+
+# Pane operations (key bindings defined in "resize" key-table)
+# prefix + r (or M-s): switch to the key-table "resize", and then we can use the
+# key bindings defined in "resize" to perform pane-related operations
+bind r switch-client -T resize
+bind -n M-s switch-client -T resize
+bind -T resize m resize-pane -Z
+bind -n M-m resize-pane -Z
+bind -T resize ] next-layout \; switch-client -T resize
+bind -T resize [ previous-layout \; switch-client -T resize
+bind -T resize 1 select-pane -t :.1 \; switch-client -T resize
+bind -T resize 2 select-pane -t :.2 \; switch-client -T resize
+bind -T resize 3 select-pane -t :.3 \; switch-client -T resize
+bind -T resize 4 select-pane -t :.4 \; switch-client -T resize
+bind -T resize 5 select-pane -t :.5 \; switch-client -T resize
+bind -T resize 6 select-pane -t :.6 \; switch-client -T resize
+bind -T resize 7 select-pane -t :.7 \; switch-client -T resize
+bind -T resize 8 select-pane -t :.8 \; switch-client -T resize
+bind -T resize 9 select-pane -t :.9 \; switch-client -T resize
+bind -T resize 0 select-pane -t :.10 \; switch-client -T resize
+bind -T resize C-h select-pane -L \; switch-client -T resize
+bind -T resize C-j select-pane -D \; switch-client -T resize
+bind -T resize C-k select-pane -U \; switch-client -T resize
+bind -T resize C-l select-pane -R \; switch-client -T resize
+bind -T resize p last-pane \; switch-client -T resize
+bind -T resize \{ swap-pane -U \; switchc -T resize
+bind -T resize \} swap-pane -D \; switchc -T resize
+bind -T resize h resize-pane -L 2 \; switch-client -T resize
+bind -T resize j resize-pane -D 2 \; switch-client -T resize
+bind -T resize k resize-pane -U 2 \; switch-client -T resize
+bind -T resize l resize-pane -R 2 \; switch-client -T resize
+bind -T resize M-1 select-layout even-horizontal \; switchc -T resize
+bind -T resize M-2 select-layout even-vertical \; switchc -T resize
+bind -T resize M-3 select-layout main-horizontal \; switchc -T resize
+bind -T resize M-4 select-layout main-vertical \; switchc -T resize
+bind -T resize M-5 select-layout tiled \; switchc -T resize
+
+# Close all panes but the current one
+bind o kill-pane -a
+
+# Toggle synchronize-pane
+bind C-g if -F '#{pane_synchronized}' \
+'set -w synchronize-panes off' 'set -w synchronize-panes on'
