@@ -19,4 +19,4 @@ color14='#5FC0CC'
 color15='#B5BCC9'
 
 # Wallpaper
-wallpaper="$HOME/.config/sway/wallpapers/wallpaper.jpg"
+wallpaper="$HOME/.config/backgrounds/fantasy-samurai.png"

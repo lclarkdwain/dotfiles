@@ -24,12 +24,9 @@ cd ~/.dotfiles
 make
 ```
 
-## Configuration Requirements
+### Colorschems
 
-- [NeoVim](https://github.com/neovim/neovim/blob/master/INSTALL.md#linux)
-- [TPM](https://github.com/tmux-plugins/tpm)
-- [lazygit](https://github.com/jesseduffield/lazygit)
-- [ripgrep](https://github.com/BurntSushi/ripgrep)
-- [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
+- Gruvbox (Neovim)
+- Gruvbox-material (GUI)
 
 ## TODO automated installation and setup even on fresh environments

@@ -16,11 +16,19 @@ alpha='00000000'
 swaylock -f \
   \
   `# General` \
+  --screenshots \
   --ignore-empty-password \
   --show-failed-attempts \
   --hide-keyboard-layout \
+  --clock \
+  --indicator \
   --indicator-caps-lock \
   \
+  `# Effect` \
+  --effect-blur 7x5 \
+  --effect-vignette 0.5:0.5 \
+  --grace 2 \
+  --fade-in 0.2 \
   `# Appearance` \
   --color ${bg}E6 \
   --font 'JetBrainsMono Nerd Font' --font-size 18 \

@@ -3,13 +3,13 @@
 
 /** ********** Fonts ********** **/
 * {
-  font-family: "JetBrains Mono", "Iosevka Nerd Font", archcraft, sans-serif;
+  font-family: "JetBrains Mono", "Iosevka Nerd Font", sans-serif;
   font-size: 14px;
   font-weight: bold;
 }
 
 window {
-  background-color: @background;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 button {

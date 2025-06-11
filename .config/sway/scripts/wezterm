@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+## launch wezterm with sway config
+
+if [ "$1" == "-f" ]; then
+  wezterm start --class 'wezterm-float'
+elif [ "$1" == "-F" ]; then
+  # TODO: fullscreen version, my default config in wezterm.lua is fullscreen
+  wezterm start --class 'wezterm-fullscreen'
+else
+  wezterm "$@"
+fi

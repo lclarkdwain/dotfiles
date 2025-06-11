@@ -11,7 +11,18 @@ exec_always ~/.config/sway/scripts/startup
 include ~/.config/sway/config.d/*.conf
 
 ### Settings
+# default_orientation horizontal
+# swaybg_command swaybg
+# swaynag_command swaynag
+# workspace_layout default
 xwayland enable
+# focus_follows_mouse yes
+floating_modifier $mod normal
+# mouse_warping none
+# popup_during_fullscreen smart
+# workspace_auto_back_and_forth yes
+# focus_on_window_activation smart
+# show_marks yes
 
 #
 # Status Bar:

@@ -5,5 +5,5 @@ STYLE="$HOME/.config/sway/waybar/style.css"
 
 if [[ ! $(pidof waybar) ]]; then
   # waybar --bar main-bar --log-level error --config ${config} --style ${style}
-  waybar
+  waybar --bar main-bar --log-level error
 fi

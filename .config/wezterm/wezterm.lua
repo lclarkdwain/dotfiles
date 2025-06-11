@@ -2,7 +2,7 @@ local wezterm = require("wezterm") --[[@as Wezterm]]
 local mux = wezterm.mux
 local config = wezterm.config_builder()
 
-package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
+-- package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
 
 require("mouse").setup(config)
 require("links").setup(config)
@@ -19,6 +19,12 @@ config.enable_wayland = true
 config.cursor_blink_ease_in = "Constant"
 config.cursor_blink_ease_out = "Constant"
 
+-- Smoother
+-- config.max_fps = 100
+
+-- Support for undercurl, etc.
+config.term = "wezterm"
+
 -- Colorscheme
 config.color_scheme = "carbonfox"
 
@@ -28,7 +34,7 @@ config.colors = {
 
 config.window_background_opacity = 0.9
 -- Only keep the resizable border
-config.window_decorations = "RESIZE"
+-- config.window_decorations = "RESIZE"
 
 -- Fonts
 config.font_size = 10
@@ -78,10 +84,10 @@ config.window_frame = {
 }
 
 -- Gui startup
-wezterm.on("gui-startup", function(cmd)
-  local tab, pane, window = mux.spawn_window(cmd or {})
-  window:gui_window():maximize()
-end)
+-- wezterm.on("gui-startup", function(cmd)
+--   local tab, pane, window = mux.spawn_window(cmd or {})
+--   window:gui_window():maximize()
+-- end)
 
 -- Tab bar title
 wezterm.on("format-tab-title", function(tab)

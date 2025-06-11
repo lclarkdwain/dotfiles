@@ -1,3 +1,4 @@
 .DS_Store
 .config/tmux/plugins
 .zsh_plugins.zsh
+logs
