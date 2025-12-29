@@ -2,28 +2,38 @@ local wezterm = require("wezterm") --[[@as Wezterm]]
 local mux = wezterm.mux
 local config = wezterm.config_builder()
 
--- package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
+-- uncomment to use WSL as default domain
+package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
+config.default_domain = "WSL:Ubuntu"
 
 require("mouse").setup(config)
 require("links").setup(config)
 
 config.warn_about_missing_glyphs = false
 
-config.front_end = "Software"
--- config.front_end = "WebGpu"
+-- config.front_end = "Software"
 -- config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
-config.enable_wayland = true
--- config.webgpu_power_preference = "HighPerformance"
--- config.webgpu_force_fallback_adapter = true
+-- config.enable_wayland = true
 -- config.animation_fps = 1
 config.cursor_blink_ease_in = "Constant"
 config.cursor_blink_ease_out = "Constant"
+
+-- GPU
+-- local gpus = wezterm.gui.enumerate_gpus()
+-- config.webgpu_preferred_adapter = gpus[1]
+-- config.webgpu_power_preference = "HighPerformance"
+-- config.webgpu_force_fallback_adapter = true
+-- config.front_end = "WebGpu"
 
 -- Smoother
 -- config.max_fps = 100
 
 -- Support for undercurl, etc.
-config.term = "wezterm"
+-- config.term = "wezterm"
+
+--
+-- APPEARANCE
+--
 
 -- Colorscheme
 config.color_scheme = "carbonfox"
@@ -32,9 +42,13 @@ config.colors = {
   indexed = { [241] = "#65bcff" },
 }
 
-config.window_background_opacity = 0.9
+-- TODO: opacity not working on front_end = "WebGpu"
+config.window_background_opacity = 0.55
+config.win32_system_backdrop = "Acrylic"
 -- Only keep the resizable border
 -- config.window_decorations = "RESIZE"
+config.enable_tab_bar = true
+-- config.use_fancy_tab_bar = false
 
 -- Fonts
 config.font_size = 10
@@ -83,11 +97,24 @@ config.window_frame = {
   font_size = 9,
 }
 
+--
+-- EVENTS
+--
+
 -- Gui startup
--- wezterm.on("gui-startup", function(cmd)
---   local tab, pane, window = mux.spawn_window(cmd or {})
---   window:gui_window():maximize()
--- end)
+wezterm.on("gui-startup", function(cmd)
+  local tab, pane, window = mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
+end)
+
+wezterm.on("new-tab-button-click", function(window, pane)
+  -- This action spawns a new tab in the specified directory.
+  window:perform_action(wezterm.action.SpawnCommandInNewTab({ cwd = "~" }), pane)
+
+  -- Returning false prevents WezTerm from performing its default action
+  -- (which would open a second, default-cwd tab).
+  return false
+end)
 
 -- Tab bar title
 wezterm.on("format-tab-title", function(tab)

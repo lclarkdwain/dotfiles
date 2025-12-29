@@ -3,7 +3,7 @@
 -- so I have to add bash linter, language-server, etc myself.
 
 return {
-  "williamboman/mason.nvim",
+  "mason-org/mason.nvim",
   opts = {
     ensure_installed = {
       -- NOTE: bash - shfmt is installed by default by LazyVim

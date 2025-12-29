@@ -8,10 +8,15 @@ XDG_CONFIG_HOME ?= $(HOME)/.config
 
 DRY_RUN ?= false
 STOW_CMD = $(if $(filter $(DRY_RUN),true),echo stow,stow)
+MKDIR_CMD = $(if $(filter $(DRY_RUN),true),echo mkdir -p,mkdir -p)
 
 all: install link
 
-link: backup
+prepare:
+	@echo "Preparing required directories..."
+	@$(MKDIR_CMD) $(HOME)/.claude
+
+link: prepare backup
 	@echo "$(DOTFILES) Linking configurations..."
 	@$(STOW_CMD) -t $(HOME) zsh
 	@$(STOW_CMD) -t $(XDG_CONFIG_HOME) .config
@@ -50,10 +55,10 @@ ifeq ($(OS), darwin)
 	# TODO: @bash scripts/install-macos.sh
 else ifeq ($(DISTRO), arch)
 	@echo "detected arch linux"
-	@bash scripts/install-arch.sh
+	# TODO: @bash scripts/install-arch.sh
 else ifeq ($(DISTRO), ubuntu)
 	@echo "detected ubuntu"
-	# TODO: @bash scripts/install-ubuntu.sh
+	@bash scripts/install-ubuntu.sh
 else ifeq ($(DISTRO), fedora)
 	@echo "detected fedora"
 	# TODO: @bash scripts/install-fedora.sh
