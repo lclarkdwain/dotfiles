@@ -3,8 +3,8 @@ local mux = wezterm.mux
 local config = wezterm.config_builder()
 
 -- uncomment to use WSL as default domain
-package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
-config.default_domain = "WSL:Ubuntu"
+-- package.path = package.path .. ";" .. wezterm.config_dir .. "/?.lua"
+-- config.default_domain = "WSL:Ubuntu"
 
 require("mouse").setup(config)
 require("links").setup(config)

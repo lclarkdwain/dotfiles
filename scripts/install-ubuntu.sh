@@ -14,7 +14,7 @@ if ! source "$(dirname "$(realpath "$0")")/utilities.sh"; then
 fi
 
 DRY_RUN=0
-script_directory=scripts/ubuntu
+script_directory=scripts/install-scripts/ubuntu
 
 execute_script() {
   local script="$1"
@@ -78,4 +78,3 @@ printf "\n%.0s" {1..2}
 log SUCCESS "Ubuntu development environment setup complete!"
 printf "\n%.0s" {1..1}
 log INFO "IMPORTANT: Please log out and log back in (or reboot) for all changes to take effect."
-

@@ -5,7 +5,6 @@ pipewire_pkgs=(
   libpulse
   pipewire
   pipewire-alsa
-  pipewire-jack
   pipewire-pulse
   sof-firmware
   wireplumber

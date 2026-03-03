@@ -2,7 +2,7 @@
 
 set -e
 
-if ! source "$(dirname "$(realpath "$0")")/../utilities.sh"; then
+if ! source "$(dirname "$(realpath "$0")")/../../utilities.sh"; then
   echo "failed to source utilities.sh"
   exit 1
 fi
@@ -34,4 +34,3 @@ if [ -f "$RUST_PKGS_FILE" ]; then
 else
   log WARN "No packages file found at $RUST_PKGS_FILE; skipping cargo install"
 fi
-

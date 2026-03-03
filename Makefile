@@ -55,7 +55,7 @@ ifeq ($(OS), darwin)
 	# TODO: @bash scripts/install-macos.sh
 else ifeq ($(DISTRO), arch)
 	@echo "detected arch linux"
-	# TODO: @bash scripts/install-arch.sh
+	@bash scripts/install-arch.sh
 else ifeq ($(DISTRO), ubuntu)
 	@echo "detected ubuntu"
 	@bash scripts/install-ubuntu.sh

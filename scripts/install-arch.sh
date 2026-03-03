@@ -14,7 +14,7 @@ if ! source "$(dirname "$(realpath "$0")")/utilities.sh"; then
 fi
 
 DRY_RUN=0
-script_directory=scripts/arch
+script_directory=scripts/install-scripts/arch
 
 execute_script() {
   local script="$1"
@@ -63,13 +63,13 @@ execute_script "install-pipewire.sh"
 sleep 1
 execute_script "install-fonts.sh"
 sleep 1
-execute_script "install-sway.sh"
-sleep 1
+# execute_script "install-sway.sh"
+# sleep 1
 
-execute_script "install-sddm.sh"
-sleep 1
-execute_script "install-vmware.sh"
-sleep 1
+# execute_script "install-sddm.sh"
+# sleep 1
+# execute_script "install-vmware.sh"
+# sleep 1
 log INFO "Installing theme..."
 sleep 1
 log INFO "Installing xdg-desktop-portal..."

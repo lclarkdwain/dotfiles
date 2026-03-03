@@ -2,7 +2,7 @@
 
 set -e
 
-if ! source "$(dirname "$(realpath "$0")")/../utilities.sh"; then
+if ! source "$(dirname "$(realpath "$0")")/../../utilities.sh"; then
   echo "failed to source utilities.sh"
   exit 1
 fi
