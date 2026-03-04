@@ -1,7 +1,7 @@
 #!/bin/bash
 
 fonts_pkgs=(
-  maplemono-nf
+  maplemono-nf-unhinted
   otf-font-awesome
   ttf-firacode-nerd
   ttf-font-awesome

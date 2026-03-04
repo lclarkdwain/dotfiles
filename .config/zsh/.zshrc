@@ -43,3 +43,6 @@ unset _rc
 if type starship &> /dev/null; then
   eval "$(starship init zsh)"
 fi
+
+# opencode
+export PATH=/home/lclarkdwain/.opencode/bin:$PATH

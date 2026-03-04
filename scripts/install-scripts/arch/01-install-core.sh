@@ -20,7 +20,6 @@ core_pkgs=(
   rofi-wayland
   stow
   waybar
-  wezterm
   wget
   wl-clipboard
   wlogout

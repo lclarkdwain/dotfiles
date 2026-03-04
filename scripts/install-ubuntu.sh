@@ -14,12 +14,13 @@ if ! source "$(dirname "$(realpath "$0")")/utilities.sh"; then
 fi
 
 DRY_RUN=0
-script_directory=scripts/install-scripts/ubuntu
+COMMON_SCRIPTS_DIR="scripts/install-scripts/common"
+SCRIPT_DIR=scripts/install-scripts/ubuntu
 
 execute_script() {
   local script="$1"
-  shift
-  local script_path="$script_directory/$script"
+  local target_dir="${2:-$SCRIPT_DIR}"
+  local script_path="$target_dir/$script"
 
   printf "\n%.0s" {1..1}
   log INFO "Starting execution of {RED}$script{RESET}..."
@@ -57,19 +58,15 @@ printf "\n%.0s" {1..1}
 execute_script "install-updates.sh"
 sleep 1
 
-execute_script "install-nvm.sh"
-sleep 1
-
 execute_script "install-neovim.sh"
-sleep 1
-
-execute_script "install-rust.sh"
 sleep 1
 
 execute_script "install-go.sh"
 sleep 1
 
-execute_script "install-awscli.sh"
+execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
+execute_script "install-nvm.sh" "$COMMON_SCRIPTS_DIR"
+execute_script "install-rust.sh" "$COMMON_SCRIPTS_DIR"
 sleep 1
 
 execute_script "configure-shell.sh"
