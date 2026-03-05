@@ -1,8 +1,9 @@
 #!/bin/bash
 
 xdp_pkgs=(
-  xdg-desktop-portal-wlr
+  xdg-desktop-portal-hyprland
   xdg-desktop-portal-gtk
+  umockdev
 )
 
 source_dir=$(dirname "$(realpath "$0")")

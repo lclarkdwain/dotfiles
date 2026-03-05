@@ -13,3 +13,6 @@ if ! source "${source_dir}/global_fn.sh"; then
 fi
 
 install_packages "${bluetooth_pkgs[@]}"
+
+printf " Activating ${tput_colors[YELLOW]}Bluetooth${tput_colors[RESET]} Services...\n"
+sudo systemctl enable --now bluetooth.service 2>&1 | log PIPE

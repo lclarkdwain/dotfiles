@@ -1,12 +1,25 @@
 #!/bin/bash
 
-# This is mostly from the AUR, so need to review the PKGBUILD files to ensure there are no malicious scripts being run.
-# I also need to make sure that the packages are being installed from trusted sources.
-post_pkgs=(
-  zen-browser-bin
-  google-chrome
-  slack-desktop
-  zoom
+packages=(
+  cliphist
+  kvantum
+  rofi-wayland
+  imagemagick
+  swaync
+  swww
+  wallust
+  waybar
+  wl-clipboard
+  wlogout
+  kitty
+  hypridle
+  hyprlock
+  hyprland
+)
+
+# Local packages that should be in /usr/local/bin/
+local_pkgs_installed=(
+
 )
 
 source_dir=$(dirname "$(realpath "$0")")
@@ -15,4 +28,50 @@ if ! source "${source_dir}/global_fn.sh"; then
   exit 1
 fi
 
-install_packages "${post_pkgs[@]}"
+printf "\n%s - Final Check if all ${SKY_BLUE}Essential packages${RESET} were installed \n" "${NOTE}"
+# Initialize an empty array to hold missing packages
+missing=()
+local_missing=()
+
+# Function to check if a packages are installed using pacman
+is_installed_pacman() {
+  pacman -Qi "$1" &>/dev/null
+}
+
+# Loop through each package
+for pkg in "${packages[@]}"; do
+  # Check if the packages are installed
+  if ! is_installed_pacman "$pkg"; then
+    missing+=("$pkg")
+  fi
+done
+
+# Check for local packages
+for pkg1 in "${local_pkgs_installed[@]}"; do
+  if ! [ -f "/usr/local/bin/$pkg1" ]; then
+    local_missing+=("$pkg1")
+  fi
+done
+
+# Log missing packages
+if [ ${#missing[@]} -eq 0 ] && [ ${#local_missing[@]} -eq 0 ]; then
+  log OK "GREAT! All {YELLOW}essential packages{RESET} have been successfully installed."
+else
+  if [ ${#missing[@]} -ne 0 ]; then
+    log WARN "The following packages are not installed and will be logged:"
+    for pkg in "${missing[@]}"; do
+      log WARNING "$pkg"
+      log "$pkg"
+    done
+  fi
+
+  if [ ${#local_missing[@]} -ne 0 ]; then
+    log WARN "The following local packages are missing from /usr/local/bin/ and will be logged:"
+    for pkg1 in "${local_missing[@]}"; do
+      log WARNING "$pkg1 is not installed. Can't find it in /usr/local/bin/"
+      log "$pkg1"
+    done
+  fi
+
+  log NOTE "Missing packages logged at $(date)"
+fi

@@ -13,7 +13,7 @@ config.warn_about_missing_glyphs = false
 
 -- config.front_end = "Software"
 -- config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
--- config.enable_wayland = true
+config.enable_wayland = false
 -- config.animation_fps = 1
 config.cursor_blink_ease_in = "Constant"
 config.cursor_blink_ease_out = "Constant"

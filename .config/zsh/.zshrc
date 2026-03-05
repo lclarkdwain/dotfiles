@@ -44,5 +44,7 @@ if type starship &> /dev/null; then
   eval "$(starship init zsh)"
 fi
 
+# fastfetch -c $HOME/.config/fastfetch/config.jsonc
+
 # opencode
 export PATH=/home/lclarkdwain/.opencode/bin:$PATH

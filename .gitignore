@@ -2,3 +2,5 @@
 .config/tmux/plugins
 .zsh_plugins.zsh
 logs
+
+GTK-themes-icons

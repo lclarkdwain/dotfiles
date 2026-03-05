@@ -1,34 +1,89 @@
 #!/bin/bash
 
-core_pkgs=(
-  bat
-  brightnessctl
-  fastfetch
+# Desktop environment core packages installations
+
+extras=(
   fd
   foot
   fzf
-  grim
-  imagemagick
   jq
-  kitty
   lazygit
+  less
   luarocks
   mako
   neovim
-  network-manager-applet
   ripgrep
-  rofi-wayland
   stow
+)
+
+core_pkgs=(
+  #aylurs-gtk-shell
+  bc
+  cliphist
+  curl
+  grim
+  gvfs
+  gvfs-mtp
+  hyprpolkitagent
+  imagemagick
+  inxi
+  jq
+  kitty
+  kvantum
+  libspng
+  nano
+  network-manager-applet
+  pamixer
+  pavucontrol
+  playerctl
+  python-requests
+  python-pyquery
+  qt5ct
+  qt6ct
+  qt6-svg
+  rofi
+  slurp
+  swappy
+  swaync
+  swww
+  unzip # needed later
+  wallust
   waybar
   wget
   wl-clipboard
   wlogout
   xdg-user-dirs
   xdg-utils
-  xfce-polkit
-  xorg-xwayland
   yad
-  yazi
+)
+
+core_optional_pkgs=(
+  brightnessctl
+  btop
+  cava
+  loupe
+  fastfetch
+  gnome-system-monitor
+  mousepad
+  mpv
+  mpv-mpris
+  nvtop
+  nwg-look
+  nwg-displays
+  pacman-contrib
+  qalculate-gtk
+  yt-dlp
+)
+
+uninstall_pkgs=(
+  aylurs-gtk-shell
+  dunst
+  cachyos-hyprland-settings
+  mako
+  rofi
+  wallust-git
+  rofi-lbonn-wayland
+  rofi-lbonn-wayland-git
 )
 
 source_dir=$(dirname "$(realpath "$0")")
@@ -37,4 +92,11 @@ if ! source "${source_dir}/global_fn.sh"; then
   exit 1
 fi
 
+uninstall_packages "${uninstall_pkgs[@]}"
+printf "\n%.0s" {1..1}
+
 install_packages "${core_pkgs[@]}"
+printf "\n%.0s" {1..1}
+install_packages "${core_optional_pkgs[@]}"
+printf "\n%.0s" {1..1}
+install_packages "${extras[@]}"

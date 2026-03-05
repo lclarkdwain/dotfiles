@@ -19,6 +19,14 @@ prepare:
 link: prepare backup
 	@echo "$(DOTFILES) Linking configurations..."
 	@$(STOW_CMD) -t $(HOME) zsh
+	@echo "Linking .config (removing any conflicts)..."
+	@for dir in .config/*/; do \
+		folder=$$(basename $$dir); \
+		if [ -e "$(XDG_CONFIG_HOME)/$$folder" ] && [ ! -L "$(XDG_CONFIG_HOME)/$$folder" ]; then \
+			echo "Removing conflicting: $(XDG_CONFIG_HOME)/$$folder"; \
+			rm -rf "$(XDG_CONFIG_HOME)/$$folder"; \
+		fi; \
+	done
 	@$(STOW_CMD) -t $(XDG_CONFIG_HOME) .config
 
 unlink:
