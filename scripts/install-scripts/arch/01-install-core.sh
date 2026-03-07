@@ -10,7 +10,6 @@ extras=(
   lazygit
   less
   luarocks
-  mako
   neovim
   ripgrep
   stow

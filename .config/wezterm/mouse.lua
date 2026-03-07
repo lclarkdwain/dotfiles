@@ -4,6 +4,9 @@ local M = {}
 
 ---@param config Config
 function M.setup(config)
+  config.xcursor_theme = "Bibata-Modern-Ice"
+  config.xcursor_size = 24
+
   config.alternate_buffer_wheel_scroll_speed = 1
   config.mouse_bindings = {
     -- Don't open links without modifier

@@ -1,5 +1,4 @@
 local wezterm = require("wezterm") --[[@as Wezterm]]
-local mux = wezterm.mux
 local config = wezterm.config_builder()
 
 -- uncomment to use WSL as default domain
@@ -8,15 +7,20 @@ local config = wezterm.config_builder()
 
 require("mouse").setup(config)
 require("links").setup(config)
+require("nvidia").setup(config)
+require("appearance").setup(config)
+require("fonts").setup(config)
+require("keys").setup(config)
+require("events").setup()
 
 config.warn_about_missing_glyphs = false
 
 -- config.front_end = "Software"
 -- config.front_end = "OpenGL" -- current work-around for https://github.com/wez/wezterm/issues/4825
-config.enable_wayland = false
 -- config.animation_fps = 1
 config.cursor_blink_ease_in = "Constant"
 config.cursor_blink_ease_out = "Constant"
+-- config.enable_wayland = true
 
 -- GPU
 -- local gpus = wezterm.gui.enumerate_gpus()
@@ -30,138 +34,5 @@ config.cursor_blink_ease_out = "Constant"
 
 -- Support for undercurl, etc.
 -- config.term = "wezterm"
-
---
--- APPEARANCE
---
-
--- Colorscheme
-config.color_scheme = "carbonfox"
-
-config.colors = {
-  indexed = { [241] = "#65bcff" },
-}
-
--- TODO: opacity not working on front_end = "WebGpu"
-config.window_background_opacity = 0.55
-config.win32_system_backdrop = "Acrylic"
--- Only keep the resizable border
--- config.window_decorations = "RESIZE"
-config.enable_tab_bar = true
--- config.use_fancy_tab_bar = false
-
--- Fonts
-config.font_size = 10
-config.font = wezterm.font({ family = "Maple Mono NF" })
-config.bold_brightens_ansi_colors = true
-config.font_rules = {
-  {
-    intensity = "Bold",
-    italic = true,
-    font = wezterm.font({ family = "Maple Mono NF", weight = "Bold", style = "Italic" }),
-  },
-  {
-    italic = true,
-    intensity = "Half",
-    font = wezterm.font({ family = "Maple Mono NF", weight = "DemiBold", style = "Italic" }),
-  },
-  {
-    italic = true,
-    intensity = "Normal",
-    font = wezterm.font({ family = "Maple Mono NF", style = "Italic" }),
-  },
-}
--- Disable ligatures
-config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
-
--- Adjust underline style
-config.underline_position = -6
-config.underline_thickness = "150%"
-
--- Remove extra space
-config.window_padding = {
-  left = 0,
-  right = 0,
-  top = 0,
-  bottom = 0,
-}
-
--- Command Palette
-config.command_palette_font_size = 13
-config.command_palette_bg_color = "#394b70"
-config.command_palette_fg_color = "#828bb8"
-
--- Tab bar
-config.window_frame = {
-  font = wezterm.font("Maple Mono NF", { weight = "Bold" }),
-  font_size = 9,
-}
-
---
--- EVENTS
---
-
--- Gui startup
-wezterm.on("gui-startup", function(cmd)
-  local tab, pane, window = mux.spawn_window(cmd or {})
-  window:gui_window():maximize()
-end)
-
-wezterm.on("new-tab-button-click", function(window, pane)
-  -- This action spawns a new tab in the specified directory.
-  window:perform_action(wezterm.action.SpawnCommandInNewTab({ cwd = "~" }), pane)
-
-  -- Returning false prevents WezTerm from performing its default action
-  -- (which would open a second, default-cwd tab).
-  return false
-end)
-
--- Tab bar title
-wezterm.on("format-tab-title", function(tab)
-  -- Get the process name.
-  local process = string.gsub(tab.active_pane.foreground_process_name, "(.*[/\\])(.*)", "%2")
-  -- Current working directory.
-  local cwd = tab.active_pane.current_working_dir
-  cwd = cwd and string.format("%s ", cwd.file_path:gsub(os.getenv("HOME"), "~")) or ""
-  -- Format and return the title.
-  return string.format("(%d %s) %s", tab.tab_index + 1, process, cwd)
-end)
-
--- Status bar
--- Name of the current workspace | Hostname
-wezterm.on("update-status", function(window)
-  -- utf8 character for the powerline left solid arrow
-  local SOLID_LEFT_ARROW = utf8.char(0xe0b2)
-  --Add what will be displayed on the status bar here
-  local sections = {
-    window:active_workspace(),
-    wezterm.hostname(),
-  }
-  -- Get the palette of the current color theme
-  local color_scheme = window:effective_config().resolved_palette
-  -- parse returns a Color object that has functions for lightening and darkening
-  local bg = wezterm.color.parse(color_scheme.background)
-  local fg = color_scheme.foreground
-  -- Create gradients for the background color of each section
-  local gradient_to = bg
-  local gradient_from = gradient_to:lighten(0.2)
-  local gradients = wezterm.color.gradient({
-    orientation = "Horizontal",
-    colors = { gradient_from, gradient_to },
-  }, #sections)
-  -- Render
-  local elements = {}
-  for i, sec in ipairs(sections) do
-    if i == 1 then
-      table.insert(elements, { Background = { Color = "none" } })
-    end
-    table.insert(elements, { Foreground = { Color = gradients[i] } })
-    table.insert(elements, { Text = SOLID_LEFT_ARROW })
-    table.insert(elements, { Foreground = { Color = fg } })
-    table.insert(elements, { Background = { Color = gradients[i] } })
-    table.insert(elements, { Text = " " .. sec .. " " })
-  end
-  window:set_right_status(wezterm.format(elements))
-end)
 
 return config
