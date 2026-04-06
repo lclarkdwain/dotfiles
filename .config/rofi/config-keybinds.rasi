@@ -1,6 +1,6 @@
 /* Main Config - For Keybinds generation */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi"  
 
 
 /* ---- Mainbox ---- */

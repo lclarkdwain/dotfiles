@@ -1,6 +1,6 @@
 /* Main Config (waybar style) */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi" 
 
 /* ---- Mainbox ---- */
 mainbox {
@@ -18,7 +18,7 @@ window {
   height: inherit;
 }
 
-/* ---- Entry ---- */
+/* ---- Entry ---- */ 
 entry {
   expand: true;
   placeholder: " 🖼️  Search / Choose Waybar Style";

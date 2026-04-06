@@ -5,7 +5,7 @@
 pkill yad || true
 
 # check if rofi is already running
-if pidof rofi >/dev/null; then
+if pidof rofi > /dev/null; then
   pkill rofi
 fi
 
@@ -29,8 +29,8 @@ if [[ -f "/tmp/hypr_keybind_suggestions_file" ]]; then
   suggestions_file=$(cat "/tmp/hypr_keybind_suggestions_file")
   rm "/tmp/hypr_keybind_suggestions_file"
   if [[ -n "$suggestions_file" && -f "$suggestions_file" ]]; then
-    count=$(wc -l <"$suggestions_file")
-    msg="$msg | Overrides missing unbind: $count (suggestions: $suggestions_file)"
+     count=$(wc -l < "$suggestions_file")
+     msg="$msg | Overrides missing unbind: $count (suggestions: $suggestions_file)"
   fi
 fi
 

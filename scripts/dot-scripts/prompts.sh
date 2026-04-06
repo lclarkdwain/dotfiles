@@ -140,148 +140,103 @@ prompt_resolution_choice() {
 
 # Prompt for 12H clock; sets waybar/hyprlock/SDDM changes when accepted.
 prompt_clock_12h() {
-  local choice
+  local log="$1"
   while true; do
-    echo "${INFO:-[INFO]} Select clock format:"
-    echo "  1) 12H (AM/PM)"
-    echo "  2) 24H (default)"
-    if ! read -r -p "${CAT} Enter the number of your choice (1 or 2): " choice </dev/tty; then
-      echo "${ERROR} Unable to read input (tty unavailable)."
-      continue
-    fi
-    echo "${INFO:-[INFO]} You entered: '$choice'"
-    case "$choice" in
-    1)
-      _apply_waybar_12h
-      _apply_hyprlock_12h
-      echo "${NOTE:-[NOTE]} SDDM changes require sudo. Please enter your password if prompted."
-      sudo -v 2>/dev/null || { echo "${WARN:-[WARN]} Skipping SDDM edits (sudo unavailable)." 2>&1 | log PIPE; }
-      if sudo -n true 2>/dev/null; then
+    echo -e "${NOTE} ${SKY_BLUE} By default, KooL's Dots are configured in 24H clock format."
+    echo -n "$CAT Do you want to change to 12H (AM/PM) clock format? (y/n): "
+    read answer
+    answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+    if [[ "$answer" == "y" ]]; then
+      # waybar clocks
+      sed -i 's#^\(\s*\)//\("format": " {:%I:%M %p}",\) #\1\2 #g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)\("format": " {:%H:%M:%S}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)\("format": "  {:%H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)//\("format": "{:%I:%M %p - %d/%b}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)\("format": "{:%H:%M - %d/%b}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)//\("format": "{:%B | %a %d, %Y | %I:%M %p}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)\("format": "{:%B | %a %d, %Y | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)//\("format": "{:%A, %I:%M %P}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
+      sed -i 's#^\(\s*\)\("format": "{:%a %d | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
+
+      # hyprlock
+      local HYPRLOCK_FILE="config/hypr/hyprlock.conf"
+      if [ ! -f "$HYPRLOCK_FILE" ] && [ -f "config/hypr/hyprlock-1080p.conf" ]; then
+        HYPRLOCK_FILE="config/hypr/hyprlock-1080p.conf"
+      fi
+      if [ -f "$HYPRLOCK_FILE" ]; then
+        sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%H\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
+        sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/\1    text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
+        sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%S\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
+        sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/\1    text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
+      else
+        echo "${WARN} hyprlock template not found; skipping 12H lock format edits" 2>&1 | log PIPE
+      fi
+
+      if [ "${EXPRESS_MODE:-0}" -eq 0 ]; then
         apply_sddm_12h_format "/usr/share/sddm/themes/simple-sddm"
         apply_sddm_12h_format "/usr/share/sddm/themes/simple_sddm_2"
         apply_sddm_12h_format_sequoia "/usr/share/sddm/themes/sequoia_2"
+      else
+        echo "${NOTE:-[NOTE]} Express mode: skipping SDDM 12H edits to avoid sudo prompts." 2>&1 | log PIPE
       fi
-      echo "${OK} 12H format set successfully." 2>&1 | log PIPE
+      echo "${OK} 12H format set on waybar clocks succesfully." 2>&1 | log PIPE
       return
-      ;;
-    2)
-      _apply_waybar_24h
-      _apply_hyprlock_24h
-      echo "${NOTE:-[NOTE]} SDDM changes require sudo. Please enter your password if prompted."
-      sudo -v 2>/dev/null || { echo "${WARN:-[WARN]} Skipping SDDM edits (sudo unavailable)." 2>&1 | log PIPE; }
-      if sudo -n true 2>/dev/null; then
-        apply_sddm_24h_format "/usr/share/sddm/themes/simple-sddm"
-        apply_sddm_24h_format "/usr/share/sddm/themes/simple_sddm_2"
-        apply_sddm_24h_format_sequoia "/usr/share/sddm/themes/sequoia_2"
-      fi
-      echo "${OK} 24H format set successfully." 2>&1 | log PIPE
+    elif [[ "$answer" == "n" ]]; then
+      echo "${NOTE} You chose not to change to 12H format." 2>&1 | log PIPE
       return
-      ;;
-    *) echo "${ERROR} Invalid choice. Please enter 1 or 2." ;;
-    esac
+    else
+      echo "${ERROR} Invalid choice. Please enter y for yes or n for no."
+    fi
   done
-}
-
-_apply_waybar_12h() {
-  sed -i 's#^\(\s*\)//\("format": " {:%I:%M %p}",\) #\1\2 #g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": " {:%H:%M:%S}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "  {:%H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "{:%I:%M %p - %d/%b}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "{:%H:%M - %d/%b}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "{:%B | %a %d, %Y | %I:%M %p}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "{:%B | %a %d, %Y | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "{:%A, %I:%M %P}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "{:%a %d | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-}
-
-_apply_waybar_24h() {
-  sed -i 's#^\(\s*\)\("format": " {:%I:%M %p}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": " {:%H:%M:%S}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "  {:%H:%M}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "{:%I:%M %p - %d/%b}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "{:%H:%M - %d/%b}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "{:%B | %a %d, %Y | %I:%M %p}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "{:%B | %a %d, %Y | %H:%M}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)\("format": "{:%A, %I:%M %P}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-  sed -i 's#^\(\s*\)//\("format": "{:%a %d | %H:%M}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-}
-
-_apply_hyprlock_12h() {
-  local HYPRLOCK_FILE=".config/hypr/hyprlock.conf"
-  if [ -f "$HYPRLOCK_FILE" ]; then
-    sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%H\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-    sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/\1    text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-    sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%S\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-    sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/\1    text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-  else
-    echo "${WARN} hyprlock.conf not found; skipping 12H lock format edits" 2>&1 | log PIPE
-  fi
-}
-
-_apply_hyprlock_24h() {
-  local HYPRLOCK_FILE=".config/hypr/hyprlock.conf"
-  if [ -f "$HYPRLOCK_FILE" ]; then
-    sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%H\")\"/\1    text = cmd\[update:1000\] echo \"\$(date +\"%H\")\"/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-    sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-    sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%S\")\"/\1    text = cmd\[update:1000\] echo \"\$(date +\"%S\")\"/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-    sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-  else
-    echo "${WARN} hyprlock.conf not found; skipping 24H lock format edits" 2>&1 | log PIPE
-  fi
 }
 
 apply_sddm_12h_format() {
   local sddm_directory="$1"
+
   if [ -d "$sddm_directory" ]; then
     echo "Editing ${SKY_BLUE}$sddm_directory${RESET} to 12H format" 2>&1 | log PIPE
-    sudo -n true 2>/dev/null || {
+    if ! sudo -n sed -i 's|^## HourFormat="hh:mm AP"|HourFormat="hh:mm AP"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE; then
       echo "${WARN:-[WARN]} Skipping SDDM 12H edit (sudo password required)." 2>&1 | log PIPE
       return
-    }
-    sudo sed -i 's|^## HourFormat="hh:mm AP"|HourFormat="hh:mm AP"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE
-    sudo sed -i 's|^HourFormat="HH:mm"|## HourFormat="HH:mm"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE
+    fi
+    sudo -n sed -i 's|^HourFormat="HH:mm"|## HourFormat="HH:mm"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE || true
   fi
 }
 
 apply_sddm_12h_format_sequoia() {
   local sddm_directory="$1"
+
   if [ -d "$sddm_directory" ]; then
     echo "${YELLOW}sddm sequoia_2${RESET} theme exists. Editing to 12H format" 2>&1 | log PIPE
-    sudo -n true 2>/dev/null || {
+    if ! sudo -n sed -i 's|^clockFormat="HH:mm"|## clockFormat="HH:mm"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE; then
       echo "${WARN:-[WARN]} Skipping sequoia SDDM 12H edit (sudo password required)." 2>&1 | log PIPE
       return
-    }
-    sudo sed -i 's|^clockFormat="HH:mm"|## clockFormat="HH:mm"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE
+    fi
     if ! grep -q 'clockFormat="hh:mm AP"' "$sddm_directory/theme.conf"; then
-      sudo sed -i '/^## clockFormat=/a clockFormat="hh:mm AP"' "$sddm_directory/theme.conf" 2>&1 | log PIPE
+      sudo -n sed -i '/^clockFormat=/a clockFormat="hh:mm AP"' "$sddm_directory/theme.conf" 2>&1 | log PIPE || true
     fi
     echo "${OK} 12H format set to SDDM successfully." 2>&1 | log PIPE
   fi
 }
 
-apply_sddm_24h_format() {
-  local sddm_directory="$1"
-  if [ -d "$sddm_directory" ]; then
-    echo "Editing ${SKY_BLUE}$sddm_directory${RESET} to 24H format" 2>&1 | log PIPE
-    sudo -n true 2>/dev/null || {
-      echo "${WARN:-[WARN]} Skipping SDDM 24H edit (sudo password required)." 2>&1 | log PIPE
-      return
-    }
-    sudo sed -i 's|^## HourFormat="HH:mm"|HourFormat="HH:mm"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE
-    sudo sed -i 's|^HourFormat="hh:mm AP"|## HourFormat="hh:mm AP"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE
+# Rainbow borders toggle; returns "disabled" or "kept".
+prompt_rainbow_borders() {
+  local log="$1"
+  echo "${NOTE} ${SKY_BLUE}By default, Rainbow Borders animation is enabled"
+  echo "${WARN} However, this uses a bit more CPU and Memory resources."
+  if ! read -r -p "${CAT} Do you want to disable Rainbow Borders animation? (y/N): " border_choice </dev/tty; then
+    echo "${ERROR} Unable to read input for rainbow borders; leaving as-is." 2>&1 | log PIPE
+    echo "kept"
+    return
   fi
-}
-
-apply_sddm_24h_format_sequoia() {
-  local sddm_directory="$1"
-  if [ -d "$sddm_directory" ]; then
-    echo "${YELLOW}sddm sequoia_2${RESET} theme exists. Editing to 24H format" 2>&1 | log PIPE
-    sudo -n true 2>/dev/null || {
-      echo "${WARN:-[WARN]} Skipping sequoia SDDM 24H edit (sudo password required)." 2>&1 | log PIPE
-      return
-    }
-    sudo sed -i 's|^## clockFormat="HH:mm"|clockFormat="HH:mm"|' "$sddm_directory/theme.conf" 2>&1 | log PIPE
-    sudo sed -i '/^clockFormat="hh:mm AP"/d' "$sddm_directory/theme.conf" 2>&1 | log PIPE
-    echo "${OK} 24H format restored to SDDM successfully." 2>&1 | log PIPE
+  if [[ "$border_choice" =~ ^[Yy]$ ]]; then
+    mv config/hypr/UserScripts/RainbowBorders.sh config/hypr/UserScripts/RainbowBorders.bak.sh
+    sed -i '/exec-once = \$UserScripts\/RainbowBorders.sh/s/^/#/' config/hypr/configs/Startup_Apps.conf
+    sed -i '/^[[:space:]]*animation = borderangle, 1, 180, liner, loop/s/^/#/' config/hypr/configs/UserAnimations.conf
+    echo "${OK} Rainbow borders are now disabled." 2>&1 | log PIPE
+    echo "disabled"
+  else
+    echo "${NOTE} No changes made. Rainbow borders remain enabled." 2>&1 | log PIPE
+    echo "kept"
   fi
 }

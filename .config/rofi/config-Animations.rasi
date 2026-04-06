@@ -1,6 +1,6 @@
 /* Animations Menu */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi" 
 
 /* ---- Mainbox ---- */
 mainbox {
@@ -14,7 +14,7 @@ window {
   height: inherit;
 }
 
-/* ---- Entry ---- */
+/* ---- Entry ---- */ 
 entry {
   width: 43%;
   placeholder: " ✨ Search / Choose which Animations to load";

@@ -117,6 +117,8 @@ sleep 1
 # DE Core
 execute_script "01-install-core.sh"
 sleep 1
+execute_script "configure-polkit.sh"
+sleep 1
 execute_script "install-pipewire.sh"
 sleep 1
 execute_script "install-fonts.sh"

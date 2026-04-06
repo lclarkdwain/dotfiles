@@ -1,3 +1,7 @@
+#if [ -z "${DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
+#       Hyprland
+#fi
+
 # Browser
 if [[ "$OSTYPE" == darwin* ]]; then
   export BROWSER="${BROWSER:-open}"
@@ -14,5 +18,10 @@ path=(
   # Go binaries
   /usr/local/go/bin(N)
   $HOME/go/bin(N)
+  # Mobile Development
+  $HOME/Android/Sdk/emulator(N)
+  $HOME/Android/Sdk/platform-tools(N)
+  $HOME/Android/Sdk/cmdline-tools/latest/bin(N)
+  $HOME/development/flutter/bin(N)
   $path
 )

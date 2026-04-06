@@ -2,9 +2,9 @@
 
 clear
 wallpaper=$HOME/.dotfiles/.config/hypr/wallpaper_effects/.wallpaper_current
-waybar_style="$HOME/.dotfiles/.config/waybar/style/[WALLUST] ML4W-modern-mixed.css"
-waybar_config="$HOME/.dotfiles/.config/waybar/configs/[TOP] Default"
-waybar_config_laptop="$HOME/.dotfiles/.config/waybar/configs/[TOP] Default Laptop"
+waybar_style="$HOME/.dotfiles/.config/waybar/style/Extra-Prismatic-Glow.css"
+waybar_config="$HOME/.dotfiles/.config/waybar/configs/TOP-Default"
+waybar_config_laptop="$HOME/.dotfiles/.config/waybar/configs/TOP-Default-Laptop"
 
 source_dir=$(dirname "$(realpath "$0")")
 if ! source "${source_dir}/global_fn.sh"; then
@@ -177,6 +177,19 @@ chmod +x ".config/hypr/UserScripts/"* 2>&1 | log PIPE
 # Set executable for initial-boot.sh
 chmod +x ".config/hypr/initial-boot.sh" 2>&1 | log PIPE
 
+# Reload user systemd and ensure hyprpolkitagent is enabled/running
+if command -v systemctl >/dev/null 2>&1; then
+  if systemctl --user list-unit-files 2>/dev/null | grep -q '^hyprpolkitagent\.service'; then
+    if ! pgrep -u "$UID" -f 'xfce-polkit|polkit-gnome-authentication-agent-1|polkit-kde-authentication-agent-1|hyprpolkitagent' >/dev/null 2>&1; then
+      systemctl --user daemon-reload 2>&1 | log PIPE || true
+      systemctl --user enable hyprpolkitagent 2>&1 | log PIPE || true
+      systemctl --user start hyprpolkitagent 2>&1 | log PIPE || true
+    else
+      echo "${NOTE} Polkit agent already running. Skipping hyprpolkitagent enable/start." | log PIPE
+    fi
+  fi
+fi
+
 chassis_type=$(detect_waybar_config)
 if [ "$chassis_type" = "desktop" ]; then
   config_file="$waybar_config"
@@ -187,8 +200,26 @@ else
 fi
 
 # Check if ~/.config/waybar/config does not exist or is a symlink
-if [ ! -e "$HOME/.dotfiles/.config/waybar/config" ] || [ -L "$HOME/.dotfiles/.config/waybar/config" ]; then
-  ln -sf "$config_file" "$HOME/.dotfiles/.config/waybar/config" 2>&1 | log PIPE
+# if [ ! -e "$HOME/.dotfiles/.config/waybar/config" ] || [ -L "$HOME/.dotfiles/.config/waybar/config" ]; then
+#   ln -sf "$config_file" "$HOME/.dotfiles/.config/waybar/config" 2>&1 | log PIPE
+# fi
+
+# Ensure waybar config uses the normalized default.
+# - If the current path is not a symlink (regular file), convert it to a symlink.
+# - If the symlink points somewhere else (or is broken), reset it to the new default.
+WAYBAR_CONFIG_LINK="$HOME/.dotfiles/.config/waybar/config"
+WAYBAR_CONFIG_TARGET="$config_file"
+if [ -e "$WAYBAR_CONFIG_TARGET" ]; then
+  if [ -L "$WAYBAR_CONFIG_LINK" ]; then
+    current_target=$(readlink "$WAYBAR_CONFIG_LINK" || true)
+    if [ "$current_target" != "$WAYBAR_CONFIG_TARGET" ] || [ ! -e "$WAYBAR_CONFIG_LINK" ]; then
+      ln -sf "$WAYBAR_CONFIG_TARGET" "$WAYBAR_CONFIG_LINK" 2>&1 | log PIPE
+    fi
+  else
+    ln -sf "$WAYBAR_CONFIG_TARGET" "$WAYBAR_CONFIG_LINK" 2>&1 | log PIPE
+  fi
+else
+  echo "${WARN} Waybar default config target not found at $WAYBAR_CONFIG_TARGET; leaving $WAYBAR_CONFIG_LINK as-is." 2>&1 | log PIPE
 fi
 
 # Remove inappropriate waybar configs
@@ -241,7 +272,7 @@ while true; do
   case $WALL in
   [Yy])
     echo "${NOTE} Downloading additional wallpapers..."
-    if git clone "https://github.com/JaKooLit/Wallpaper-Bank.git"; then
+    if git clone "https://github.com/LinuxBeginnings/Wallpaper-Bank.git"; then
       echo "${OK} Wallpapers downloaded successfully." 2>&1 | log PIPE
 
       # Check if wallpapers directory exists and create it if not
@@ -272,8 +303,26 @@ while true; do
 done
 
 # Check if ~/.config/waybar/style.css does not exist or is a symlink
-if [ ! -e "$HOME/.dotfiles/.config/waybar/style.css" ] || [ -L "$HOME/.dotfiles/.config/waybar/style.css" ]; then
-  ln -sf "$waybar_style" "$HOME/.dotfiles/.config/waybar/style.css" 2>&1 | log PIPE
+# if [ ! -e "$HOME/.dotfiles/.config/waybar/style.css" ] || [ -L "$HOME/.dotfiles/.config/waybar/style.css" ]; then
+#   ln -sf "$waybar_style" "$HOME/.dotfiles/.config/waybar/style.css" 2>&1 | log PIPE
+# fi
+
+# Ensure waybar style uses the normalized default.
+# - If the current path is not a symlink (regular file), convert it to a symlink.
+# - If the symlink points somewhere else (or is broken), reset it to the new default.
+WAYBAR_STYLE_LINK="$HOME/.dotfiles/.config/waybar/style.css"
+WAYBAR_STYLE_TARGET="$waybar_style"
+if [ -e "$WAYBAR_STYLE_TARGET" ]; then
+  if [ -L "$WAYBAR_STYLE_LINK" ]; then
+    current_target=$(readlink "$WAYBAR_STYLE_LINK" || true)
+    if [ "$current_target" != "$WAYBAR_STYLE_TARGET" ] || [ ! -e "$WAYBAR_STYLE_LINK" ]; then
+      ln -sf "$WAYBAR_STYLE_TARGET" "$WAYBAR_STYLE_LINK" 2>&1 | log PIPE
+    fi
+  else
+    ln -sf "$WAYBAR_STYLE_TARGET" "$WAYBAR_STYLE_LINK" 2>&1 | log PIPE
+  fi
+else
+  echo "${WARN} Waybar default style target not found at $WAYBAR_STYLE_TARGET; leaving $WAYBAR_STYLE_LINK as-is." 2>&1 | log PIPE
 fi
 
 printf "\n%.0s" {1..1}

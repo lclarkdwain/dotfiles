@@ -1,6 +1,6 @@
 /* Main Config Rofi Theme */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi"  
 
 /* ---- Window ---- */
 window {

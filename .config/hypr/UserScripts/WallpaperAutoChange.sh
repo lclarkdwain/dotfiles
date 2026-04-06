@@ -9,11 +9,16 @@
 wallust_refresh=$HOME/.config/hypr/scripts/RefreshNoWaybar.sh
 
 focused_monitor=$(hyprctl monitors | awk '/^Monitor/{name=$2} /focused: yes/{print name}')
+if command -v awww >/dev/null 2>&1; then
+	WWW="awww"
+else
+	WWW="swww"
+fi
 
-if [[ $# -lt 1 ]] || [[ ! -d $1 ]]; then
-  echo "Usage:
+if [[ $# -lt 1 ]] || [[ ! -d $1   ]]; then
+	echo "Usage:
 	$0 <dir containing images>"
-  exit 1
+	exit 1
 fi
 
 # Edit below to control the images transition
@@ -24,18 +29,18 @@ export SWWW_TRANSITION_TYPE=simple
 INTERVAL=1800
 
 while true; do
-  find "$1" |
-    while read -r img; do
-      echo "$((RANDOM % 1000)):$img"
-    done |
-    sort -n | cut -d':' -f2- |
-    while read -r img; do
-      swww img -o $focused_monitor "$img"
-      # Regenerate colors from the exact image path to avoid cache races
-      $HOME/.config/hypr/scripts/WallustSwww.sh "$img"
-      # Refresh UI components that depend on wallust output
-      $wallust_refresh
-      sleep $INTERVAL
-
-    done
+	find "$1" \
+		| while read -r img; do
+			echo "$((RANDOM % 1000)):$img"
+		done \
+		| sort -n | cut -d':' -f2- \
+		| while read -r img; do
+			$WWW img -o $focused_monitor "$img"
+			# Regenerate colors from the exact image path to avoid cache races
+			$HOME/.config/hypr/scripts/WallustSwww.sh "$img"
+			# Refresh UI components that depend on wallust output
+			$wallust_refresh
+			sleep $INTERVAL
+			
+		done
 done

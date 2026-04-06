@@ -13,7 +13,7 @@ configuration {
     window-format:              "{w} · {c} · {t}";
     hover-select:               true;
     me-select-entry:            "MouseSecondary";
-    me-accept-entry:            "MousePrimary";
+    me-accept-entry:            "MousePrimary";    
 }
 
 /* ---- Load wallust colors ---- */

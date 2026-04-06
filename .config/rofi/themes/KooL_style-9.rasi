@@ -20,7 +20,7 @@ configuration {
 @theme "~/.config/rofi/wallust/colors-rofi.rasi"
 
 /*****----- Global Properties -----*****/
-* {
+* {    
     BG:    @background;
     BGA:   @color12;
     FG:    @foreground;

@@ -36,3 +36,4 @@ sleep 2
 start_portal_binary "xdg-desktop-portal" \
   /usr/lib/xdg-desktop-portal \
   /usr/libexec/xdg-desktop-portal
+

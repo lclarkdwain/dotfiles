@@ -1,8 +1,8 @@
 /* Oh My ZSH Theme */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi"  
 
-/* ---- Configuration ---- */
+/* ---- Configuration ---- */ 
 configuration {
   modi: "drun";
 }

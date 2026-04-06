@@ -34,23 +34,28 @@ core_pkgs=(
   network-manager-applet
   pamixer
   pavucontrol
+  libpulse
   playerctl
   python-requests
   python-pyquery
   qt5ct
+  qt-style-kvantum
   qt6ct
   qt6-svg
+  qt6-style-kvantum
   rofi
   slurp
   swappy
   swaync
-  swww
+  awww
   unzip # needed later
   wallust
   waybar
+  waybar-weather
   wget
   wl-clipboard
   wlogout
+  xfce-polkit
   xdg-user-dirs
   xdg-utils
   yad
@@ -79,7 +84,6 @@ uninstall_pkgs=(
   dunst
   cachyos-hyprland-settings
   mako
-  rofi
   wallust-git
   rofi-lbonn-wayland
   rofi-lbonn-wayland-git
@@ -99,3 +103,13 @@ printf "\n%.0s" {1..1}
 install_packages "${core_optional_pkgs[@]}"
 printf "\n%.0s" {1..1}
 install_packages "${extras[@]}"
+
+# Ensure hyprpolkitagent user service is enabled and running
+if systemctl --user list-unit-files 2>/dev/null | grep -q '^hyprpolkitagent\.service'; then
+  if ! systemctl --user is-enabled --quiet hyprpolkitagent 2>/dev/null; then
+    systemctl --user enable hyprpolkitagent 2>&1 | log PIPE || true
+  fi
+  if ! systemctl --user is-active --quiet hyprpolkitagent 2>/dev/null; then
+    systemctl --user start hyprpolkitagent 2>&1 | log PIPE || true
+  fi
+fi

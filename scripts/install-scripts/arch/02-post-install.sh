@@ -6,7 +6,7 @@ packages=(
   rofi-wayland
   imagemagick
   swaync
-  swww
+  awww
   wallust
   waybar
   wl-clipboard
@@ -74,4 +74,13 @@ else
   fi
 
   log NOTE "Missing packages logged at $(date)"
+fi
+
+# Check hyprpolkitagent user service status
+if systemctl --user list-unit-files 2>/dev/null | grep -q '^hyprpolkitagent\.service'; then
+  if systemctl --user is-active --quiet hyprpolkitagent 2>/dev/null; then
+    echo "${OK} hyprpolkitagent user service is running." | log PIPE
+  else
+    echo "${WARN} hyprpolkitagent user service is not running." | log PIPE
+  fi
 fi

@@ -7,3 +7,4 @@
 bash "$HOME/.config/hypr/UserScripts/WeatherWrap.sh" >/dev/null 2>&1
 
 loginctl lock-session
+

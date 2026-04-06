@@ -1,6 +1,6 @@
 /* Main Config - emoji */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi" 
 
 /* ---- Mainbox ---- */
 mainbox {

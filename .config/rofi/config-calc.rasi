@@ -1,7 +1,7 @@
 /* Main Config Calculator */
 /* Submitted by: https://github.com/JosephArmas */
 
-@import "~/.config/rofi/config.rasi"
+@import "~/.config/rofi/config.rasi" 
 
 /* ---- Mainbox ---- */
 mainbox {

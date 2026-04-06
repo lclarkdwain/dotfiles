@@ -26,6 +26,17 @@ export MANWIDTH=999
 # Rust
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
+# Java
+# Arch Linux standardizes the active JDK path here via archlinux-java
+export JAVA_HOME="/usr/lib/jvm/default"
+
+# Android
+# The default installation path for the SDK via Android Studio
+export ANDROID_HOME="$HOME/Android/Sdk"
+
+# Others
+export CHROME_EXECUTABLE="/usr/bin/google-chrome-stable"
+
 # ...
 # Guard zsh syntax because this file is sourced by bash during setup script
 if [ -n "$ZSH_VERSION" ]; then
