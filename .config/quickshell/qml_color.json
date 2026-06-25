@@ -1,17 +1,17 @@
 {
     "windowBackground": "#0f0f15",
     "primaryText": "#bac2de",
-    "layerBackground1": "#EBDCBA",
-    "layerBackground2": "#AF9764",
+    "layerBackground1": "#E3E2DD",
+    "layerBackground2": "#A3A099",
     "layerBackground3": "#2D282E",
     "surfaceText": "#EAE0E7",
     "secondaryText": "#CFC3CD",
-    "borderPrimary": "#EBDCBA",
+    "borderPrimary": "#E3E2DD",
     "shadowColor": "#000000",
-    "accentPrimary": "#EBDCBA",
-    "accentSecondary": "##EBDCBA",
-    "selectionBackground": "#EBDCBA",
+    "accentPrimary": "#E3E2DD",
+    "accentSecondary": "##E3E2DD",
+    "selectionBackground": "#E3E2DD",
     "accentPrimaryText": "#FFFFFF",
     "selectionText": "#F2DCF3",
-    "borderSecondary": "##56915E"
+    "borderSecondary": "##A29C94"
 }

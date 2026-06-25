@@ -10,15 +10,14 @@ SCRIPTSDIR="$HOME/.config/hypr/scripts"
 focused_monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')
 
 PICS=($(find -L "${wallDIR}" -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.pnm" -o -name "*.tga" -o -name "*.tiff" -o -name "*.webp" -o -name "*.bmp" -o -name "*.farbfeld" -o -name "*.gif" \)))
-RANDOMPICS=${PICS[ $RANDOM % ${#PICS[@]} ]}
+RANDOMPICS=${PICS[$RANDOM % ${#PICS[@]}]}
 
-
-# Transition config (only when using swww)
+# Transition config (swww/awww)
 FPS=30
 TYPE="random"
 DURATION=1
 BEZIER=".43,1.19,1,.4"
-if [[ "$WWW_CMD" == "swww" ]]; then
+if [[ "$WWW_CMD" == "swww" || "$WWW_CMD" == "awww" ]]; then
   SWWW_PARAMS="--transition-fps $FPS --transition-type $TYPE --transition-duration $DURATION --transition-bezier $BEZIER"
 else
   SWWW_PARAMS=""
@@ -31,8 +30,6 @@ fi
 
 wait $!
 "$SCRIPTSDIR/WallustSwww.sh" "$RANDOMPICS" &&
-
-wait $!
+  wait $!
 sleep 2
 "$SCRIPTSDIR/Refresh.sh"
-

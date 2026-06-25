@@ -3,6 +3,7 @@ return {
     "catppuccin/nvim",
     name = "catppuccin",
     lazy = false,
+    priority = 1000,
     opts = function(_, opts)
       local base24 = require("config.colors-base24")
       local utils = require("catppuccin.utils.colors")

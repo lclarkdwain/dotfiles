@@ -28,11 +28,13 @@ link: prepare backup
 		fi; \
 	done
 	@$(STOW_CMD) -t $(XDG_CONFIG_HOME) .config
+	@$(STOW_CMD) -t $(HOME)/.local .local
 
 unlink:
 	@echo "Unlinking configurations..."
 	@stow -D -t $(HOME) zsh
 	@stow -D -t $(XDG_CONFIG_HOME) .config
+	@stow -D -t $(HOME)/.local .local
 
 backup:
 	@echo "Creating backups for existing configurations... (max 3 and overwrites the oldest)"

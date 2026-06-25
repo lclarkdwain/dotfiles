@@ -34,6 +34,10 @@ export JAVA_HOME="/usr/lib/jvm/default"
 # The default installation path for the SDK via Android Studio
 export ANDROID_HOME="$HOME/Android/Sdk"
 
+export ANDROID_USER_HOME=$HOME/.config/.android
+export ANDROID_EMULATOR_HOME=$ANDROID_USER_HOME
+export ANDROID_AVD_HOME=$HOME/.config/.android/avd
+
 # Others
 export CHROME_EXECUTABLE="/usr/bin/google-chrome-stable"
 

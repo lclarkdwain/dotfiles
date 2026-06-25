@@ -32,7 +32,6 @@ set_layout() {
   hyprctl keyword unbind SUPER,up
   hyprctl keyword unbind SUPER,down
   hyprctl keyword unbind SUPER,O
-  hyprctl keyword unbind SUPER_SHIFT,M
 
   case "$target" in
   "dwindle")
@@ -61,7 +60,6 @@ set_layout() {
     hyprctl keyword bind SUPER,up,layoutmsg,cycleprev
     hyprctl keyword bind SUPER,right,layoutmsg,cyclenext
     hyprctl keyword bind SUPER,down,layoutmsg,cyclenext
-    hyprctl keyword bind SUPER_SHIFT,M,layoutmsg,swapnext
     notify-send -e -u low -i "$notif" " Monocle Layout"
     ;;
   "master")
@@ -93,10 +91,10 @@ case "$arg" in
 init)
   set_layout "$current"
   ;;
-toggle|next)
+toggle | next)
   set_layout "$(next_layout "$current")"
   ;;
-master|dwindle|scrolling|monocle)
+master | dwindle | scrolling | monocle)
   set_layout "$arg"
   ;;
 *)
