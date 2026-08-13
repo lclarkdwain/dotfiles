@@ -4,6 +4,21 @@
 # Local Paths
 local_dir="$HOME/.config/hypr"
 iDIR="$HOME/.config/swaync/images/"
+
+# LOCAL GUARD: this script ends in `git pull && ./copy.sh`, and upstream copy.sh
+# moves ~/.config/hypr/hyprland.lua aside then restores its hyprlang .conf tree.
+# Under a Lua config that silently reverts the migration and discards local
+# fixes from the active path. Upstream still ships .conf as its default and its
+# Lua support is an opt-in Phase 1, so a bulk sync is not safe here.
+# Refuse to run while the Lua entrypoint is in use; cherry-pick files instead.
+if [ -f "$local_dir/hyprland.lua" ] || [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/hyprland.lua" ]; then
+  echo "Refusing to run: this config uses Hyprland's Lua entrypoint (hyprland.lua)." >&2
+  echo "Upstream copy.sh would disable it and restore the hyprlang .conf tree." >&2
+  echo "Cherry-pick upstream changes manually instead (diverged from v2.3.25 / bca86bb)." >&2
+  notify-send -e -u normal -i "$iDIR/ja.png" 'Dots auto-update disabled' \
+    'Self-maintained Lua config. Cherry-pick upstream changes manually.' 2>/dev/null
+  exit 0
+fi
 local_version=$(find "$local_dir" -maxdepth 1 -name 'v*' -printf '%f\n' 2>/dev/null | sort -V | tail -n 1 | sed 's/^v//')
 KooL_Dots_DIR="$HOME/Hyprland-Dots"
 
