@@ -232,7 +232,8 @@ bind("SUPER ALT", "L", exec_cmd("$HOME/.config/hypr/scripts/ChangeLayout.sh togg
 bind("SUPER ALT", "V", exec_cmd("$HOME/.config/hypr/scripts/ClipManager.sh"), { description = "clipboard manager" })
 bind("SUPER CTRL", "R", exec_cmd("$HOME/.config/hypr/scripts/RofiThemeSelector.sh"), { description = "rofi theme selector" })
 bind("SUPER CTRL SHIFT", "R", exec_cmd("pkill rofi || true && $HOME/.config/hypr/scripts/RofiThemeSelector-modified.sh"), { description = "rofi theme selector (modified)" })
-bind("SUPER CTRL", "K", exec_cmd("$HOME/.config/hypr/scripts/Kitty_themes.sh"), { description = "Kitty theme selector" })
+-- DISABLED (duplicate chord): SUPER+CTRL+K -> "Move left into group" wins
+-- bind("SUPER CTRL", "K", exec_cmd("$HOME/.config/hypr/scripts/Kitty_themes.sh"), { description = "Kitty theme selector" })
 bind("SUPER SHIFT", "B", exec_cmd("$HOME/.config/hypr/UserScripts/RainbowBorders-low-cpu.sh  --run-once"), { description = "Set static Rainbow Border" })
 bind("SUPER SHIFT", "H", exec_cmd("$HOME/.config/hypr/scripts/Toggle-Active-Window-Audio.sh"), { description = "Toggle Mute/Unmute for Active-Window" })
 bind("ALT SHIFT", "S", exec_cmd("$HOME/.config/hypr/scripts/hyprshot.sh -m region -o $HOME/Pictures/Screenshots"), { description = "Hyprshot Screen Capture" })
@@ -262,7 +263,12 @@ bind("SUPER CTRL", "F9", dispatch("movecurrentworkspacetomonitor", "l"), { descr
 bind("SUPER CTRL", "F10", dispatch("movecurrentworkspacetomonitor", "r"), { description = "move workspace to right monitor" })
 bind("SUPER CTRL", "F11", dispatch("movecurrentworkspacetomonitor", "u"), { description = "move workspace to up monitor" })
 bind("SUPER CTRL", "F12", dispatch("movecurrentworkspacetomonitor", "d"), { description = "move workspace to down monitor" })
-bind("CTRL ALT", "Delete", exec_cmd("hyprctl dispatch exit 0"), { description = "exit Hyprland" })
+-- LOCAL FIX: "hyprctl dispatch exit 0" is legacy hyprlang syntax that the Lua
+-- parser rejects ("expected a dispatcher"). Use the native dispatcher, which
+-- bypasses string parsing entirely; fall back to the corrected hyprctl form.
+bind("CTRL ALT", "Delete",
+  (dsp and dsp.exit) and dsp.exit() or exec_cmd("hyprctl dispatch 'hl.dsp.exit()'"),
+  { description = "exit Hyprland" })
 bind("SUPER", "Q", dispatch("killactive", ""), { description = "close active window" })
 bind("SUPER SHIFT", "Q", exec_cmd("$HOME/.config/hypr/scripts/KillActiveProcess.sh"), { description = "Terminate active process" })
 bind("CTRL ALT", "L", exec_cmd("$HOME/.config/hypr/scripts/LockScreen.sh"), { description = "lock screen" })
@@ -286,10 +292,12 @@ bind("SUPER SHIFT", "comma", dispatch("layoutmsg", "move -col"), { description =
 bind("SUPER ALT", "comma", dispatch("layoutmsg", "swapcol l"), { description = "swap columns left" })
 bind("SUPER ALT", "period", dispatch("layoutmsg", "swapcol r"), { description = "swap columns right" })
 bind("SUPER ALT", "H", exec_cmd("hyprctl keyword scrolling:direction right"), { description = "Horizonal scroll right" })
-bind("SUPER ALT", "V", exec_cmd("hyprctl keyword scrolling:direction down"), { description = "Vertical Scroll down" })
+-- DISABLED (duplicate chord): SUPER+ALT+V -> clipboard manager wins (also used broken hyprctl keyword)
+-- bind("SUPER ALT", "V", exec_cmd("hyprctl keyword scrolling:direction down"), { description = "Vertical Scroll down" })
 bind("SUPER ALT", "S", exec_cmd("bash -c '[[ $(hyprctl getoption scrolling:direction -j | jq -r \".str\") == \"right\" ]] && hyprctl keyword scrolling:direction down || hyprctl keyword scrolling:direction right'"), { description = "toggle scrolling V/H" })
 bind("ALT", "tab", dispatch("cyclenext", ""), { description = "cycle next window" })
-bind("ALT", "tab", dispatch("bringactivetotop", ""), { description = "bring active to top" })
+-- DISABLED (duplicate chord): ALT+tab -> "cycle next window" wins
+-- bind("ALT", "tab", dispatch("bringactivetotop", ""), { description = "bring active to top" })
 bind("", "xf86audioraisevolume", exec_cmd("$HOME/.config/hypr/scripts/Volume.sh --inc"), { description = "volume up", locked = true, repeating = true })
 bind("", "xf86audiolowervolume", exec_cmd("$HOME/.config/hypr/scripts/Volume.sh --dec"), { description = "volume down", locked = true, repeating = true })
 bind("ALT", "xf86audioraisevolume", exec_cmd("$HOME/.config/hypr/scripts/Volume.sh --inc-precise"), { description = "volume up precise", locked = true, repeating = true })
@@ -323,9 +331,11 @@ bind("SUPER ALT", "right", dispatch("swapwindow", "r"), { description = "swap wi
 bind("SUPER ALT", "up", dispatch("swapwindow", "u"), { description = "swap window up" })
 bind("SUPER ALT", "down", dispatch("swapwindow", "d"), { description = "swap window down" })
 bind("SUPER", "G", dispatch("togglegroup", ""), { description = "toggle group" })
-bind("SUPER", "Tab", dispatch("changegroupactive", "f"), { description = "Change Group Forward" })
+-- DISABLED (duplicate chord): SUPER+Tab -> workspace switching wins
+-- bind("SUPER", "Tab", dispatch("changegroupactive", "f"), { description = "Change Group Forward" })
 bind("SUPER CTRL", "tab", dispatch("changegroupactive", ""), { description = "change active in group" })
-bind("SUPER SHIFT", "Tab", dispatch("changegroupactive", "b"), { description = "Change Group Back" })
+-- DISABLED (duplicate chord): SUPER+SHIFT+Tab -> workspace switching wins
+-- bind("SUPER SHIFT", "Tab", dispatch("changegroupactive", "b"), { description = "Change Group Back" })
 bind("SUPER CTRL", "K", dispatch("moveintogroup", "l"), { description = "Move left into group" })
 bind("SUPER CTRL", "L", dispatch("moveintogroup", "r"), { description = "Move Right into group" })
 bind("SUPER CTRL", "H", dispatch("moveoutofgroup", ""), { description = "Move active out of group" })

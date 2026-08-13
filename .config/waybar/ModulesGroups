@@ -89,7 +89,15 @@
 	"modules": [
 		"custom/power",
 		"custom/lock",
-		"keyboard-state",
+		// "keyboard-state" removed: it is the only libinput consumer in this bar,
+		// and waybar aborts on a libinput assertion when an input device is
+		// removed (wireless mouse/keyboard powering down on idle):
+		//   "Keyboard /dev/input/event5 has been removed."
+		//   util-list.c:74: list_insert: Assertion ... failed
+		// Because waybar is started via exec_once, nothing respawns it, so the
+		// bar stays gone until relogin. Re-add if you need the capslock
+		// indicator and waybar fixes its device-removal handling.
+		// "keyboard-state",
 		"custom/keyboard",
 	]
 },

@@ -173,19 +173,38 @@ log "Using transport: $RB_MODE"
 PREV_VALUE=""
 if [[ "$RB_RESTORE" == "1" && "$RB_ONCE" != "1" ]]; then
   if command -v hyprctl >/dev/null 2>&1; then
-    # hyprctl getoption <opt> prints various formats; try common keys
-    PREV_VALUE="$(hyprctl getoption "$RB_TARGET" 2>/dev/null \
-                    | sed -n 's/^.*str:[[:space:]]\+//p; s/^.*string:[[:space:]]\+//p; s/^.*value:[[:space:]]\+//p' \
-                    | tail -n1)"
+    # LOCAL FIX: gradient options are reported as `gradient data: <colors> <n>deg`
+    # (JSON key "gradient"), which the previous sed for str:/string:/value:
+    # never matched -- so PREV_VALUE was always empty and restore was a no-op.
+    PREV_VALUE="$(hyprctl -j getoption "$RB_TARGET" 2>/dev/null \
+                    | jq -r '.gradient // .str // .custom // empty' 2>/dev/null)"
   fi
 fi
 
 restore_previous() {
   if [[ "$RB_RESTORE" == "1" && -n "${PREV_VALUE:-}" ]]; then
+    # PREV_VALUE looks like "ff2bc8e4 0deg" (possibly several colours). A bare
+    # string is rejected ("invalid color"), so rebuild the HL.Gradient table:
+    # bare hex needs an 0x prefix, and the trailing <n>deg becomes a number.
+    local expr key colors angle tok
+    key="${RB_TARGET//:/.}"
+    colors=""
+    angle="0"
+    for tok in $PREV_VALUE; do
+      if [[ "$tok" =~ ^([0-9]+)deg$ ]]; then
+        angle="${BASH_REMATCH[1]}"
+      elif [[ "$tok" =~ ^(0x|rgba?\() ]]; then
+        colors+="\"$tok\","
+      elif [[ "$tok" =~ ^[0-9a-fA-F]{6,8}$ ]]; then
+        colors+="\"0x$tok\","
+      fi
+    done
+    [[ -z "$colors" ]] && return 0
+    expr="$(printf 'hl.config({ ["%s"] = { colors = {%s}, angle = %s } })' "$key" "${colors%,}" "$angle")"
     if [[ "$RB_MODE" == "socat" ]]; then
-      printf 'keyword %s %s\n' "$RB_TARGET" "$PREV_VALUE" | socat - "UNIX-CONNECT:$RB_SOCK" >/dev/null 2>&1 || true
+      printf 'eval %s\n' "$expr" | socat - "UNIX-CONNECT:$RB_SOCK" >/dev/null 2>&1 || true
     else
-      hyprctl keyword "$RB_TARGET" "$PREV_VALUE" >/dev/null 2>&1 || true
+      hyprctl eval "$expr" >/dev/null 2>&1 || true
     fi
   fi
 }
@@ -205,12 +224,30 @@ angle=$(( RB_START_DEG % 360 ))
 STEP=$(( RB_STEP_DEG % 360 ))
 (( STEP == 0 )) && STEP=10
 
+# LOCAL FIX for Hyprland Lua configs: "keyword" is rejected by the Lua parser
+# ("keyword can't work with non-legacy parsers. Use eval."), so every border
+# write silently failed. Build an hl.config() call instead and send it via
+# "eval". Both transports accept it: `hyprctl eval <lua>` and `eval <lua>` on
+# the command socket. HL.Gradient is `string|{colors:string[], angle?:number}`,
+# so the colour list becomes a Lua table and the angle a number.
+# Hypr option paths use ':' separators; Lua config keys use '.'.
+lua_border_expr() {
+  local a="$1" key colors c
+  key="${RB_TARGET//:/.}"
+  colors=""
+  for c in $RB_COLORS; do
+    colors+="\"$c\","
+  done
+  printf 'hl.config({ ["%s"] = { colors = {%s}, angle = %s } })' "$key" "${colors%,}" "$a"
+}
+
 write_border() {
-  local a="$1"
+  local a="$1" expr
+  expr="$(lua_border_expr "$a")"
   if [[ "$RB_MODE" == "socat" ]]; then
-    printf 'keyword %s %s %sdeg\n' "$RB_TARGET" "$RB_COLORS" "$a" | socat - "UNIX-CONNECT:$RB_SOCK" >/dev/null 2>&1 || true
+    printf 'eval %s\n' "$expr" | socat - "UNIX-CONNECT:$RB_SOCK" >/dev/null 2>&1 || true
   else
-    hyprctl keyword "$RB_TARGET" "$RB_COLORS ${a}deg" >/dev/null 2>&1 || true
+    hyprctl eval "$expr" >/dev/null 2>&1 || true
   fi
 }
 

@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
-# Initialize J/K keybinds so they always cycle windows globally (no layout-specific behavior)
-# This avoids double-actions when layouts change.
+# Legacy startup hook for layout keybind initialization.
+# Runtime keybind behavior is now resolved per keypress based on active workspace layout.
 
 set -euo pipefail
 
-# Always reset and bind SUPER+J/K the same way on startup
-hyprctl keyword unbind SUPER,j || true
-hyprctl keyword unbind SUPER,k || true
+scripts_dir="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scripts"
 
-# Cycle windows globally
-hyprctl keyword bind SUPER,j,layoutmsg,cyclenext
-hyprctl keyword bind SUPER,k,layoutmsg,cycleprev
+# Keep compatibility with existing startup entries while avoiding global rebinding.
+if [[ -x "${scripts_dir}/ChangeLayout.sh" ]]; then
+  # LOCAL DEVIATION from upstream: upstream passes "--quiet init", but this
+  # ChangeLayout.sh reads only $1, so "--quiet" falls through to the usage
+  # branch and exits 1 (silently swallowed) -- layout keybinds never initialise.
+  # Pass the subcommand it actually understands.
+  "${scripts_dir}/ChangeLayout.sh" init >/dev/null 2>&1 || true
+fi

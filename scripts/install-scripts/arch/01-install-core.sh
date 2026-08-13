@@ -50,7 +50,13 @@ core_pkgs=(
   awww
   unzip # needed later
   wallust
-  waybar
+  # waybar-git, not waybar: the released 0.15.0 sends legacy hyprlang dispatch
+  # strings over IPC, which Hyprland's Lua config parser rejects -- clicking a
+  # workspace in the bar does nothing. master translates them via
+  # buildLuaDispatch() (hl.dsp.focus). Provides/conflicts waybar, so the
+  # pacman -Qi waybar check in 02-post-install.sh still resolves.
+  # Revert to plain `waybar` once the fix lands in a tagged release.
+  waybar-git
   waybar-weather
   wget
   wl-clipboard
