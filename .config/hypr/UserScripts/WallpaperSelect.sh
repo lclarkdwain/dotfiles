@@ -127,6 +127,19 @@ modify_startup_config() {
   local selected_file="$1"
   local startup_config="$HOME/.config/hypr/UserConfigs/Startup_Apps.conf"
 
+  # LOCAL DEVIATION from upstream: in Lua mode the hyprlang Startup_Apps.conf no
+  # longer exists (startup lives in UserConfigs/user_startup.lua), so the sed
+  # rewrites below would emit a series of "no such file" errors. Image wallpapers
+  # work regardless; only the swww<->mpvpaper daemon swap needs this file, so skip
+  # it and say so instead of failing noisily.
+  if [[ ! -f "$startup_config" ]]; then
+    if [[ "$selected_file" =~ \.(mp4|mkv|mov|webm)$ ]]; then
+      echo "Lua config mode: live (video) wallpapers need the swww->mpvpaper swap," \
+           "which is not ported to user_startup.lua yet. Skipping daemon switch."
+    fi
+    return 0
+  fi
+
   # Check if it's a live wallpaper (video)
   if [[ "$selected_file" =~ \.(mp4|mkv|mov|webm)$ ]]; then
     # For video wallpapers:
