@@ -1,0 +1,8 @@
+[Unit]
+Description=Reap stale CDK temp dirs from /tmp
+
+[Service]
+Type=oneshot
+# CDK leaks one cdk.outXXXXXX dir per synth into /tmp, which is tmpfs (RAM).
+# 12h age so an in-flight synth or test run is never touched.
+ExecStart=/usr/bin/find /tmp -maxdepth 1 -name cdk.out* -mmin +720 -exec /usr/bin/rm -rf {} +

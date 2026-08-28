@@ -159,6 +159,12 @@
 // This is a custom cava visualizer
 "custom/cava_mviz": {
 	"exec": "$HOME/.config/hypr/scripts/WaybarCava.sh",
+	// WaybarCava.sh starts with `pkill -f 'waybar-cava\..*\.conf'` plus a pidfile
+	// kill, so ANY second invocation (a manual run, two bars, a reload race)
+	// kills the live one. Without restart-interval waybar never re-execs a
+	// custom script that exits, so the visualiser stayed dead until waybar was
+	// restarted. Respawn a few seconds after any exit instead.
+	"restart-interval": 5,
 	"format": "{}",
 	"return-type": "text",
 	"tooltip": false

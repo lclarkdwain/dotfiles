@@ -9,6 +9,7 @@ XDG_CONFIG_HOME ?= $(HOME)/.config
 DRY_RUN ?= false
 STOW_CMD = $(if $(filter $(DRY_RUN),true),echo stow,stow)
 MKDIR_CMD = $(if $(filter $(DRY_RUN),true),echo mkdir -p,mkdir -p)
+RM_CMD = $(if $(filter $(DRY_RUN),true),echo rm -rf,rm -rf)
 
 all: install link
 
@@ -24,7 +25,7 @@ link: prepare backup
 		folder=$$(basename $$dir); \
 		if [ -e "$(XDG_CONFIG_HOME)/$$folder" ] && [ ! -L "$(XDG_CONFIG_HOME)/$$folder" ]; then \
 			echo "Removing conflicting: $(XDG_CONFIG_HOME)/$$folder"; \
-			rm -rf "$(XDG_CONFIG_HOME)/$$folder"; \
+			$(RM_CMD) "$(XDG_CONFIG_HOME)/$$folder"; \
 		fi; \
 	done
 	@$(STOW_CMD) -t $(XDG_CONFIG_HOME) .config
@@ -38,10 +39,14 @@ unlink:
 
 backup:
 	@echo "Creating backups for existing configurations... (max 3 and overwrites the oldest)"
-	@BACKUP_DIR=$(HOME)/backups/backup_$(shell date +%Y%m%d%H%M%S) && mkdir -p $$BACKUP_DIR && \
-	ls -dt $(HOME)/backups/backup_* | tail -n +4 | xargs -r rm -rf && \
-	cp -rL $(HOME)/.zshrc $$BACKUP_DIR/.zshrc 2>/dev/null || true && \
-	cp -rL $(XDG_CONFIG_HOME)/zsh $$BACKUP_DIR/zsh 2>/dev/null || true
+	@if [ "$(DRY_RUN)" = "true" ]; then \
+		echo "Dry-run: would create $(HOME)/backups/backup_<timestamp> and prune all but the newest 3"; \
+	else \
+		BACKUP_DIR=$(HOME)/backups/backup_$(shell date +%Y%m%d%H%M%S) && mkdir -p $$BACKUP_DIR && \
+		ls -dt $(HOME)/backups/backup_* | tail -n +4 | xargs -r rm -rf && \
+		cp -rL $(HOME)/.zshrc $$BACKUP_DIR/.zshrc 2>/dev/null || true && \
+		cp -rL $(XDG_CONFIG_HOME)/zsh $$BACKUP_DIR/zsh 2>/dev/null || true; \
+	fi
 
 restore:
 	@echo "Available backups:"

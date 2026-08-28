@@ -169,10 +169,14 @@ sleep 1
 execute_script "configure-dots.sh"
 sleep 1
 
+execute_script "install-zram.sh"
+sleep 1
+
 COMMON_SCRIPTS_DIR="scripts/install-scripts/common"
 execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-nvm.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rust.sh" "$COMMON_SCRIPTS_DIR"
+execute_script "install-rtk.sh" "$COMMON_SCRIPTS_DIR"
 sleep 1
 
 execute_script "install-applications.sh"
