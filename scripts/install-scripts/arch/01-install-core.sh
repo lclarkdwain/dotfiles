@@ -20,6 +20,7 @@ core_pkgs=(
   bc
   cliphist
   curl
+  gnome-keyring
   grim
   gvfs
   gvfs-mtp

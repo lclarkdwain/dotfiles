@@ -177,6 +177,7 @@ execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-nvm.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rust.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rtk.sh" "$COMMON_SCRIPTS_DIR"
+execute_script "configure-granted.sh" "$COMMON_SCRIPTS_DIR"
 sleep 1
 
 execute_script "install-applications.sh"

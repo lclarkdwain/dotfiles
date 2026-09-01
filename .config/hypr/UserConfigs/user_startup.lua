@@ -39,3 +39,15 @@ local exec_once = user_startup_helper.exec_once
 -- Examples:
 -- exec_once("blueman-applet")
 -- exec_once("$HOME/.config/hypr/UserScripts/RainbowBorders.sh")
+
+-- gnome-keyring starts in two phases and Hyprland has to drive the second one.
+-- pam_gnome_keyring (stock in /etc/pam.d/sddm) starts
+-- `gnome-keyring-daemon --daemonize --login`, which holds the login password but
+-- parks: it claims no D-Bus name and writes no keyring. This --start call
+-- completes that handshake, at which point the daemon takes
+-- org.freedesktop.secrets and creates/unlocks ~/.local/share/keyrings/login.keyring.
+-- The systemd user socket and D-Bus activation do NOT cover this -- activation
+-- would spawn a second daemon that never received the password. Verified: without
+-- this, org.freedesktop.secrets stays merely "activatable" and granted finds no
+-- secret-service backend.
+exec_once("gnome-keyring-daemon --start --components=secrets")

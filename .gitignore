@@ -4,3 +4,9 @@
 logs
 
 GTK-themes-icons
+
+# ~/.local/bin is a symlink into this repo, so the Claude Code installer writes its
+# launcher symlink here. Tracking it committed an absolute, user-specific path
+# pinned to one version (/home/<user>/.local/share/claude/versions/X.Y.Z), which
+# churned on every update and would resolve to nothing on another machine.
+.local/bin/claude

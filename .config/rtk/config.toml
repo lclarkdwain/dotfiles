@@ -30,9 +30,14 @@ max_file_size = 1048576
 
 [telemetry]
 enabled = false
+consent_given = false
+consent_date = "2026-08-28T17:40:46.897024232+00:00"
 
 [hooks]
-exclude_commands = []
+# Never rewrite these: Claude Code permission rules match on the command
+# prefix, and an "aws ..." -> "rtk aws ..." rewrite can stop a soft_deny
+# matcher (e.g. "aws * --profile *prod*") from matching.
+exclude_commands = ["aws", "granted"]
 transparent_prefixes = []
 
 [limits]
