@@ -37,5 +37,9 @@ fi
 log ACTION "{MAGENTA}Pacman.conf{RESET} spicing up completed."
 
 # updating pacman.conf
-printf "\n%s - ${tput_colors[SKY_BLUE]}Synchronizing Pacman Repo${tput_colors[RESET]}\n" "${tput_colors[BLUE]}"
-sudo pacman -Sy
+# -Syu, never a bare -Sy. Refreshing the sync database without upgrading leaves
+# the box in Arch's partial-upgrade state: the databases advertise versions that
+# are not installed, so the next `pacman -S <anything>` pulls a new library
+# against old dependents and fails mid-transaction (or worse, succeeds).
+printf "\n%s - ${tput_colors[SKY_BLUE]}Synchronizing and upgrading packages${tput_colors[RESET]}\n" "${tput_colors[BLUE]}"
+sudo pacman -Syu
