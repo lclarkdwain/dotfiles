@@ -12,7 +12,9 @@ msg=' 🎌 NOTE: Some waybar LAYOUT NOT fully compatible with some STYLES'
 
 # Apply selected configuration
 apply_config() {
-    ln -sf "$waybar_layouts/$1" "$waybar_config"
+    # LOCAL FIX: relative target -- this link is tracked in the dotfiles repo, and
+    # an absolute one would commit a /home/<user> path.
+    ln -sfn "configs/$1" "$waybar_config"
     "${SCRIPTSDIR}/Refresh.sh" &
 }
 
