@@ -22,7 +22,13 @@ prompt_detect_layout() {
   echo "(unset)"
 }
 
-# Confirm or set keyboard layout; writes to SystemSettings.conf.
+# Write kb_layout into the Lua settings Hyprland actually loads.
+set_kb_layout() {
+  local layout="$1"
+  sed -i "s/^\([[:space:]]*kb_layout = \)\".*\"/\1\"$layout\"/" .config/hypr/configs/system_settings.lua
+}
+
+# Confirm or set keyboard layout; writes to configs/system_settings.lua.
 prompt_keyboard_layout() {
   local layout="$1"
 
@@ -42,7 +48,7 @@ You need to set it Manually
 
 Setting a wrong Keyboard Layout will cause Hyprland to crash
 If you are not sure, just type ${YELLOW}us${RESET}
-${SKYBLUE}You can change later in ~/.config/hypr/UserConfigs/UserSettings.conf${RESET}
+${SKYBLUE}You can change later in ~/.config/hypr/configs/system_settings.lua${RESET}
 
 ${MAGENTA} NOTE:${RESET}
 •  You can also set more than 2 keyboard layouts
@@ -69,8 +75,7 @@ ${MAGENTA} NOTE:${RESET}
     read keyboard_layout
     case $keyboard_layout in
     [yY])
-      awk -v layout="$layout" '/kb_layout/ {$0 = "  kb_layout = " layout} 1' .config/hypr/configs/SystemSettings.conf >temp.conf
-      mv temp.conf .config/hypr/configs/SystemSettings.conf
+      set_kb_layout "$layout"
       echo "${NOTE} kb_layout ${MAGENTA}$layout${RESET} configured in settings." 2>&1 | log PIPE
       break
       ;;
@@ -90,7 +95,7 @@ You need to set it Manually
 
 Setting a wrong Keyboard Layout will cause Hyprland to crash
 If you are not sure, just type ${YELLOW}us${RESET}
-${SKYBLUE}You can change later in ~/.config/hypr/UserConfigs/UserSettings.conf${RESET}
+${SKYBLUE}You can change later in ~/.config/hypr/configs/system_settings.lua${RESET}
 
 ${MAGENTA} NOTE:${RESET}
 •  You can also set more than 2 keyboard layouts
@@ -99,8 +104,7 @@ ${MAGENTA} NOTE:${RESET}
       printf "\n%.0s" {1..1}
       echo -n "${CAT} - Please enter the correct keyboard layout: "
       read new_layout
-      awk -v new_layout="$new_layout" '/kb_layout/ {$0 = "  kb_layout = " new_layout} 1' .config/hypr/configs/SystemSettings.conf >temp.conf
-      mv temp.conf .config/hypr/configs/SystemSettings.conf
+      set_kb_layout "$new_layout"
       echo "${OK} kb_layout $new_layout configured in settings." 2>&1 | log PIPE
       break
       ;;
@@ -159,9 +163,9 @@ prompt_clock_12h() {
       sed -i 's#^\(\s*\)\("format": "{:%a %d | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
 
       # hyprlock
-      local HYPRLOCK_FILE="config/hypr/hyprlock.conf"
-      if [ ! -f "$HYPRLOCK_FILE" ] && [ -f "config/hypr/hyprlock-1080p.conf" ]; then
-        HYPRLOCK_FILE="config/hypr/hyprlock-1080p.conf"
+      local HYPRLOCK_FILE=".config/hypr/hyprlock.conf"
+      if [ ! -f "$HYPRLOCK_FILE" ] && [ -f ".config/hypr/hyprlock-1080p.conf" ]; then
+        HYPRLOCK_FILE=".config/hypr/hyprlock-1080p.conf"
       fi
       if [ -f "$HYPRLOCK_FILE" ]; then
         sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%H\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
@@ -216,27 +220,5 @@ apply_sddm_12h_format_sequoia() {
       sudo -n sed -i '/^clockFormat=/a clockFormat="hh:mm AP"' "$sddm_directory/theme.conf" 2>&1 | log PIPE || true
     fi
     echo "${OK} 12H format set to SDDM successfully." 2>&1 | log PIPE
-  fi
-}
-
-# Rainbow borders toggle; returns "disabled" or "kept".
-prompt_rainbow_borders() {
-  local log="$1"
-  echo "${NOTE} ${SKY_BLUE}By default, Rainbow Borders animation is enabled"
-  echo "${WARN} However, this uses a bit more CPU and Memory resources."
-  if ! read -r -p "${CAT} Do you want to disable Rainbow Borders animation? (y/N): " border_choice </dev/tty; then
-    echo "${ERROR} Unable to read input for rainbow borders; leaving as-is." 2>&1 | log PIPE
-    echo "kept"
-    return
-  fi
-  if [[ "$border_choice" =~ ^[Yy]$ ]]; then
-    mv config/hypr/UserScripts/RainbowBorders.sh config/hypr/UserScripts/RainbowBorders.bak.sh
-    sed -i '/exec-once = \$UserScripts\/RainbowBorders.sh/s/^/#/' config/hypr/configs/Startup_Apps.conf
-    sed -i '/^[[:space:]]*animation = borderangle, 1, 180, liner, loop/s/^/#/' config/hypr/configs/UserAnimations.conf
-    echo "${OK} Rainbow borders are now disabled." 2>&1 | log PIPE
-    echo "disabled"
-  else
-    echo "${NOTE} No changes made. Rainbow borders remain enabled." 2>&1 | log PIPE
-    echo "kept"
   fi
 }

@@ -1,54 +1,15 @@
 #!/usr/bin/env bash
 # App enablement and editor selection helpers.
+#
+# Hyprland runs the Lua config (hyprland.lua), so these write Lua, not the old
+# hyprlang .conf files. blueman-applet, quickshell (qs -c overview) and
+# KeybindsLayoutInit.sh are already started from configs/system_startup.lua.
 
 enable_asusctl() {
   if command -v asusctl >/dev/null 2>&1; then
-    local OVERLAY_SA=".config/hypr/configs/Startup_Apps.conf"
-    mkdir -p "$(dirname "$OVERLAY_SA")"
-    touch "$OVERLAY_SA"
-    grep -qx 'exec-once = rog-control-center' "$OVERLAY_SA" || echo 'exec-once = rog-control-center' >>"$OVERLAY_SA"
-  fi
-}
-
-enable_blueman() {
-  if command -v blueman-applet >/dev/null 2>&1; then
-    local OVERLAY_SA=".config/hypr/configs/Startup_Apps.conf"
-    mkdir -p "$(dirname "$OVERLAY_SA")"
-    touch "$OVERLAY_SA"
-    grep -qx 'exec-once = blueman-applet' "$OVERLAY_SA" || echo 'exec-once = blueman-applet' >>"$OVERLAY_SA"
-  fi
-}
-
-enable_ags() {
-  if command -v ags >/dev/null 2>&1; then
-    echo "${INFO:-[INFO]} AGS detected - enabling in startup and refresh scripts" 2>&1 | log PIPE
-    local OVERLAY_SA=".config/hypr/configs/Startup_Apps.conf"
-    mkdir -p "$(dirname "$OVERLAY_SA")"
-    touch "$OVERLAY_SA"
-    grep -qx 'exec-once = ags' "$OVERLAY_SA" || echo 'exec-once = ags' >>"$OVERLAY_SA"
-    sed -i '/#ags -q && ags &/s/^#//' .config/hypr/scripts/RefreshNoWaybar.sh
-    sed -i '/#ags -q && ags &/s/^#//' .config/hypr/scripts/Refresh.sh
-  fi
-}
-
-enable_quickshell() {
-  if command -v qs >/dev/null 2>&1; then
-    echo "${INFO:-[INFO]} Quickshell detected - enabling in startup and refresh scripts" 2>&1 | log PIPE
-    local OVERLAY_SA=".config/hypr/configs/Startup_Apps.conf"
-    mkdir -p "$(dirname "$OVERLAY_SA")"
-    touch "$OVERLAY_SA"
-    grep -qx 'exec-once = qs' "$OVERLAY_SA" || echo 'exec-once = qs' >>"$OVERLAY_SA"
-    sed -i '/#pkill qs && qs &/s/^#//' .config/hypr/scripts/RefreshNoWaybar.sh
-    sed -i '/#pkill qs && qs &/s/^#//' .config/hypr/scripts/Refresh.sh
-  fi
-}
-
-ensure_keybinds_init() {
-  local OVERLAY_SA=".config/hypr/configs/Startup_Apps.conf"
-  mkdir -p "$(dirname "$OVERLAY_SA")"
-  if ! grep -qx 'exec-once = \$scriptsDir/KeybindsLayoutInit.sh' "$OVERLAY_SA"; then
-    echo 'exec-once = $scriptsDir/KeybindsLayoutInit.sh' >>"$OVERLAY_SA"
-    echo "${INFO:-[INFO]} Added KeybindsLayoutInit.sh to user Startup_Apps overlay" 2>&1 | log PIPE
+    local user_startup=".config/hypr/UserConfigs/user_startup.lua"
+    grep -qF 'exec_once("rog-control-center")' "$user_startup" ||
+      echo 'exec_once("rog-control-center")' >>"$user_startup"
   fi
 }
 
@@ -56,7 +17,11 @@ choose_default_editor() {
   local editor_set=0
   update_editor() {
     local editor=$1
-    sed -i "s/#env = EDITOR,.*/env = EDITOR,$editor #default editor/" .config/hypr/UserConfigs/01-UserDefaults.conf
+    local user_defaults=".config/hypr/UserConfigs/user_defaults.lua"
+    sed -i \
+      -e "s/^KOOLDOTS_DEFAULTS\.edit = .*/KOOLDOTS_DEFAULTS.edit = \"$editor\"/" \
+      -e "s/^KOOLDOTS_DEFAULTS\.visual = .*/KOOLDOTS_DEFAULTS.visual = \"$editor\"/" \
+      "$user_defaults"
     echo "${OK:-[OK]} Default editor set to ${MAGENTA:-}$editor${RESET:-}." 2>&1 | log PIPE
   }
   if command -v nvim &>/dev/null; then

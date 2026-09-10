@@ -21,7 +21,16 @@ hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
-hl.env("NVD_BACKEND", "direct")
-hl.env("GSK_RENDERER", "ngl")
+
+-- LOCAL DEVIATION: upstream's installer uncommented these with sed when it found
+-- an NVIDIA GPU. Detect the proprietary driver at load time instead, so the same
+-- config is safe on non-NVIDIA machines (LIBVA_DRIVER_NAME=nvidia breaks VA-API
+-- there) and the installer no longer has to edit tracked files.
+local nvidia = io.open("/proc/driver/nvidia/version", "r")
+if nvidia then
+  nvidia:close()
+  hl.env("LIBVA_DRIVER_NAME", "nvidia")
+  hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+  hl.env("NVD_BACKEND", "direct")
+  hl.env("GSK_RENDERER", "ngl")
+end

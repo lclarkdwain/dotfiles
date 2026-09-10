@@ -2,9 +2,10 @@
 
 clear
 wallpaper=$HOME/.dotfiles/.config/hypr/wallpaper_effects/.wallpaper_current
-waybar_style="$HOME/.dotfiles/.config/waybar/style/Extra-Prismatic-Glow.css"
-waybar_config="$HOME/.dotfiles/.config/waybar/configs/TOP-Default"
-waybar_config_laptop="$HOME/.dotfiles/.config/waybar/configs/TOP-Default-Laptop"
+# Relative to .config/waybar, so the tracked symlinks carry no /home/<user> path.
+waybar_style="style/Wallust-Personal.css"
+waybar_config="configs/TOP-Personal"
+waybar_config_laptop="configs/TOP-Default-Laptop"
 
 source_dir=$(dirname "$(realpath "$0")")
 if ! source "${source_dir}/global_fn.sh"; then
@@ -65,16 +66,8 @@ fi
 # update home directories
 xdg-user-dirs-update 2>&1 | log PIPE || true
 
-detect_nvidia_adjust
-detect_vm_adjust
-
-# activating hyprcursor on env by checking if the directory ~/.icons/Bibata-Modern-Ice/hyprcursors exists
-if [ -d "$HOME/.icons/Bibata-Modern-Ice/hyprcursors" ]; then
-  HYPRCURSOR_ENV_FILE=".config/hypr/configs/ENVariables.conf"
-  echo "${INFO} Bibata-Hyprcursor directory detected. Activating Hyprcursor...." 2>&1 | log PIPE || true
-  sed -i 's/^#env = HYPRCURSOR_THEME,Bibata-Modern-Ice/env = HYPRCURSOR_THEME,Bibata-Modern-Ice/' "$HYPRCURSOR_ENV_FILE"
-  sed -i 's/^#env = HYPRCURSOR_SIZE,24/env = HYPRCURSOR_SIZE,24/' "$HYPRCURSOR_ENV_FILE"
-fi
+# NVIDIA and hyprcursor env vars are set by configs/system_env.lua (the NVIDIA
+# ones only when the driver is loaded), so nothing is sed-edited here.
 
 printf "\n%.0s" {1..1}
 
@@ -82,10 +75,6 @@ layout=$(prompt_detect_layout)
 prompt_keyboard_layout "$layout"
 
 enable_asusctl
-enable_blueman
-enable_ags
-enable_quickshell
-ensure_keybinds_init
 
 printf "\n%.0s" {1..1}
 
@@ -174,8 +163,6 @@ fi
 # Set some files as executable
 chmod +x ".config/hypr/scripts/"* 2>&1 | log PIPE
 chmod +x ".config/hypr/UserScripts/"* 2>&1 | log PIPE
-# Set executable for initial-boot.sh
-chmod +x ".config/hypr/initial-boot.sh" 2>&1 | log PIPE
 
 # Reload user systemd and ensure hyprpolkitagent is enabled/running
 if command -v systemctl >/dev/null 2>&1; then
@@ -193,42 +180,26 @@ fi
 chassis_type=$(detect_waybar_config)
 if [ "$chassis_type" = "desktop" ]; then
   config_file="$waybar_config"
-  config_remove=" Laptop"
 else
   config_file="$waybar_config_laptop"
-  config_remove=""
 fi
 
-# Check if ~/.config/waybar/config does not exist or is a symlink
-# if [ ! -e "$HOME/.dotfiles/.config/waybar/config" ] || [ -L "$HOME/.dotfiles/.config/waybar/config" ]; then
-#   ln -sf "$config_file" "$HOME/.dotfiles/.config/waybar/config" 2>&1 | log PIPE
-# fi
-
-# Ensure waybar config uses the normalized default.
-# - If the current path is not a symlink (regular file), convert it to a symlink.
-# - If the symlink points somewhere else (or is broken), reset it to the new default.
-WAYBAR_CONFIG_LINK="$HOME/.dotfiles/.config/waybar/config"
-WAYBAR_CONFIG_TARGET="$config_file"
-if [ -e "$WAYBAR_CONFIG_TARGET" ]; then
-  if [ -L "$WAYBAR_CONFIG_LINK" ]; then
-    current_target=$(readlink "$WAYBAR_CONFIG_LINK" || true)
-    if [ "$current_target" != "$WAYBAR_CONFIG_TARGET" ] || [ ! -e "$WAYBAR_CONFIG_LINK" ]; then
-      ln -sf "$WAYBAR_CONFIG_TARGET" "$WAYBAR_CONFIG_LINK" 2>&1 | log PIPE
-    fi
+# Point a waybar symlink at a default, relative to .config/waybar -- but only
+# when it is missing or broken. A working link is a layout/style chosen with
+# WaybarLayout.sh / WaybarStyles.sh and must survive a reinstall.
+link_waybar_default() {
+  local link="$1" target="$2"
+  local waybar_dir="$HOME/.dotfiles/.config/waybar"
+  if [ ! -e "$waybar_dir/$target" ]; then
+    echo "${WARN} Waybar default $target not found; leaving $link as-is." 2>&1 | log PIPE
+  elif [ -e "$waybar_dir/$link" ]; then
+    echo "${NOTE} Waybar $link already set; keeping it." 2>&1 | log PIPE
   else
-    ln -sf "$WAYBAR_CONFIG_TARGET" "$WAYBAR_CONFIG_LINK" 2>&1 | log PIPE
+    ln -sfn "$target" "$waybar_dir/$link" 2>&1 | log PIPE
   fi
-else
-  echo "${WARN} Waybar default config target not found at $WAYBAR_CONFIG_TARGET; leaving $WAYBAR_CONFIG_LINK as-is." 2>&1 | log PIPE
-fi
+}
 
-# Remove inappropriate waybar configs
-# rm -rf ".config/waybar/configs/[TOP] Default$config_remove" \
-#   ".config/waybar/configs/[BOT] Default$config_remove" \
-#   ".config/waybar/configs/[TOP] Default$config_remove (old v1)" \
-#   ".config/waybar/configs/[TOP] Default$config_remove (old v2)" \
-#   ".config/waybar/configs/[TOP] Default$config_remove (old v3)" \
-#   ".config/waybar/configs/[TOP] Default$config_remove (old v4)" 2>&1 | log PIPE || true
+link_waybar_default config "$config_file"
 
 printf "\n%.0s" {1..1}
 
@@ -302,28 +273,7 @@ while true; do
   esac
 done
 
-# Check if ~/.config/waybar/style.css does not exist or is a symlink
-# if [ ! -e "$HOME/.dotfiles/.config/waybar/style.css" ] || [ -L "$HOME/.dotfiles/.config/waybar/style.css" ]; then
-#   ln -sf "$waybar_style" "$HOME/.dotfiles/.config/waybar/style.css" 2>&1 | log PIPE
-# fi
-
-# Ensure waybar style uses the normalized default.
-# - If the current path is not a symlink (regular file), convert it to a symlink.
-# - If the symlink points somewhere else (or is broken), reset it to the new default.
-WAYBAR_STYLE_LINK="$HOME/.dotfiles/.config/waybar/style.css"
-WAYBAR_STYLE_TARGET="$waybar_style"
-if [ -e "$WAYBAR_STYLE_TARGET" ]; then
-  if [ -L "$WAYBAR_STYLE_LINK" ]; then
-    current_target=$(readlink "$WAYBAR_STYLE_LINK" || true)
-    if [ "$current_target" != "$WAYBAR_STYLE_TARGET" ] || [ ! -e "$WAYBAR_STYLE_LINK" ]; then
-      ln -sf "$WAYBAR_STYLE_TARGET" "$WAYBAR_STYLE_LINK" 2>&1 | log PIPE
-    fi
-  else
-    ln -sf "$WAYBAR_STYLE_TARGET" "$WAYBAR_STYLE_LINK" 2>&1 | log PIPE
-  fi
-else
-  echo "${WARN} Waybar default style target not found at $WAYBAR_STYLE_TARGET; leaving $WAYBAR_STYLE_LINK as-is." 2>&1 | log PIPE
-fi
+link_waybar_default style.css "$waybar_style"
 
 printf "\n%.0s" {1..1}
 
