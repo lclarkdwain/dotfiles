@@ -15,7 +15,6 @@ hypr_dir="$config_home/hypr"
 keybinds_conf="$hypr_dir/configs/Keybinds.conf"
 user_keybinds_conf="$hypr_dir/UserConfigs/UserKeybinds.conf"
 laptop_conf="$hypr_dir/UserConfigs/Laptops.conf"
-lua_keybinds_conf="$hypr_dir/lua/keybinds.lua"
 lua_user_keybinds="$hypr_dir/UserConfigs/user_keybinds.lua"
 lua_system_keybinds="$hypr_dir/configs/system_keybinds.lua"
 lua_legacy_system_keybinds="$hypr_dir/UserConfigs/system_keybinds.lua"
@@ -34,9 +33,9 @@ fi
 
 # collect raw bind lines from available files
 if [[ "$hypr_config_mode" == "lua" ]]; then
-  # LOCAL DEVIATION from upstream: lua/keybinds.lua is a pristine template that
-  # hyprland.lua deliberately does NOT load, so parsing it advertises binds that
-  # are not active here. Only the files actually loaded are parsed.
+  # LOCAL DEVIATION from upstream: upstream also parses lua/keybinds.lua, a
+  # template hyprland.lua never loaded (since removed here), which advertised
+  # binds that were not active. Only the files actually loaded are parsed.
   files=()
   if [[ -f "$lua_system_keybinds" ]]; then
     files+=("$lua_system_keybinds")
