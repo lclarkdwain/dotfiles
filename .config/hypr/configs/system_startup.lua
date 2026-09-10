@@ -30,9 +30,7 @@ local startup_commands = {
   scriptsDir .. "/Dropterminal.sh \"kitty --class kitty-dropterm\" &",
   scriptsDir .. "/Polkit.sh",
   "nm-applet --indicator",
-  "nm-tray",
   "swaync",
-  scriptsDir .. "/PortalHyprlandUbuntu.sh",
   -- -l error: the network#speed module polls nl80211 every second on wlp6s0 and
   -- the driver returns EBUSY, emitting "nl80211: nl_send_sync get_station
   -- error -16" ~1x/sec. It is cosmetic (the module works) but it floods the log
@@ -45,7 +43,6 @@ local startup_commands = {
   "wl-paste --type text --watch cliphist store",
   "wl-paste --type image --watch cliphist store",
   "blueman-applet",
-  "qs",
   scriptsDir .. "/KeybindsLayoutInit.sh",
 }
 
