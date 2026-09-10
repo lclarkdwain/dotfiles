@@ -320,7 +320,6 @@ Change Starship Prompt
 --- UTILITIES ---
 Set SDDM Wallpaper
 Choose Kitty Terminal Theme
-Choose Ghostty Terminal Theme
 Configure Monitors (nwg-displays)
 Configure Workspace Rules (nwg-displays)
 GTK Settings (nwg-look)
@@ -386,7 +385,6 @@ main() {
             fi
             ;;
         "Choose Kitty Terminal Theme") $scriptsDir/Kitty_themes.sh ;;
-        "Choose Ghostty Terminal Theme") $scriptsDir/Ghostty_themes.sh ;;
         "Configure Monitors (nwg-displays)")
             if ! command -v nwg-displays &>/dev/null; then
                 notify-send -i "$iDIR/error.png" "E-R-R-O-R" "Install nwg-displays first"
