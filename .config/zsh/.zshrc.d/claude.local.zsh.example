@@ -1,0 +1,11 @@
+typeset -ga CLAUDE_WORK_ROOTS=(
+  "$HOME/code/<employer-org>"
+)
+
+typeset -ga CLAUDE_PERSONAL_ROOTS=(
+  "$HOME/.dotfiles"
+  "$HOME/code/<personal-dirs>"
+)
+
+# CLAUDE_WORK_BG=#231519
+# CLAUDE_PERSONAL_BG=#121e1c

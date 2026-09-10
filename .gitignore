@@ -10,3 +10,9 @@ GTK-themes-icons
 # pinned to one version (/home/<user>/.local/share/claude/versions/X.Y.Z), which
 # churned on every update and would resolve to nothing on another machine.
 .local/bin/claude
+
+claude/.claude-personal/.credentials.json
+claude/.claude-personal/.claude.json
+claude/.claude-personal/settings.json
+
+.config/zsh/.zshrc.d/*.local.zsh

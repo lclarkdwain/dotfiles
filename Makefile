@@ -3,21 +3,17 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 DISTRO := $(shell . /etc/os-release 2>/dev/null && echo $$ID || echo unknown)
 
 XDG_CONFIG_HOME ?= $(HOME)/.config
+CLAUDE_PERSONAL_DIR ?= $(HOME)/.claude-personal
 
 .PHONY: all install link unlink backup restore
 
 DRY_RUN ?= false
 STOW_CMD = $(if $(filter $(DRY_RUN),true),echo stow,stow)
-MKDIR_CMD = $(if $(filter $(DRY_RUN),true),echo mkdir -p,mkdir -p)
 RM_CMD = $(if $(filter $(DRY_RUN),true),echo rm -rf,rm -rf)
 
 all: install link
 
-prepare:
-	@echo "Preparing required directories..."
-	@$(MKDIR_CMD) $(HOME)/.claude
-
-link: prepare backup
+link: backup
 	@echo "$(DOTFILES) Linking configurations..."
 	@$(STOW_CMD) -t $(HOME) zsh
 	@echo "Linking .config (removing any conflicts)..."
@@ -30,12 +26,28 @@ link: prepare backup
 	done
 	@$(STOW_CMD) -t $(XDG_CONFIG_HOME) .config
 	@$(STOW_CMD) -t $(HOME)/.local .local
+	@echo "Linking personal Claude Code config..."
+	@$(STOW_CMD) --no-folding -t $(HOME) claude
+	@$(MAKE) --no-print-directory claude-settings
 
 unlink:
 	@echo "Unlinking configurations..."
 	@stow -D -t $(HOME) zsh
 	@stow -D -t $(XDG_CONFIG_HOME) .config
 	@stow -D -t $(HOME)/.local .local
+	@stow -D --no-folding -t $(HOME) claude
+
+.PHONY: claude-settings
+claude-settings:
+	@if [ -e "$(CLAUDE_PERSONAL_DIR)/settings.json" ]; then \
+		echo "Keeping existing $(CLAUDE_PERSONAL_DIR)/settings.json"; \
+	elif [ "$(DRY_RUN)" = "true" ]; then \
+		echo "Dry-run: would seed $(CLAUDE_PERSONAL_DIR)/settings.json"; \
+	else \
+		mkdir -p "$(CLAUDE_PERSONAL_DIR)" && \
+		cp scripts/claude/settings.personal.json "$(CLAUDE_PERSONAL_DIR)/settings.json" && \
+		echo "Seeded $(CLAUDE_PERSONAL_DIR)/settings.json"; \
+	fi
 
 backup:
 	@echo "Creating backups for existing configurations... (max 3 and overwrites the oldest)"

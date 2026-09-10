@@ -17,7 +17,14 @@ function M.setup()
     local process = string.gsub(tab.active_pane.foreground_process_name, "(.*[/\\])(.*)", "%2")
     local cwd = tab.active_pane.current_working_dir
     cwd = cwd and string.format("%s ", cwd.file_path:gsub(os.getenv("HOME"), "~")) or ""
-    return string.format("(%d %s) %s", tab.tab_index + 1, process, cwd)
+    local vars = tab.active_pane.user_vars or {}
+    local badge = ""
+    if vars.claude_account == "work" then
+      badge = "󰃖 WORK "
+    elseif vars.claude_account == "personal" then
+      badge = "󰀄 PERSONAL "
+    end
+    return string.format("%s(%d %s) %s", badge, tab.tab_index + 1, process, cwd)
   end)
 
   wezterm.on("update-status", function(window)

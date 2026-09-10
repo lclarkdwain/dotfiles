@@ -1,0 +1,25 @@
+{
+  "model": "opus[1m]",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook claude"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  },
+  "tui": "fullscreen",
+  "theme": "dark-ansi",
+  "statusLine": {
+    "type": "command",
+    "command": "$HOME/.dotfiles/scripts/claude/statusline.sh personal"
+  }
+}
