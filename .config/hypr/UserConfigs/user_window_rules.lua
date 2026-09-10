@@ -117,6 +117,28 @@ apply_window_rule({
 })
 
 -- ---------------------------------------------------------------------------
+-- Gaming: tag native Linux games
+-- ---------------------------------------------------------------------------
+
+-- Native Linux games carry no Proton or gamescope marker, so the +games tag in
+-- configs/system_window_rules.lua never reaches them -- no workspace 10, no
+-- tearing. Unity's Linux player names its X11 class "<executable>.x86_64"
+-- (Valheim is valheim.x86_64), which makes that suffix a reasonable catch-all
+-- for native Unity titles. It will not catch other engines (Source's
+-- hl2_linux, Godot builds, ...); add their classes here as they come up.
+--
+-- Placed before the rules that match tag = "games" so they never depend on
+-- tag re-evaluation order. Two backslashes so Lua yields \. for RE2 -- the
+-- same escaping the steam_app rule once got wrong.
+apply_window_rule({
+  name = "tag-games-native-unity",
+  match = {
+    class = "^(.+\\.x86_64)$",
+  },
+  tag = "+games",
+})
+
+-- ---------------------------------------------------------------------------
 -- Gaming: scope tearing to game windows
 -- ---------------------------------------------------------------------------
 
