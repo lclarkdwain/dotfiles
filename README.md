@@ -29,4 +29,8 @@ make
 - Gruvbox (Neovim)
 - Gruvbox-material (GUI)
 
+## Docs
+
+- [Gaming](docs/gaming.md): Steam setup, pending manual steps, troubleshooting
+
 ## TODO automated installation and setup even on fresh environments
