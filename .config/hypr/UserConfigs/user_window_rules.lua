@@ -115,3 +115,24 @@ apply_window_rule({
   },
   workspace = 8,
 })
+
+-- ---------------------------------------------------------------------------
+-- Gaming: scope tearing to game windows
+-- ---------------------------------------------------------------------------
+
+-- The `games` tag is applied in configs/system_window_rules.lua to gamescope,
+-- steam_app_<id> and Proton windows. Pairing it with `immediate` keeps the
+-- tearing opt-in confined to games; everything else still presents on the
+-- vblank. Requires general.allow_tearing, set in user_settings.lua -- neither
+-- half does anything without the other.
+--
+-- `immediate` is absent from hl.meta.lua. That file is an incomplete annotation
+-- set, not the API surface: hl.window_rule validates and rejects unknown fields
+-- outright ("hl.window_rule: unknown field '...'"), and it accepts this one.
+apply_window_rule({
+  name = "games-allow-tearing",
+  match = {
+    tag = "games",
+  },
+  immediate = true,
+})
