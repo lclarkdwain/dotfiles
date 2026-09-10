@@ -164,3 +164,27 @@ apply_window_rule({
   },
   workspace = 10,
 })
+
+-- Steam's login window opens off-screen.
+--
+-- configs/system_window_rules.lua rule 065 floats any steam window whose title
+-- is not exactly "Steam". That is correct, but it sets no position, so the
+-- login window lands wherever Steam asks -- which is a negative x, leaving it
+-- clipped off the left edge of the monitor and awkward to interact with.
+--
+-- Scoped to this one title on purpose. Adding center to rule 065 itself would
+-- also drag Steam's toast notifications into the middle of the screen, since
+-- those are class steam with a non-"Steam" title too.
+--
+-- Substring rather than an anchored match: the exact title could not be
+-- verified live (it only appears while logged out), so this is deliberately
+-- forgiving about surrounding text.
+apply_window_rule({
+  name = "steam-signin-center",
+  match = {
+    class = "^([Ss]team)$",
+    title = "(Sign in to Steam)",
+  },
+  float = true,
+  center = true,
+})
