@@ -241,7 +241,7 @@ apply_window_rule({
 apply_window_rule({
   name = "system-window-windowrule-029",
   match = {
-    class = "^(steam_app_\\\\d+)$",
+    class = "^(steam_app_\\d+)$",
   },
   tag = "+games",
 })
