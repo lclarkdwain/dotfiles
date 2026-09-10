@@ -4,13 +4,16 @@
 # Completions
 mattmc3/ez-compinit
 zsh-users/zsh-completions kind:fpath path:src
-aloxaf/fzf-tab
 
 # Completion styles
 belak/zsh-utils path:completion/functions kind:autoload post:compstyle_zshzoo_setup
 
 # Keybindings
 belak/zsh-utils path:editor
+
+# fzf-tab binds Tab, so it must load after editor (whose `bindkey -d` would
+# unbind it) and before the widget wrappers in Core
+aloxaf/fzf-tab
 
 # History
 belak/zsh-utils path:history
