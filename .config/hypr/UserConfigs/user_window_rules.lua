@@ -136,3 +136,31 @@ apply_window_rule({
   },
   immediate = true,
 })
+
+-- Send launchers and games to their own workspaces.
+--
+-- Both tags come from configs/system_window_rules.lua: `gamestore` is the
+-- Steam/Lutris/Heroic client windows, `games` is gamescope, steam_app_<id> and
+-- Proton game windows. Splitting them keeps the launcher available on 9 while a
+-- game has 10 to itself, rather than a game replacing the client you launched
+-- it from.
+--
+-- Plain integers, matching the assignments above. Hyprland's "N silent" form
+-- may well work, but hl.window_rule does not validate this field's value (it
+-- accepts outright nonsense here, unlike opacity), so `ok` from the API would
+-- not have confirmed it.
+apply_window_rule({
+  name = "gamestore-workspace",
+  match = {
+    tag = "gamestore",
+  },
+  workspace = 9,
+})
+
+apply_window_rule({
+  name = "games-workspace",
+  match = {
+    tag = "games",
+  },
+  workspace = 10,
+})
