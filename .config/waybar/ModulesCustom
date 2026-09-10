@@ -88,18 +88,6 @@
 	"tooltip": true
 },
 
-// NEUTRALIZED: this used to run scripts/KooLsDotsUpdate.sh, which does
-// `git pull && ./copy.sh`. Upstream copy.sh moves ~/.config/hypr/hyprland.lua
-// aside and restores its hyprlang .conf tree, so one click would disable this
-// Lua config. This config is self-maintained; pull upstream changes by
-// cherry-picking individual files instead.
-"custom/dot_update": {
-	"format": " 󰁈 ",
-	"on-click": "notify-send -e -u normal -i $HOME/.config/swaync/images/ja.png 'Dots auto-update disabled' 'Self-maintained Lua config. Upstream copy.sh would disable hyprland.lua — cherry-pick changes manually.'",
-	"tooltip": true,
-	"tooltip-format": "Auto-update disabled\nSelf-maintained Lua config\n(cherry-pick upstream manually)",
-},
-
 // Hypridle inhibitor
 "custom/hypridle": {
 	"format": "󱫗 ",
