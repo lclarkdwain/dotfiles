@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Game Mode. Turning off all animations
+# Compositor performance mode: turns all animations and decorations off.
+#
+# NOTE: unrelated to Feral GameMode (gamemoded), which is also installed and
+# handles CPU governor and scheduling for games. This only touches Hyprland's
+# own eye candy. Renamed from GameMode.sh so the two are not confused.
 
 notif="${XDG_CONFIG_HOME:-$HOME/.config}/swaync/images/ja.png"
 SCRIPTSDIR="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scripts"
@@ -25,7 +29,7 @@ if [[ "$HYPRGAMEMODE" == "null" || -z "$HYPRGAMEMODE" ]]; then
 fi
 
 if [ "$HYPRGAMEMODE" = "true" ] || [ "$HYPRGAMEMODE" = "1" ] ; then
-    # ENABLE Game Mode (Disable animations/decorations)
+    # ENABLE perf mode (disable animations/decorations)
     if [[ "$hypr_config_mode" == "lua" ]]; then
         hyprctl eval "hl.config({
             animations = { enabled = false },
@@ -46,32 +50,25 @@ if [ "$HYPRGAMEMODE" = "true" ] || [ "$HYPRGAMEMODE" = "1" ] ; then
     fi
 
     "$WWW_CMD" kill
-    notify-send -e -u low -i "$notif" " Gamemode:" " enabled"
+    notify-send -e -u low -i "$notif" " Compositor perf mode:" " enabled"
     sleep 0.1
     exit
 else
-    # DISABLE Game Mode (Restore animations/decorations)
-    if [[ "$hypr_config_mode" == "lua" ]]; then
-        # Explicitly restore to defaults (matching settings.lua where possible)
-        hyprctl eval "hl.config({
-            animations = { enabled = true },
-            decoration = { shadow = { enabled = true }, blur = { enabled = true }, rounding = 10 },
-            general = { gaps_in = 2, gaps_out = 4, border_size = 2 }
-        })"
-        # Removing rule in Lua mode might require a different approach if no 'remove' exists
-        # We'll reload the config as a fallback or try to nullify it
-        hyprctl eval "hl.window_rule({ name = 'gamemode-opacity', match = { class = 'NONE' }, opacity = 1.0 })"
-    else
-        hyprctl --batch "\
-            keyword animations:enabled 1;\
-            keyword decoration:shadow:enabled 1;\
-            keyword decoration:blur:enabled 1;\
-            keyword general:gaps_in 2;\
-            keyword general:gaps_out 4;\
-            keyword general:border_size 2;\
-            keyword decoration:rounding 10"
-        hyprctl keyword "windowrule opacity 1 override 1 override 1 override, ^(NONE)$"
-    fi
+    # DISABLE perf mode: restore animations and decorations.
+    #
+    # LOCAL FIX: a config reload IS the restore. This previously re-applied
+    # hardcoded values (rounding 10, gaps 2/4, border_size 2) that silently
+    # drifted from UserConfigs/user_decorations.lua the moment those were
+    # edited -- toggling twice would quietly reset the theme to whatever had
+    # been frozen into this script. It also had no way to remove the opacity
+    # window rule the enable path adds, only to nullify it with a dummy
+    # 'NONE' match that stayed registered.
+    #
+    # `hyprctl reload` re-reads the real config and rebuilds settings and window
+    # rules from it, so it restores exactly what is configured, needs no
+    # per-config-mode branch, and cannot drift. Verified: values overridden at
+    # runtime via `hyprctl eval` return to their configured values on reload.
+    hyprctl reload
 
     # Restore wallpaper using the official daemon script
     if [[ -x "${SCRIPTSDIR}/WallpaperDaemon.sh" ]]; then
@@ -89,6 +86,6 @@ else
         hyprctl reload
     fi
 
-    notify-send -e -u normal -i "$notif" " Gamemode:" " disabled"
+    notify-send -e -u normal -i "$notif" " Compositor perf mode:" " disabled"
     exit
 fi

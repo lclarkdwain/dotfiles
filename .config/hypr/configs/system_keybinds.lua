@@ -227,7 +227,7 @@ bind("SUPER ALT", "E", exec_cmd("$HOME/.config/hypr/scripts/RofiEmoji.sh"), { de
 bind("SUPER", "S", exec_cmd("$HOME/.config/hypr/scripts/RofiSearch.sh"), { description = "web search" })
 bind("SUPER CTRL", "S", exec_cmd("rofi -show window"), { description = "window switcher" })
 bind("SUPER ALT", "O", exec_cmd("$HOME/.config/hypr/scripts/ChangeBlur.sh"), { description = "toggle blur" })
-bind("SUPER SHIFT", "G", exec_cmd("$HOME/.config/hypr/scripts/GameMode.sh"), { description = "toggle game mode" })
+bind("SUPER SHIFT", "G", exec_cmd("$HOME/.config/hypr/scripts/HyprPerfMode.sh"), { description = "toggle compositor perf mode (animations off)" })
 bind("SUPER ALT", "L", exec_cmd("$HOME/.config/hypr/scripts/ChangeLayout.sh toggle"), { description = "toggle layouts" })
 bind("SUPER ALT", "V", exec_cmd("$HOME/.config/hypr/scripts/ClipManager.sh"), { description = "clipboard manager" })
 bind("SUPER CTRL", "R", exec_cmd("$HOME/.config/hypr/scripts/RofiThemeSelector.sh"), { description = "rofi theme selector" })

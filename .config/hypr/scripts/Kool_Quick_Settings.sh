@@ -333,7 +333,7 @@ Choose Rofi Themes
 Search for Keybinds
 Toggle Waybar Weather units (C/F)
 Toggle Waybar Clock (12H/24H)
-Toggle Game Mode
+Toggle Compositor Perf Mode
 Switch Dark-Light Theme
 Rainbow Borders Mode
 EOF
@@ -430,7 +430,7 @@ main() {
         "Search for Keybinds") $scriptsDir/KeyBinds.sh ;;
         "Toggle Waybar Weather units (C/F)") $scriptsDir/Toggle-weather-waybar-units.sh ;;
         "Toggle Waybar Clock (12H/24H)") $scriptsDir/ToggleWaybarTime.sh ;;
-        "Toggle Game Mode") $scriptsDir/GameMode.sh ;;
+        "Toggle Compositor Perf Mode") $scriptsDir/HyprPerfMode.sh ;;
         "Switch Dark-Light Theme") $scriptsDir/DarkLight.sh ;;
         "Rainbow Borders Mode") rainbow_borders_menu ;;
         *) return ;;  # Do nothing for invalid choices

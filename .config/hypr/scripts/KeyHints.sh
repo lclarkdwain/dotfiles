@@ -64,7 +64,7 @@ GDK_BACKEND=$BACKEND yad \
   " Shift A" "Animations Menu" "Choose Animations via rofi" \
   " CTRL R" "Rofi Themes Menu" "Choose Rofi Themes via rofi" \
   " CTRL Shift R" "Rofi Themes Menu v2" "Choose Rofi Themes via Theme Selector (modified)" \
-  " SHIFT G" "Gamemode! All animations OFF or ON" "toggle" \
+  " SHIFT G" "Compositor perf mode: all animations OFF or ON" "toggle" \
   " ALT E" "Rofi Emoticons" "Emoticon" \
   " H" "Launch this Quick Cheat Sheet" "" \
   "" "" "" \
