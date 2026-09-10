@@ -4,15 +4,19 @@
 set -euo pipefail
 
 # 1) Try Quickshell via IPC (works if QS is running and listening)
-if pgrep -x quickshell >/dev/null 2>&1; then
+# LOCAL FIX: started as `qs`, the process name is "qs", not "quickshell", so a
+# `pgrep -x quickshell` check never matched and every press launched another
+# overview instance below.
+if pgrep -x 'qs|quickshell' >/dev/null 2>&1; then
   if qs ipc -c overview call overview toggle >/dev/null 2>&1; then
     exit 0
   fi
 fi
 
-# If QS isn't running, but the CLI exists, try starting it and retry once
+# If QS isn't running, but the CLI exists, try starting it and retry once.
+# --no-duplicate: never stack a second instance on a live one.
 if command -v qs >/dev/null 2>&1; then
-  qs -c overview >/dev/null 2>&1 &
+  qs -n -c overview >/dev/null 2>&1 &
   sleep 0.6
   if qs ipc -c overview call overview toggle >/dev/null 2>&1; then
     exit 0
