@@ -2,7 +2,7 @@
 
 # Gaming stack: Steam plus the tooling that makes it behave on Hyprland/NVIDIA.
 #
-# Every package here is in an official repo, so this deliberately uses
+# All but ProtonPlus are in official repos, so this deliberately uses
 # install_pacman_packages rather than install_packages. The latter auto-detects
 # paru and would route the whole set through the AUR helper for no benefit --
 # slower, and it drags AUR trust decisions into a path that does not need them.
@@ -95,6 +95,7 @@ gaming_pkgs=(
   gamescope
   # vulkaninfo/vkcube, for verifying the stack without launching a game.
   vulkan-tools
+  protontricks
 )
 
 install_pacman_packages "${gaming_pkgs[@]}"
@@ -135,6 +136,47 @@ else
   log OK "Added user to the {MAGENTA}gamemode{RESET} group. {YELLOW}Takes effect on next login.{RESET}"
 fi
 
+# MangoHud won't create its log folder. Not in ~/Games: that gets mounted over.
+mkdir -p "$HOME/mangologs"
+
+# ProtonPlus manages GE-Proton/proton-cachyos; the only AUR package here.
+if command -v paru &>/dev/null || command -v yay &>/dev/null; then
+  install_aur_package protonplus || log WARN "{GOLD}protonplus{RESET} did not install. Steam's own Proton builds are unaffected."
+else
+  log NOTE "No AUR helper found; skipping {GOLD}protonplus{RESET}. Run install-aur.sh, then re-run this script."
+fi
+
+# Arch ships ntsync as a module nothing autoloads; Proton uses it if present.
+ntsync_conf="/etc/modules-load.d/ntsync.conf"
+if ! modinfo ntsync &>/dev/null; then
+  log NOTE "This kernel has no ntsync module; skipping."
+else
+  if [ -f "$ntsync_conf" ]; then
+    log OK "$ntsync_conf already exists."
+  else
+    echo ntsync | sudo tee "$ntsync_conf" >/dev/null
+    log OK "Wrote $ntsync_conf so ntsync loads at boot."
+  fi
+
+  if [ ! -c /dev/ntsync ] && ! sudo modprobe ntsync; then
+    log WARN "Could not load ntsync now; it will load on next boot."
+  fi
+fi
+
+# Steam Deck community sysctls against memory compaction/reclaim stutter.
+gaming_sysctl="/etc/sysctl.d/99-gaming.conf"
+if [ -f "$gaming_sysctl" ]; then
+  log WARN "$gaming_sysctl already exists; leaving it untouched."
+else
+  sudo tee "$gaming_sysctl" >/dev/null <<'CONF'
+vm.compaction_proactiveness = 0
+vm.watermark_boost_factor = 1
+vm.page_lock_unfairness = 1
+CONF
+  sudo sysctl --system >/dev/null
+  log OK "Memory tuning applied: compaction_proactiveness=$(sysctl -n vm.compaction_proactiveness), watermark_boost_factor=$(sysctl -n vm.watermark_boost_factor), page_lock_unfairness=$(sysctl -n vm.page_lock_unfairness)"
+fi
+
 # ---------------------------------------------------------------------------
 # Verify
 # ---------------------------------------------------------------------------
@@ -166,5 +208,12 @@ else
   log OK "No competing 32-bit Vulkan ICD present."
 fi
 
+if [ -c /dev/ntsync ]; then
+  log OK "/dev/ntsync is present; Proton can use ntsync."
+elif modinfo ntsync &>/dev/null; then
+  log WARN "/dev/ntsync is missing, so Proton falls back to wineserver sync. Check: sudo modprobe ntsync"
+fi
+
 printf "\n%.0s" {1..1}
 log NOTE "Verify the runtime stack from inside a graphical session with {SKY_BLUE}vulkaninfo --summary{RESET} and {SKY_BLUE}mangohud vkcube{RESET}."
+log NOTE "Manual steps no script can do (BIOS, Steam settings, per-game options) are tracked in {SKY_BLUE}docs/gaming.md{RESET}."

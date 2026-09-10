@@ -29,6 +29,7 @@ gaming_packages=(
   lib32-mangohud
   gamescope
   lib32-vulkan-icd-loader
+  protontricks
 )
 
 # Local packages that should be in /usr/local/bin/
@@ -72,6 +73,23 @@ if is_installed_pacman steam; then
   # machine that actually installed the NVIDIA driver.
   if is_installed_pacman nvidia-utils && ! is_installed_pacman lib32-nvidia-utils; then
     missing+=("lib32-nvidia-utils")
+  fi
+
+  if modinfo ntsync &>/dev/null && [ ! -c /dev/ntsync ]; then
+    log WARN "/dev/ntsync is missing; Proton cannot use ntsync. Re-run install-gaming.sh."
+  fi
+fi
+
+# scx_lavd, if opted into (install-scx.sh writes this file)
+if [ -f /etc/scx_loader/config.toml ]; then
+  for pkg in scx-scheds scx-tools; do
+    if ! is_installed_pacman "$pkg"; then
+      missing+=("$pkg")
+    fi
+  done
+
+  if [ "$(cat /sys/kernel/sched_ext/state 2>/dev/null)" != "enabled" ]; then
+    log WARN "scx_lavd is configured but sched_ext is not active. Check: systemctl status scx_loader"
   fi
 fi
 

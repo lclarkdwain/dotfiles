@@ -34,9 +34,8 @@
 -- mid-scanout is the remaining way to drop a frame of input latency.
 --
 -- direct_scanout lets a fullscreen, unoccluded window hand its buffer straight
--- to the display controller and skip a composite pass. Hyprland disables it
--- automatically the moment anything overlaps the window (a notification, a
--- layer surface), so leaving it on costs nothing when it does not apply.
+-- to the display controller and skip a composite pass. Set it to 0 first if a
+-- game goes black or stutters (Hyprland discussions #14843, #14124).
 hl.config({
   general = {
     allow_tearing = true,

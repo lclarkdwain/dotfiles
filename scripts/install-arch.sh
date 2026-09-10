@@ -117,6 +117,17 @@ else
   log INFO "Skipping the gaming stack."
 fi
 
+scx_wanted=false
+printf "\n%.0s" {1..1}
+read -rp "Enable scx_lavd, a latency-focused CPU scheduler? It replaces the kernel's scheduler system-wide. [y/N]: " scx_response
+scx_response=${scx_response,,}
+if [[ "$scx_response" == "y" || "$scx_response" == "yes" ]]; then
+  scx_wanted=true
+  log INFO "scx_lavd will be enabled."
+else
+  log INFO "Skipping scx_lavd."
+fi
+
 printf "\n%.0s" {1..1}
 
 # Base
@@ -186,6 +197,11 @@ sleep 1
 
 execute_script "install-zram.sh"
 sleep 1
+
+if [ "$scx_wanted" == "true" ]; then
+  execute_script "install-scx.sh"
+  sleep 1
+fi
 
 # Runs after install-nvidia.sh so lib32-nvidia-utils can be matched against the
 # already-installed nvidia-utils, and after configure-pacman.sh has enabled
