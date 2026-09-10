@@ -4,6 +4,7 @@ hypr_pkgs=(
   hyprland
   hyprlock
   hypridle
+  hyprsunset
 )
 
 source_dir=$(dirname "$(realpath "$0")")
