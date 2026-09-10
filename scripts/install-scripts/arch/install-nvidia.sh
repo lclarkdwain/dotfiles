@@ -1,18 +1,35 @@
 #!/bin/bash
 
-nvidia_pkgs=(
-  nvidia-dkms
-  nvidia-settings
-  nvidia-utils
-  libva
-  libva-nvidia-driver
-)
-
+# global_fn.sh is sourced first because the driver-flavour check below needs
+# is_package_installed().
 source_dir=$(dirname "$(realpath "$0")")
 if ! source "${source_dir}/global_fn.sh"; then
   echo "Error: unable to source global_fn.sh..."
   exit 1
 fi
+
+# nvidia-open-dkms and nvidia-dkms provide the same kernel modules and CONFLICT
+# with each other, so hardcoding one uninstalls the other mid-run on a machine
+# that already made the opposite choice. Honour whatever is installed. For a
+# fresh install default to the open modules: nvidia-utils 580+ dropped
+# pre-Turing support entirely, so every card this driver branch still serves is
+# one the open modules also support.
+if is_package_installed nvidia-open-dkms; then
+  nvidia_driver_pkg="nvidia-open-dkms"
+elif is_package_installed nvidia-dkms; then
+  nvidia_driver_pkg="nvidia-dkms"
+else
+  nvidia_driver_pkg="nvidia-open-dkms"
+fi
+log INFO "Using {SKY_BLUE}${nvidia_driver_pkg}{RESET} for the NVIDIA kernel modules."
+
+nvidia_pkgs=(
+  "$nvidia_driver_pkg"
+  nvidia-settings
+  nvidia-utils
+  libva
+  libva-nvidia-driver
+)
 
 # nvidia stuff
 printf "${YELLOW} Checking for other hyprland packages and remove if any..${RESET}\n"
