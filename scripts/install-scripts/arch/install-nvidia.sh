@@ -31,6 +31,15 @@ nvidia_pkgs=(
   libva-nvidia-driver
 )
 
+# 32-bit userspace driver, needed by Proton/Wine and older native titles. Only
+# resolvable once [multilib] is live (configure-pacman.sh enables it), so this
+# is guarded rather than allowed to fail the whole NVIDIA step on a box that
+# does not want 32-bit support.
+nvidia_lib32_pkgs=(
+  lib32-nvidia-utils
+  lib32-vulkan-icd-loader
+)
+
 # nvidia stuff
 printf "${YELLOW} Checking for other hyprland packages and remove if any..${RESET}\n"
 if pacman -Qs hyprland >/dev/null; then
@@ -47,6 +56,15 @@ for krnl in $(cat /usr/lib/modules/*/pkgbase); do
     install_package "$NVIDIA"
   done
 done
+
+if pacman-conf --repo-list 2>/dev/null | grep -qx multilib; then
+  log INFO "{MAGENTA}[multilib]{RESET} is enabled - installing 32-bit NVIDIA userspace..."
+  for pkg32 in "${nvidia_lib32_pkgs[@]}"; do
+    install_package "$pkg32"
+  done
+else
+  log WARN "{MAGENTA}[multilib]{RESET} is not enabled; skipping {GOLD}lib32-nvidia-utils{RESET}. Steam and Proton will not run until configure-pacman.sh enables it."
+fi
 
 # Check if the Nvidia modules are already added in mkinitcpio.conf and add if not
 if grep -qE '^MODULES=.*nvidia. *nvidia_modeset.*nvidia_uvm.*nvidia_drm' /etc/mkinitcpio.conf; then

@@ -102,6 +102,21 @@ if ! groups "$(whoami)" | grep -q '\binput\b'; then
   log INFO "You are not currently in the input group.\n\nAdding you to the input group might be necessary for the Waybar keyboard-state functionality."
 fi
 
+# The gaming stack is opt-in. It pulls Steam plus the entire 32-bit graphics
+# userspace, which is a large amount of disk and completely unwanted on a
+# machine that will never run a game. Asked here, with the other detections, so
+# the whole run stays unattended after this point.
+gaming_wanted=false
+printf "\n%.0s" {1..1}
+read -rp "Install the gaming stack (Steam, GameMode, MangoHud, gamescope)? [y/N]: " gaming_response
+gaming_response=${gaming_response,,}
+if [[ "$gaming_response" == "y" || "$gaming_response" == "yes" ]]; then
+  gaming_wanted=true
+  log INFO "Gaming stack will be installed."
+else
+  log INFO "Skipping the gaming stack."
+fi
+
 printf "\n%.0s" {1..1}
 
 # Base
@@ -171,6 +186,17 @@ sleep 1
 
 execute_script "install-zram.sh"
 sleep 1
+
+# Runs after install-nvidia.sh so lib32-nvidia-utils can be matched against the
+# already-installed nvidia-utils, and after configure-pacman.sh has enabled
+# [multilib] -- install-gaming.sh hard-fails on either being absent rather than
+# installing something half-working.
+if [ "$gaming_wanted" == "true" ]; then
+  execute_script "install-gaming.sh"
+  sleep 1
+  execute_script "configure-games-subvol.sh"
+  sleep 1
+fi
 
 COMMON_SCRIPTS_DIR="scripts/install-scripts/common"
 execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"

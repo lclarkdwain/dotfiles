@@ -17,6 +17,20 @@ packages=(
   hyprland
 )
 
+# Gaming stack. Checked only when steam is present, because install-arch.sh
+# makes these opt-in -- listing them unconditionally would report a "missing"
+# package on every machine that deliberately declined them. When steam IS
+# installed, a gap here is worth catching: a game launching without its 32-bit
+# layers fails as a confusing crash rather than an obvious missing package.
+gaming_packages=(
+  gamemode
+  lib32-gamemode
+  mangohud
+  lib32-mangohud
+  gamescope
+  lib32-vulkan-icd-loader
+)
+
 # Local packages that should be in /usr/local/bin/
 local_pkgs_installed=(
 
@@ -45,6 +59,21 @@ for pkg in "${packages[@]}"; do
     missing+=("$pkg")
   fi
 done
+
+# Gaming stack, only if it was opted into
+if is_installed_pacman steam; then
+  for pkg in "${gaming_packages[@]}"; do
+    if ! is_installed_pacman "$pkg"; then
+      missing+=("$pkg")
+    fi
+  done
+
+  # The 32-bit driver is vendor-specific, so only expect the NVIDIA one on a
+  # machine that actually installed the NVIDIA driver.
+  if is_installed_pacman nvidia-utils && ! is_installed_pacman lib32-nvidia-utils; then
+    missing+=("lib32-nvidia-utils")
+  fi
+fi
 
 # Check for local packages
 for pkg1 in "${local_pkgs_installed[@]}"; do
