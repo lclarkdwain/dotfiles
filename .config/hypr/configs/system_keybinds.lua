@@ -274,7 +274,7 @@ bind("SUPER SHIFT", "Q", exec_cmd("$HOME/.config/hypr/scripts/KillActiveProcess.
 bind("CTRL ALT", "L", exec_cmd("$HOME/.config/hypr/scripts/LockScreen.sh"), { description = "lock screen" })
 bind("CTRL ALT", "P", exec_cmd("$HOME/.config/hypr/scripts/Wlogout.sh"), { description = "powermenu" })
 bind("SUPER SHIFT", "N", exec_cmd("swaync-client -t -sw"), { description = "notification panel" })
-bind("SUPER SHIFT", "E", exec_cmd("$HOME/.config/hypr/scripts/Kool_Quick_Settings.sh"), { description = "Quick settings menu" })
+bind("SUPER SHIFT", "E", exec_cmd("$HOME/.config/hypr/scripts/SettingsMenu.sh"), { description = "settings menu" })
 bind("SUPER CTRL", "D", dispatch("layoutmsg", "removemaster"), { description = "remove master" })
 bind("SUPER", "I", dispatch("layoutmsg", "addmaster"), { description = "add master" })
 bind("SUPER", "j", dispatch("layoutmsg", "cyclenext"), { description = "cycle next" })

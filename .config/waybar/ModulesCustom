@@ -55,9 +55,10 @@
 
 "custom/settings": {
 	"format": " ",
-	"on-click": "$HOME/.config/hypr/scripts/Kool_Quick_Settings.sh",
+	"on-click": "$HOME/.config/hypr/scripts/SettingsMenu.sh",
+	"on-click-right": "$HOME/.config/hypr/scripts/KeyHints.sh",
 	"tooltip": true,
-	"tooltip-format": "Launch KooL Hyprland Settings Menu",
+	"tooltip-format": "Left Click: Settings\nRight Click: Keybind Cheat Sheet",
 },
 
 "custom/cycle_wall": {
