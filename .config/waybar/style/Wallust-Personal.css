@@ -219,7 +219,8 @@ window#waybar.empty #window {
   background-color: @backgrounddark;
   color: @textcolor1;
   border-radius: 5px 5px 5px 5px;
-  padding: 0px 0px 0px 6px;
+  /* ⏻ ink overflows its cell 0.24em to the right; pad the right to re-centre */
+  padding: 0px 0.24em 0px 0px;
   opacity: 0.8;
   border: 3px solid @bordercolor;
 }
