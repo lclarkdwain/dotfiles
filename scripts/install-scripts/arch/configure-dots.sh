@@ -99,32 +99,43 @@ while true; do
   esac
 done
 echo "${OK} You have chosen $resolution resolution." 2>&1 | log PIPE
+
+# Apply a sed script only if it changes the file. `sed -i` rewrites a file even
+# when nothing matches, so a re-run with the same answer would still touch it.
+sed_if_changed() {
+  local file="$1" script="$2" tmp
+  [ -f "$file" ] || return 0
+  tmp=$(mktemp)
+  sed "$script" "$file" >"$tmp"
+  if cmp -s "$file" "$tmp"; then
+    echo "${NOTE} $file already at this preset; skipping." 2>&1 | log PIPE
+  else
+    cat "$tmp" >"$file"
+    echo "${OK} Updated $file." 2>&1 | log PIPE
+  fi
+  rm -f "$tmp"
+}
+
+# Same for hyprlock.conf, which is replaced wholesale by a per-resolution variant.
+copy_if_changed() {
+  local src="$1" dst="$2"
+  [ -f "$src" ] || return 0
+  if cmp -s "$src" "$dst"; then
+    echo "${NOTE} $dst already matches $(basename "$src"); skipping." 2>&1 | log PIPE
+  else
+    cp "$src" "$dst"
+    echo "${OK} Copied $(basename "$src") to $dst." 2>&1 | log PIPE
+  fi
+}
+
+# rofi fonts are deliberately not scaled: the committed 15/13 is kept at every
+# resolution, including 1080p.
 if [ "$resolution" == "< 1440p" ]; then
-  # kitty font size
-  sed -i 's/font_size 16.0/font_size 14.0/' .config/kitty/kitty.conf
-  # hyprlock matters
-  if [ -f .config/hypr/hyprlock-1080p.conf ]; then
-    cp .config/hypr/hyprlock-1080p.conf .config/hypr/hyprlock.conf
-  fi
-  # rofi fonts reduction
-  rofi_config_file=".config/rofi/0-shared-fonts.rasi"
-  if [ -f "$rofi_config_file" ]; then
-    sed -i '/element-text {/,/}/s/[[:space:]]*font: "JetBrainsMono Nerd Font SemiBold 13"/font: "JetBrainsMono Nerd Font SemiBold 11"/' "$rofi_config_file" 2>&1 | log PIPE
-    sed -i '/configuration {/,/}/s/[[:space:]]*font: "JetBrainsMono Nerd Font SemiBold 15"/font: "JetBrainsMono Nerd Font SemiBold 13"/' "$rofi_config_file" 2>&1 | log PIPE
-  fi
-elif [ "$resolution" == "≥ 1440p" ]; then
-  # kitty font size (restore default)
-  sed -i 's/font_size 14.0/font_size 16.0/' .config/kitty/kitty.conf
-  # hyprlock matters
-  if [ -f .config/hypr/hyprlock-2k.conf ]; then
-    cp .config/hypr/hyprlock-2k.conf .config/hypr/hyprlock.conf
-  fi
-  # rofi fonts restoration
-  rofi_config_file=".config/rofi/0-shared-fonts.rasi"
-  if [ -f "$rofi_config_file" ]; then
-    sed -i '/element-text {/,/}/s/[[:space:]]*font: "JetBrainsMono Nerd Font SemiBold 11"/font: "JetBrainsMono Nerd Font SemiBold 13"/' "$rofi_config_file" 2>&1 | log PIPE
-    sed -i '/configuration {/,/}/s/[[:space:]]*font: "JetBrainsMono Nerd Font SemiBold 13"/font: "JetBrainsMono Nerd Font SemiBold 15"/' "$rofi_config_file" 2>&1 | log PIPE
-  fi
+  sed_if_changed .config/kitty/kitty.conf 's/font_size 16.0/font_size 14.0/'
+  copy_if_changed .config/hypr/hyprlock-1080p.conf .config/hypr/hyprlock.conf
+else
+  sed_if_changed .config/kitty/kitty.conf 's/font_size 14.0/font_size 16.0/'
+  copy_if_changed .config/hypr/hyprlock-2k.conf .config/hypr/hyprlock.conf
 fi
 
 printf "\n%.0s" {1..1}
