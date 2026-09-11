@@ -113,7 +113,7 @@ apply_window_rule({
 apply_window_rule({
   name = "system-window-windowrule-013",
   match = {
-    class = "^(ghostty|org.wezfurlong.wezterm|Alacritty|kitty|kitty-dropterm)$",
+    class = "^(ghostty|org.wezfurlong.wezterm|wezterm-dropterm|Alacritty|kitty|kitty-dropterm)$",
   },
   tag = "+terminal",
 })

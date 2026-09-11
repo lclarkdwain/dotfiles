@@ -27,7 +27,8 @@ local startup_commands = {
   scriptsDir .. "/WallpaperDaemon.sh",
   "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
   "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
-  scriptsDir .. "/Dropterminal.sh \"kitty --class kitty-dropterm\" &",
+  -- --startup keeps it hidden; terminal must match the SUPER SHIFT Return bind
+  scriptsDir .. "/Dropterminal.sh --startup wezterm",
   scriptsDir .. "/Polkit.sh",
   "nm-applet --indicator",
   "swaync",

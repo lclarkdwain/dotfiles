@@ -18,6 +18,7 @@ LOCK_FILE="/tmp/dropdown_terminal_lock"
 LAST_TOGGLE_FILE="/tmp/dropdown_terminal_last_toggle"
 MIN_TOGGLE_INTERVAL_MS=250
 DROPDOWN_KITTY_CLASS="kitty-dropterm"
+DROPDOWN_WEZTERM_CLASS="wezterm-dropterm"
 CONFIG_HOME="${XDG_CONFIG_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}}"
 HYPR_DIR="$CONFIG_HOME/hypr"
 LUA_ENTRY="$HYPR_DIR/hyprland.lua"
@@ -161,6 +162,10 @@ done
 TERMINAL_CMD="$*"
 if [[ "$TERMINAL_CMD" == kitty* ]] && [[ "$TERMINAL_CMD" != *"--class"* ]] && [[ "$TERMINAL_CMD" != *"--name"* ]] && [[ "$TERMINAL_CMD" != *"--app-id"* ]]; then
   TERMINAL_CMD="$TERMINAL_CMD --class $DROPDOWN_KITTY_CLASS --app-id $DROPDOWN_KITTY_CLASS"
+fi
+# LOCAL DEVIATION: give the wezterm dropdown its own class so it can be found again
+if [[ "$TERMINAL_CMD" == "wezterm" ]]; then
+  TERMINAL_CMD="wezterm start --always-new-process --class $DROPDOWN_WEZTERM_CLASS"
 fi
 
 # Ensure only one instance runs at a time (prevents overlapping animations)
@@ -496,10 +501,10 @@ get_terminal_address() {
   fi
 }
 
-# Try to find an existing dropdown terminal by class (kitty only)
+# Try to find an existing dropdown terminal by class (kitty or wezterm)
 find_terminal_by_class() {
-  hyprctl clients -j 2>/dev/null | jq -r --arg CLASS "$DROPDOWN_KITTY_CLASS" \
-    '.[] | select((.class == $CLASS) or (.initialClass == $CLASS)) | .address' | head -1
+  hyprctl clients -j 2>/dev/null | jq -r --arg K "$DROPDOWN_KITTY_CLASS" --arg W "$DROPDOWN_WEZTERM_CLASS" \
+    '.[] | select([.class, .initialClass] | any(. == $K or . == $W)) | .address' | head -1
 }
 
 # Function to get stored monitor name
@@ -753,8 +758,8 @@ spawn_terminal() {
   for _ in $(seq 1 20); do
     local windows_after=$(hyprctl clients -j)
     local recovered
-    recovered=$(echo "$windows_after" | jq -r --arg CLASS "$DROPDOWN_KITTY_CLASS" \
-      '.[] | select((.class == $CLASS) or (.initialClass == $CLASS)) | .address' | head -1)
+    recovered=$(echo "$windows_after" | jq -r --arg K "$DROPDOWN_KITTY_CLASS" --arg W "$DROPDOWN_WEZTERM_CLASS" \
+      '.[] | select([.class, .initialClass] | any(. == $K or . == $W)) | .address' | head -1)
     if [ -n "$recovered" ] && [ "$recovered" != "null" ]; then
       new_addr="$recovered"
       break
