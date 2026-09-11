@@ -10,10 +10,21 @@ CLAUDE_PERSONAL_DIR ?= $(HOME)/.claude-personal
 DRY_RUN ?= false
 STOW_CMD = $(if $(filter $(DRY_RUN),true),echo stow,stow)
 RM_CMD = $(if $(filter $(DRY_RUN),true),echo rm -rf,rm -rf)
+GIT_CMD = $(if $(filter $(DRY_RUN),true),echo git,git)
 
 all: install link
 
-link: backup
+# antidote is a git submodule. A clone made without --recursive leaves
+# .config/zsh/.antidote as an empty directory, and every new zsh then fails to
+# source antidote.zsh.
+.PHONY: submodules
+submodules:
+	@if [ ! -e .config/zsh/.antidote/antidote.zsh ]; then \
+		echo "Initializing git submodules..."; \
+		$(GIT_CMD) submodule update --init; \
+	fi
+
+link: backup submodules
 	@echo "$(DOTFILES) Linking configurations..."
 	@$(STOW_CMD) -t $(HOME) zsh
 	@echo "Linking .config (removing any conflicts)..."
