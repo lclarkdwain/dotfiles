@@ -21,9 +21,13 @@ autoload -Uz $ZFUNCDIR/*(.:t)
 # Set any zstyles you might use for configuration.
 [[ ! -f ${ZDOTDIR:-$HOME}/.zstyles ]] || source ${ZDOTDIR:-$HOME}/.zstyles
 
-# Clone antidote if necessary.
-if [[ ! -d ${ZDOTDIR:-$HOME}/.antidote ]]; then
-  git clone https://github.com/mattmc3/antidote ${ZDOTDIR:-$HOME}/.antidote
+# Fetch antidote if necessary. Test for the script, not the directory: in the
+# dotfiles repo .antidote is a git submodule, and a clone made without
+# --recursive leaves it as an empty directory. Initialise the submodule there
+# rather than cloning over it; clone only outside the repo.
+if [[ ! -e ${ZDOTDIR:-$HOME}/.antidote/antidote.zsh ]]; then
+  git -C ${ZDOTDIR:-$HOME} submodule update --init .antidote 2>/dev/null ||
+    git clone https://github.com/mattmc3/antidote ${ZDOTDIR:-$HOME}/.antidote
 fi
 
 # Antidote
