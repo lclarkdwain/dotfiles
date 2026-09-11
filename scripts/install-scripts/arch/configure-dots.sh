@@ -216,73 +216,42 @@ printf "\n%.0s" {1..1}
 
 # for SDDM (simple_sddm_2)
 sddm_simple_sddm_2="/usr/share/sddm/themes/simple_sddm_2"
+# install-sddm-theme.sh re-clones the theme on every run, which resets its
+# background, so re-applying the current wallpaper is the default.
 if [ -d "$sddm_simple_sddm_2" ]; then
-  while true; do
-    echo -n "${CAT} SDDM simple_sddm_2 theme detected! Apply current wallpaper as SDDM background? (y/n): "
-    read SDDM_WALL
-
-    # Remove any leading/trailing whitespace or newlines from input
-    SDDM_WALL=$(echo "$SDDM_WALL" | tr -d '\n' | tr -d ' ')
-
-    case $SDDM_WALL in
-    [Yy])
-      # Copy the wallpaper, ignore errors if the file exists or fails
-      sudo -n cp -r ".config/hypr/wallpaper_effects/.wallpaper_current" "/usr/share/sddm/themes/simple_sddm_2/Backgrounds/default" || true
+  if confirm "SDDM simple_sddm_2 theme detected! Apply current wallpaper as SDDM background?" y; then
+    if sudo -n cp ".config/hypr/wallpaper_effects/.wallpaper_current" "$sddm_simple_sddm_2/Backgrounds/default"; then
       echo "${NOTE} Current wallpaper applied as default SDDM background" 2>&1 | log PIPE
-      break
-      ;;
-    [Nn])
-      echo "${NOTE} You chose not to apply the current wallpaper to SDDM." 2>&1 | log PIPE
-      break
-      ;;
-    *)
-      echo "Please enter 'y' or 'n' to proceed."
-      ;;
-    esac
-  done
+    else
+      echo "${WARN} Could not copy the wallpaper to SDDM (sudo password required)." 2>&1 | log PIPE
+    fi
+  else
+    echo "${NOTE} You chose not to apply the current wallpaper to SDDM." 2>&1 | log PIPE
+  fi
 fi
 
 # additional wallpapers
 printf "\n%.0s" {1..1}
 echo "${MAGENTA}By default only a few wallpapers are copied${RESET}..."
 
-while true; do
-  echo "${NOTE} A number of these wallpapers are AI generated or enhanced. Select (N/n) if this is an issue for you. "
-  echo -n "${CAT} Would you like to download additional wallpapers? ${WARN} This is 1GB in size (y/n): "
-  read WALL
-
-  case $WALL in
-  [Yy])
-    echo "${NOTE} Downloading additional wallpapers..."
-    if git clone "https://github.com/LinuxBeginnings/Wallpaper-Bank.git"; then
-      echo "${OK} Wallpapers downloaded successfully." 2>&1 | log PIPE
-
-      # Check if wallpapers directory exists and create it if not
-      if [ ! -d "$PICTURES_DIR/wallpapers" ]; then
-        mkdir -p "$PICTURES_DIR/wallpapers"
-        echo "${OK} Created wallpapers directory." 2>&1 | log PIPE
-      fi
-
-      if cp -R Wallpaper-Bank/wallpapers/* "$PICTURES_DIR/wallpapers/" 2>&1 | log PIPE; then
-        echo "${OK} Wallpapers copied successfully." 2>&1 | log PIPE
-        rm -rf Wallpaper-Bank 2>&1 # Remove cloned repository after copying wallpapers
-        break
-      else
-        echo "${ERROR} Copying wallpapers failed" 2>&1 | log PIPE
-      fi
+echo "${NOTE} A number of these wallpapers are AI generated or enhanced. Select (N/n) if this is an issue for you. "
+if confirm "Would you like to download additional wallpapers? ${WARN} This is 1GB in size" n; then
+  echo "${NOTE} Downloading additional wallpapers..."
+  if git clone "https://github.com/LinuxBeginnings/Wallpaper-Bank.git"; then
+    echo "${OK} Wallpapers downloaded successfully." 2>&1 | log PIPE
+    mkdir -p "$PICTURES_DIR/wallpapers"
+    if cp -R Wallpaper-Bank/wallpapers/* "$PICTURES_DIR/wallpapers/"; then
+      echo "${OK} Wallpapers copied successfully." 2>&1 | log PIPE
     else
-      echo "${ERROR} Downloading additional wallpapers failed" 2>&1 | log PIPE
+      echo "${ERROR} Copying wallpapers failed" 2>&1 | log PIPE
     fi
-    ;;
-  [Nn])
-    echo "${NOTE} You chose not to download additional wallpapers." 2>&1 | log PIPE
-    break
-    ;;
-  *)
-    echo "Please enter 'y' or 'n' to proceed."
-    ;;
-  esac
-done
+    rm -rf Wallpaper-Bank
+  else
+    echo "${ERROR} Downloading additional wallpapers failed" 2>&1 | log PIPE
+  fi
+else
+  echo "${NOTE} You chose not to download additional wallpapers." 2>&1 | log PIPE
+fi
 
 link_waybar_default style.css "$waybar_style"
 
