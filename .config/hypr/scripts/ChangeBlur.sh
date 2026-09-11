@@ -13,10 +13,16 @@ set_blur() {
 
 STATE=$(hyprctl -j getoption decoration:blur:passes | jq ".int")
 
-if [ "${STATE}" == "2" ]; then
-	set_blur 2 1
- 	notify-send -e -u low -i "$notif/note.png" " Less Blur"
+# LOCAL FIX: the restore branch used to set a hardcoded 5 2, which silently
+# drifted from decoration.blur in UserConfigs/user_decorations.lua (6 3) --
+# "Normal Blur" never returned you to your configured values, and pressing the
+# bind once left blur permanently reduced. A config reload IS the restore, the
+# same approach HyprPerfMode.sh uses. passes == 1 is the reduced state, since
+# set_blur below is the only thing that produces it.
+if [ "${STATE}" == "1" ]; then
+	hyprctl reload >/dev/null
+	notify-send -e -u low -i "$notif/ja.png" " Normal Blur"
 else
-	set_blur 5 2
-  	notify-send -e -u low -i "$notif/ja.png" " Normal Blur"
+	set_blur 2 1
+	notify-send -e -u low -i "$notif/ja.png" " Less Blur"
 fi
