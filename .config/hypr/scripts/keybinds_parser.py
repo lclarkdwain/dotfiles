@@ -332,7 +332,15 @@ def _extract_lua_bind_tables(text):
             idx += 1
     return binds
 
+def _strip_lua_comments(text):
+    # LOCAL FIX: skip commented-out binds
+    text = re.sub(r'--\[(=*)\[.*?\]\1\]', '', text, flags=re.DOTALL)
+    return "\n".join(
+        "" if line.lstrip().startswith("--") else line for line in text.split("\n")
+    )
+
 def _extract_lua_binds(text):
+    text = _strip_lua_comments(text)
     binds = []
     binds.extend(_extract_lua_bind_calls(text))
     binds.extend(_extract_lua_bind_tables(text))
