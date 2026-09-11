@@ -13,6 +13,25 @@ local function apply_window_rule(rule)
   end
 end
 
+-- LOCAL DEVIATION: opacity standard.
+--
+-- Upstream set these per app with no system behind them (0.99, 0.94, 0.9, 0.82,
+-- 0.8, 0.95 ...), and the active/inactive gap varied from 0.07 to 0.20. These
+-- four tiers replace that. Active and inactive always differ by exactly 0.10.
+--
+-- Transparency is only legible over blur -- without it a translucent window
+-- shows raw, unblurred wallpaper -- so anything carrying no_blur is opaque.
+--
+-- Terminals are opaque here on purpose: they set their own opacity (wezterm
+-- 0.55, kitty 0.9) and a rule would multiply with it, which is where the
+-- inconsistency came from. The terminal's own config owns that value.
+local OPACITY = {
+  opaque = 1.0,            -- true-colour content; pairs with no_blur
+  content = "0.92 0.82",   -- long-form reading and editing surfaces
+  standard = "0.88 0.78",  -- general application windows
+  utility = "0.82 0.72",   -- transient panels, pickers, chrome
+}
+
 -- Converted from configs/WindowRules.conf
 apply_window_rule({
   name = "system-window-windowrule-001",
@@ -467,7 +486,7 @@ apply_window_rule({
   match = {
     tag = "multimedia",
   },
-  opacity = 1.0,
+  opacity = OPACITY.opaque,
 })
 
 apply_window_rule({
@@ -697,7 +716,7 @@ apply_window_rule({
   match = {
     tag = "browser",
   },
-  opacity = "0.99 0.8",
+  opacity = OPACITY.content,
 })
 
 apply_window_rule({
@@ -705,7 +724,7 @@ apply_window_rule({
   match = {
     tag = "projects",
   },
-  opacity = "0.9 0.8",
+  opacity = OPACITY.content,
 })
 
 apply_window_rule({
@@ -713,7 +732,7 @@ apply_window_rule({
   match = {
     tag = "im",
   },
-  opacity = "0.94 0.86",
+  opacity = OPACITY.standard,
 })
 
 apply_window_rule({
@@ -721,7 +740,7 @@ apply_window_rule({
   match = {
     tag = "multimedia",
   },
-  opacity = "0.94 0.86",
+  opacity = OPACITY.opaque,
 })
 
 apply_window_rule({
@@ -729,7 +748,7 @@ apply_window_rule({
   match = {
     tag = "file-manager",
   },
-  opacity = "0.9 0.8",
+  opacity = OPACITY.standard,
 })
 
 apply_window_rule({
@@ -737,7 +756,7 @@ apply_window_rule({
   match = {
     tag = "terminal",
   },
-  opacity = "0.9 0.7",
+  opacity = OPACITY.opaque,
 })
 
 apply_window_rule({
@@ -745,7 +764,7 @@ apply_window_rule({
   match = {
     class = "^(gedit|org.gnome.TextEditor|mousepad)$",
   },
-  opacity = "0.8 0.7",
+  opacity = OPACITY.standard,
 })
 
 apply_window_rule({
@@ -753,7 +772,7 @@ apply_window_rule({
   match = {
     class = "^(deluge)$",
   },
-  opacity = "0.9 0.8",
+  opacity = OPACITY.standard,
 })
 
 apply_window_rule({
@@ -761,7 +780,7 @@ apply_window_rule({
   match = {
     class = "^(seahorse)$",
   },
-  opacity = "0.9 0.8",
+  opacity = OPACITY.standard,
 })
 
 apply_window_rule({
@@ -787,7 +806,7 @@ apply_window_rule({
   },
   float = true,
   move = "72% 7%",
-  opacity = "0.95 0.75",
+  opacity = OPACITY.utility,
   pin = true,
   keep_aspect_ratio = true,
   size = "(monitor_w*0.3) (monitor_h*0.3)",
@@ -928,7 +947,7 @@ apply_window_rule({
   float = true,
   center = true,
   size = "(monitor_w*0.7) (monitor_h*0.7)",
-  opacity = "0.9 0.7",
+  opacity = OPACITY.utility,
 })
 
 apply_window_rule({
@@ -939,7 +958,7 @@ apply_window_rule({
   float = true,
   center = true,
   size = "(monitor_w*0.7) (monitor_h*0.7)",
-  opacity = "0.8 0.7",
+  opacity = OPACITY.utility,
 })
 
 apply_window_rule({
@@ -949,7 +968,7 @@ apply_window_rule({
   },
   float = true,
   center = true,
-  opacity = "0.82 0.75",
+  opacity = OPACITY.content,
 })
 
 apply_window_rule({
@@ -967,7 +986,7 @@ apply_window_rule({
     tag = "multimedia_video",
   },
   no_blur = true,
-  opacity = 1.0,
+  opacity = OPACITY.opaque,
 })
 
 apply_window_rule({
@@ -976,6 +995,7 @@ apply_window_rule({
     tag = "games",
   },
   no_blur = true,
+  opacity = OPACITY.opaque,
   fullscreen = 0,
 })
 
