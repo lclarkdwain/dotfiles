@@ -20,3 +20,5 @@ claude/.claude-personal/settings.json
 # Rewritten by the wallpaper scripts on every change, pointing at an absolute
 # path under ~/Pictures. Runtime state, not config.
 .config/rofi/.current_wallpaper*
+# Per-monitor copies of the current wallpaper, written by WallpaperSelect.sh.
+.config/hypr/wallpaper_effects/.wallpaper_current_*
