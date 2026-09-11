@@ -149,6 +149,9 @@ run_wallust_with_config() {
   local cfg="$1"
   if wallust run --help 2>&1 | grep -q -E '(^|[[:space:]])-c([,[:space:]]|$)|--config'; then
     wallust run -s -c "$cfg" "$wallpaper_path" || true
+# LOCAL DEVIATION: keep SDDM in sync with the wallpaper
+"$HOME/.config/hypr/scripts/sddm_wallpaper.sh" --sync "$wallpaper_path" >/dev/null 2>&1 &
+
   else
     WALLUST_CONFIG="$cfg" wallust run -s "$wallpaper_path" || true
   fi
