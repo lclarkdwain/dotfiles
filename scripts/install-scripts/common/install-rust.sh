@@ -27,7 +27,11 @@ if [ -f "$RUST_PKGS_FILE" ]; then
     [[ -z "$package" || "$package" =~ ^[[:space:]]*# ]] && continue
 
     log INFO "Installing Rust package: $package"
-    cargo install "$package" || log WARN "Failed to install $package, continuing..."
+    # --locked builds against the crate's own Cargo.lock. Without it cargo picks
+    # the newest semver-compatible deps, which can be a combination the crate
+    # never tested -- eza 0.23.5 failed to compile that way (palette 0.7.5 with a
+    # newer palette_derive).
+    cargo install --locked "$package" || log WARN "Failed to install $package, continuing..."
   done <"$RUST_PKGS_FILE"
 
   log SUCCESS "Rust packages installation complete"
