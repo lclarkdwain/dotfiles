@@ -23,7 +23,8 @@ else
   SWWW_PARAMS=""
 fi
 if ! "$WWW_CMD" query >/dev/null 2>&1; then
-  "$WWW_DAEMON" "${WWW_DAEMON_ARGS[@]}" &
+  # LOCAL FIX: own session, so a waybar reload (killpg on click commands) can't kill it
+  setsid -f "$WWW_DAEMON" "${WWW_DAEMON_ARGS[@]}"
 fi
 
 "$WWW_CMD" img -o "$focused_monitor" "$RANDOMPICS" $SWWW_PARAMS
