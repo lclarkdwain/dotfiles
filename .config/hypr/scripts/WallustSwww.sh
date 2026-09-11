@@ -118,7 +118,12 @@ wait_for_templates() {
 # Run wallust (silent) to regenerate templates defined in ~/.config/wallust/wallust.toml
 # -s is used in this repo to keep things quiet and avoid extra prompts
 start_ts=$(date +%s)
-wallust run -s "$wallpaper_path" || true
+# LOCAL DEVIATION: light mode palette comes from ~/.cache/.theme_mode
+wallust_args=(run -s)
+if [[ "$(cat "$HOME/.cache/.theme_mode" 2>/dev/null)" == "Light" ]]; then
+  wallust_args+=(--palette light16)
+fi
+wallust "${wallust_args[@]}" "$wallpaper_path" || true
 wallust_targets=(
   "$HOME/.config/waybar/wallust/colors-waybar.css"
   "$HOME/.config/rofi/wallust/colors-rofi.rasi"
