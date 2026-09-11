@@ -1,24 +1,8 @@
-local wezterm = require("wezterm")
-
 local M = {}
-
--- Follow DarkLight.sh's mode file (watched); get_appearance() goes stale under XWayland
-local mode_file = (os.getenv("HOME") or "") .. "/.cache/.theme_mode"
-
-local function is_light()
-  local f = io.open(mode_file, "r")
-  if f then
-    local mode = f:read("*l")
-    f:close()
-    wezterm.add_to_config_reload_watch_list(mode_file)
-    return mode == "Light"
-  end
-  return wezterm.gui ~= nil and wezterm.gui.get_appearance():find("Light") ~= nil
-end
 
 ---@param config Config
 function M.setup(config)
-  config.color_scheme = is_light() and "dayfox" or "carbonfox"
+  config.color_scheme = "carbonfox"
   -- config.color_scheme = "Catppuccin Mocha"
 
   config.colors = {
