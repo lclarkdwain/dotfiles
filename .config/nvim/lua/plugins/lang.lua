@@ -1,12 +1,10 @@
 return {
   {
     "folke/lazydev.nvim",
-    ft = "lua",
     dependencies = { "DrKJeff16/wezterm-types" },
-    opts = {
-      library = {
-        { path = "wezterm-types", mods = { "wezterm" } },
-      },
-    },
+    opts = function(_, opts)
+      table.insert(opts.library, { path = "wezterm-types", mods = { "wezterm" } })
+    end,
   },
+  { "DrKJeff16/wezterm-types", lazy = true },
 }

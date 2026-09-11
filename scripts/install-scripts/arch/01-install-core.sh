@@ -13,6 +13,7 @@ extras=(
   neovim
   ripgrep
   stow
+  tree-sitter-cli
 )
 
 core_pkgs=(

@@ -1,10 +1,6 @@
 return {
   "nvim-lualine/lualine.nvim",
-  dependencies = { "nvim-tree/nvim-web-devicons" },
-  event = { "VeryLazy" },
-  config = function()
-    local lualine = require("lualine")
-
+  opts = function(_, opts)
     local colors = {
       blue = "#83a598",
       green = "#8ec07c",
@@ -49,13 +45,12 @@ return {
       },
     }
 
-    -- configure lualine with modified theme
-    lualine.setup({
+    local lazyvim_x = opts.sections.lualine_x
+    local custom = {
       options = {
         theme = gruv_material,
         component_separators = { left = "│", right = "│" },
         section_separators = { left = "", right = "" },
-        disabled_filetypes = { "snacks_dashboard" },
       },
       sections = {
         lualine_a = {
@@ -87,7 +82,13 @@ return {
             shorting_target = 0,
           },
         },
-        lualine_x = {},
+        -- LazyVim status components, minus diff; colors dropped so they inherit the readable section fg
+        lualine_x = vim.tbl_map(function(c)
+          c.color = nil
+          return c
+        end, vim.tbl_filter(function(c)
+          return c[1] ~= "diff"
+        end, lazyvim_x)),
         lualine_y = {
           "searchcount",
           "selectioncount",
@@ -99,19 +100,9 @@ return {
           "location",
         },
       },
-      inactive_sections = {
-        lualine_a = {},
-        lualine_b = {},
-        lualine_c = { "filename" },
-        lualine_x = { "location" },
-        lualine_y = {},
-        lualine_z = {},
-      },
-      tabline = {},
-      winbar = {},
-      inactive_winbar = {},
-      extensions = {},
-    })
-    vim.opt.laststatus = 3
+    }
+
+    opts.options = vim.tbl_deep_extend("force", opts.options, custom.options)
+    opts.sections = custom.sections
   end,
 }
