@@ -24,10 +24,10 @@
 
 //@theme "~/.config/rofi/themes/KooL_style-4.rasi"
 
-//@theme "/home/lclarkdwain/.local/share/rofi/themes/saint-rofi.rasi"
+//@theme "~/.local/share/rofi/themes/saint-rofi.rasi"
 
-//@theme "/home/lclarkdwain/.local/share/rofi/themes/KooL_dwm.rasi"
+//@theme "~/.local/share/rofi/themes/KooL_dwm.rasi"
 
-//@theme "/home/lclarkdwain/.local/share/rofi/themes/KooL_style-14.rasi"
+//@theme "~/.local/share/rofi/themes/KooL_style-14.rasi"
 
-@theme "/home/lclarkdwain/.config/rofi/themes/saint-rofi.rasi"
+@theme "~/.config/rofi/themes/saint-rofi.rasi"

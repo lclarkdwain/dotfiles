@@ -51,4 +51,4 @@ fi
 # fastfetch -c $HOME/.config/fastfetch/config.jsonc
 
 # opencode
-export PATH=/home/lclarkdwain/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
