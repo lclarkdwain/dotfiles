@@ -590,6 +590,18 @@ apply_window_rule({
   size = "(monitor_w*0.2) (monitor_h*0.2)",
 })
 
+-- LOCAL DEVIATION: larger size for the keybind cheat sheet
+apply_window_rule({
+  name = "keybind-cheat-sheet",
+  match = {
+    class = "^(yad)$",
+    title = "^(Keybind Cheat Sheet)$",
+  },
+  float = true,
+  center = true,
+  size = "(monitor_w*0.4) (monitor_h*0.75)",
+})
+
 apply_window_rule({
   name = "system-window-windowrule-071",
   match = {

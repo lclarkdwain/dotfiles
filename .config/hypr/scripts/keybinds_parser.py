@@ -365,7 +365,7 @@ def _format_lua_binds(binds):
             formatted_lines.append(combo_str)
     return formatted_lines
 
-def parse_lua_files(files):
+def _effective_lua_binds(files):
     order = []
     bind_map = {}
     for file_path in files:
@@ -386,8 +386,92 @@ def parse_lua_files(files):
                     pass
             bind_map[combo_key] = bind
             order.append(combo_key)
-    effective_binds = [bind_map[key] for key in order if key in bind_map]
-    return _format_lua_binds(effective_binds)
+    return [bind_map[key] for key in order if key in bind_map]
+
+def parse_lua_files(files):
+    return _format_lua_binds(_effective_lua_binds(files))
+
+CHEATSHEET_KEY_NAMES = {
+    "return": "Enter",
+    "space": "Space",
+    "tab": "Tab",
+    "left": "←",
+    "right": "→",
+    "up": "↑",
+    "down": "↓",
+    "comma": ",",
+    "period": ".",
+    "bracketleft": "[",
+    "bracketright": "]",
+    "delete": "Del",
+    "print": "Print",
+    "mouse_down": "Scroll ↓",
+    "mouse_up": "Scroll ↑",
+    "mouse:272": "Left drag",
+    "mouse:273": "Right drag",
+    "shift_l": "SHIFT",
+    "alt_l": "ALT",
+    "xf86audioraisevolume": "Volume +",
+    "xf86audiolowervolume": "Volume −",
+    "xf86audiomute": "Mute",
+    "xf86audiomicmute": "Mic Mute",
+    "xf86audioplaypause": "Play/Pause",
+    "xf86audioplay": "Play",
+    "xf86audiopause": "Pause",
+    "xf86audionext": "Next",
+    "xf86audioprev": "Previous",
+    "xf86audiostop": "Stop",
+    "xf86sleep": "Sleep",
+    "xf86rfkill": "Airplane",
+    "xf86monbrightnessup": "Brightness +",
+    "xf86monbrightnessdown": "Brightness −",
+    "xf86kbdbrightnessup": "Kbd Light +",
+    "xf86kbdbrightnessdown": "Kbd Light −",
+    "xf86touchpadtoggle": "Touchpad Key",
+}
+
+def _cheatsheet_token(token):
+    named = CHEATSHEET_KEY_NAMES.get(token.lower())
+    if named:
+        return named
+    return token.upper() if len(token) == 1 else token
+
+def cheatsheet_rows(binds):
+    # Rows for KeyHints.sh; number-row runs collapse into one row
+    rows = []
+    for bind in binds:
+        mods = bind["mods"].replace("$mainMod", "SUPER").split()
+        key = humanize_key_token("", bind["key"])
+        rows.append((
+            [_cheatsheet_token(m) for m in mods],
+            _cheatsheet_token(key) if key else "",
+            (bind.get("description") or "").strip(),
+        ))
+
+    out = []
+    i = 0
+    while i < len(rows):
+        mods, key, desc = rows[i]
+        match = re.match(r'^(.*?)\s*(\d+)$', desc)
+        j = i
+        if key.isdigit() and match:
+            while j + 1 < len(rows):
+                next_mods, next_key, next_desc = rows[j + 1]
+                next_match = re.match(r'^(.*?)\s*(\d+)$', next_desc)
+                if not (next_mods == mods and next_key.isdigit() and next_match
+                        and next_match.group(1) == match.group(1)):
+                    break
+                j += 1
+        if j - i >= 2:
+            last_key = rows[j][1]
+            last_num = re.match(r'^.*?(\d+)$', rows[j][2]).group(1)
+            keys = " + ".join(mods + [f"{key}…{last_key}"])
+            out.append((keys, f"{match.group(1)} {match.group(2)}–{last_num}"))
+            i = j + 1
+            continue
+        out.append((" + ".join(mods + ([key] if key else [])), desc))
+        i += 1
+    return out
 
 def format_for_rofi(raw_binds):
     formatted_lines = []
@@ -475,6 +559,10 @@ def main():
         sys.exit(0)
 
     config_files = sys.argv[1:]
+    if config_files[0] == "--cheatsheet":
+        for keys, desc in cheatsheet_rows(_effective_lua_binds(config_files[1:])):
+            print(f"{keys}\t{desc}")
+        return
     has_lua = any(path.endswith(".lua") for path in config_files)
     if has_lua:
         formatted = parse_lua_files(config_files)
