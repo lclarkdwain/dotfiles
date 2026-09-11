@@ -104,7 +104,9 @@ Scope {
                             if (targetId > maxWorkspaceId) targetId -= workspacesPerGroup;
                         }
                         
-                        Hyprland.dispatch("workspace " + targetId);
+                        // LOCAL FIX: the Lua config parses dispatch arguments as
+                        // Lua, so legacy "workspace N" is rejected.
+                        Hyprland.dispatch("hl.dsp.focus({ workspace = " + targetId + " })");
                         event.accepted = true;
                     }
                 }
