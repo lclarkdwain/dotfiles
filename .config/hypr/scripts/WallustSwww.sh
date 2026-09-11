@@ -149,17 +149,18 @@ if [ -f "$rofi_colors" ]; then
   fi
 fi
 
-# Run kitty-only wallust config to keep terminal palette separate
-run_wallust_with_config() {
-  local cfg="$1"
-  if wallust run --help 2>&1 | grep -q -E '(^|[[:space:]])-c([,[:space:]]|$)|--config'; then
-    wallust run -s -c "$cfg" "$wallpaper_path" || true
 # LOCAL DEVIATION: keep SDDM in sync with the wallpaper
 "$HOME/.config/hypr/scripts/sddm_wallpaper.sh" --sync "$wallpaper_path" >/dev/null 2>&1 &
 
-  else
-    WALLUST_CONFIG="$cfg" wallust run -s "$wallpaper_path" || true
+# Run kitty-only wallust config to keep terminal palette separate
+# LOCAL FIX: wallust's config-file flag is -C (-c is colorspace)
+run_wallust_with_config() {
+  local cfg="$1"
+  local args=(run -s -C "$cfg")
+  if [[ "$(cat "$HOME/.cache/.theme_mode" 2>/dev/null)" == "Light" ]]; then
+    args+=(--palette softlight16)
   fi
+  wallust "${args[@]}" "$wallpaper_path" || true
 }
 
 kitty_cfg="$HOME/.config/wallust/wallust-kitty.toml"
