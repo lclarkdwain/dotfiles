@@ -53,35 +53,72 @@ extract_color() {
     grep -oP "$1:\s*\K#[A-Fa-f0-9]+" "$rofi_wallust" | head -n1
 }
 
-color1=$(extract_color "color0")
-color7=$(extract_color "color14")
-color10=$(extract_color "color10")
-color12=$(extract_color "color12")
-color13=$(extract_color "color13")
+# Named after the wallust palette entry each one holds
+c0=$(extract_color "color0")
+c10=$(extract_color "color10")
+c13=$(extract_color "color13")
+c14=$(extract_color "color14")
+c15=$(extract_color "color15")
 
 missing_colors=()
-for var in color1 color7 color10 color12 color13; do
+for var in c0 c10 c13 c14 c15; do
     [[ -z "${!var}" ]] && missing_colors+=("$var")
 done
 [[ ${#missing_colors[@]} -eq 0 ]] || fail "Missing color(s): ${missing_colors[*]}. Run Wallust first."
 
+# WCAG relative luminance of a #RRGGBB color
+luminance() {
+    local hex="${1#\#}"
+    awk -v r="$((16#${hex:0:2}))" -v g="$((16#${hex:2:2}))" -v b="$((16#${hex:4:2}))" \
+        'function chan(v,  c) { c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ^ 2.4 }
+         BEGIN { printf "%.6f", 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b) }'
+}
+
+# Whichever candidate color reads best on background $1
+pick_contrast() {
+    local bg_lum best="" best_ratio=0 cand ratio
+    bg_lum=$(luminance "$1")
+    shift
+    for cand in "$@"; do
+        ratio=$(awk -v a="$bg_lum" -v b="$(luminance "$cand")" \
+            'BEGIN { printf "%.4f", (a > b ? (a + 0.05) / (b + 0.05) : (b + 0.05) / (a + 0.05)) }')
+        awk -v r="$ratio" -v m="$best_ratio" 'BEGIN { exit !(r > m) }' && { best="$cand"; best_ratio="$ratio"; }
+    done
+    printf '%s' "$best"
+}
+
 # theme.conf key -> color
 declare -A theme_colors=(
-    [HeaderTextColor]="$color13"
-    [DateTextColor]="$color13"
-    [TimeTextColor]="$color13"
-    [DropdownSelectedBackgroundColor]="$color13"
-    [SystemButtonsIconsColor]="$color13"
-    [SessionButtonTextColor]="$color13"
-    [VirtualKeyboardButtonTextColor]="$color13"
-    [HighlightBackgroundColor]="$color12"
-    [LoginFieldTextColor]="$color12"
-    [PasswordFieldTextColor]="$color12"
-    [DropdownBackgroundColor]="$color1"
-    [HighlightTextColor]="$color10"
-    [PlaceholderTextColor]="$color7"
-    [UserIconColor]="$color7"
-    [PasswordIconColor]="$color7"
+    [HeaderTextColor]="$c13"
+    [DateTextColor]="$c13"
+    [TimeTextColor]="$c13"
+    [DropdownSelectedBackgroundColor]="$c13"
+    [SystemButtonsIconsColor]="$c13"
+    [SessionButtonTextColor]="$c13"
+    [VirtualKeyboardButtonTextColor]="$c13"
+    [LoginButtonBackgroundColor]="$c13"
+    [HighlightBackgroundColor]="$c14"
+    [HighlightBorderColor]="$c14"
+    [DropdownBackgroundColor]="$c0"
+    [LoginFieldBackgroundColor]="$c0"
+    [PasswordFieldBackgroundColor]="$c0"
+    [HighlightTextColor]="$(pick_contrast "$c14" "$c10" "$c15")"
+    [FormBackgroundColor]="$c10"
+    [BackgroundColor]="$c10"
+    [DimBackgroundColor]="$c10"
+    [PlaceholderTextColor]="$c14"
+    # Small italic text over the blurred wallpaper: favour the more legible accent
+    [WarningColor]="$(pick_contrast "$c10" "$c14" "$c15")"
+    [UserIconColor]="$c14"
+    [PasswordIconColor]="$c14"
+    # Hover states lift one step brighter than their resting color
+    [HoverSystemButtonsIconsColor]="$c14"
+    [HoverSessionButtonTextColor]="$c14"
+    [HoverVirtualKeyboardButtonTextColor]="$c14"
+    [HoverUserIconColor]="$c15"
+    [HoverPasswordIconColor]="$c15"
+    [LoginFieldTextColor]="$c15"
+    [PasswordFieldTextColor]="$c15"
 )
 sed_args=()
 for key in "${!theme_colors[@]}"; do
