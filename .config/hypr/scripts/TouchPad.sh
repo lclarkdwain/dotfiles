@@ -1,53 +1,31 @@
 #!/usr/bin/env bash
-# For disabling touchpad.
-# Edit the Touchpad_Device on ~/.config/hypr/UserConfigs/Laptops.conf according to your system
-# use hyprctl devices to get your system touchpad device name
-# source https://github.com/hyprwm/Hyprland/discussions/4283?sort=new#discussioncomment-8648109
-
-set -euo pipefail
+# LOCAL FIX: auto-detect the touchpad and toggle it via hl.device (TOUCHPAD_DEVICE overrides)
 
 notif="$HOME/.config/swaync/images/ja.png"
-laptops_conf="$HOME/.config/hypr/UserConfigs/Laptops.conf"
+state_file="${XDG_RUNTIME_DIR:-/tmp}/touchpad.disabled"
 
-touchpad_device="${TOUCHPAD_DEVICE:-}"
-if [[ -z "$touchpad_device" && -f "$laptops_conf" ]]; then
-    touchpad_device="$(
-        awk -F= '/^\$Touchpad_Device/ {
-            gsub(/[[:space:]]*/, "", $1);
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2);
-            print $2;
-            exit
-        }' "$laptops_conf"
-    )"
+device="${TOUCHPAD_DEVICE:-}"
+if [[ -z "$device" && -s "$state_file" ]]; then
+    device="$(<"$state_file")"
 fi
-
-if [[ -z "$touchpad_device" ]]; then
-    notify-send -u low -i "$notif" " Touchpad" " Device name not set (check Laptops.conf)"
+if [[ -z "$device" ]]; then
+    device="$(hyprctl devices -j | jq -r '[.mice[].name | select(test("touchpad"; "i"))][0] // empty')"
+fi
+if [[ -z "$device" ]]; then
+    notify-send -u low -i "$notif" " Touchpad" " No touchpad found (set TOUCHPAD_DEVICE)"
     exit 1
 fi
 
-touchpad_keyword="${TOUCHPAD_KEYWORD:-device:${touchpad_device}:enabled}"
-status_file="${XDG_RUNTIME_DIR:-/tmp}/touchpad.status"
+set_enabled() {
+    hyprctl eval "hl.device({ name = \"$device\", enabled = $1 })" >/dev/null
+}
 
-enable_touchpad() {
-    printf "true" >"$status_file"
+if [[ -s "$state_file" ]]; then
+    set_enabled true
+    rm -f "$state_file"
     notify-send -u low -i "$notif" " Enabling" " touchpad"
-    hyprctl keyword "$touchpad_keyword" true -r
-}
-
-disable_touchpad() {
-    printf "false" >"$status_file"
-    notify-send -u low -i "$notif" " Disabling" " touchpad"
-    hyprctl keyword "$touchpad_keyword" false -r
-}
-
-current_state="false"
-if [[ -f "$status_file" ]]; then
-    current_state="$(<"$status_file")"
-fi
-
-if [[ "$current_state" == "true" ]]; then
-    disable_touchpad
 else
-    enable_touchpad
+    set_enabled false
+    printf '%s\n' "$device" >"$state_file"
+    notify-send -u low -i "$notif" " Disabling" " touchpad"
 fi

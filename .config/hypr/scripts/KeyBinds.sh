@@ -42,6 +42,7 @@ if [[ "$hypr_config_mode" == "lua" ]]; then
   elif [[ -f "$lua_legacy_system_keybinds" ]]; then
     files+=("$lua_legacy_system_keybinds")
   fi
+  [[ -f "$hypr_dir/configs/system_laptops.lua" ]] && files+=("$hypr_dir/configs/system_laptops.lua")
   [[ -f "$lua_user_keybinds" ]] && files+=("$lua_user_keybinds")
   [[ -f "$lua_overrides" ]] && files+=("$lua_overrides")
 else

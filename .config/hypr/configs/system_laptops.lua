@@ -1,29 +1,33 @@
--- System Laptops (auto-generated).
--- This file keeps migrated settings split from user overrides.
--- Add only Lua entries here.
--- Example:
--- hl.config({ general = { gaps_in = 4, gaps_out = 8 } })
+-- LOCAL FIX: laptop binds ported from Laptops.conf (ASUS-only keys dropped)
 
--- Source reference from Laptops.conf (hyprlang):
--- $mainMod = SUPER
--- $scriptsDir = $HOME/.config/hypr/scripts
--- $UserConfigs = $HOME/.config/hypr/UserConfigs
--- $Touchpad_Device=asue1209:00-04f3:319f-touchpad
--- binde = , xf86KbdBrightnessDown, exec, $scriptsDir/BrightnessKbd.sh --dec # decrease keyboard brightness
--- binde = , xf86KbdBrightnessUp, exec, $scriptsDir/BrightnessKbd.sh --inc # increase keyboard brightness
--- bind = , xf86Launch1, exec, rog-control-center # ASUS Armory crate button
--- bind = , xf86Launch3, exec, asusctl led-mode -n # FN+F4 Switch keyboard RGB profile
--- bind = , xf86Launch4, exec, asusctl profile -n  # FN+F5 change of fan profiles (Quite, Balance, Performance)
--- binde = , xf86MonBrightnessDown, exec, $scriptsDir/Brightness.sh --dec # decrease monitor brightness
--- binde = , xf86MonBrightnessUp, exec, $scriptsDir/Brightness.sh --inc # increase monitor brightness
--- bind = , xf86TouchpadToggle, exec, $scriptsDir/TouchPad.sh # disable touchpad
--- bind = $mainMod, F6, exec, $scriptsDir/ScreenShot.sh --now # screenshot
--- bind = $mainMod SHIFT, F6, exec, $scriptsDir/ScreenShot.sh --area # screenshot (area)
--- bind = $mainMod CTRL, F6, exec, $scriptsDir/ScreenShot.sh --in5 # # screenshot (5 secs delay)
--- bind = $mainMod ALT, F6, exec, $scriptsDir/ScreenShot.sh --in10 # screenshot (10 secs delay)
--- bind = ALT, F6, exec, $scriptsDir/ScreenShot.sh --active # screenshot (active window only)
--- $TOUCHPAD_ENABLED = true
--- device {
--- name = $Touchpad_Device
--- enabled = $TOUCHPAD_ENABLED
--- }
+local configHome = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
+local scriptsDir = configHome .. "/hypr/scripts"
+
+local function bind(mods, key, cmd, opts)
+  local chord = mods == "" and key or (mods:gsub("%s+", " + ") .. " + " .. key)
+  hl.bind(chord, hl.dsp.exec_cmd(cmd), opts)
+end
+
+bind("", "XF86MonBrightnessUp", scriptsDir .. "/Brightness.sh --inc", { description = "screen brightness up", locked = true, repeating = true })
+bind("", "XF86MonBrightnessDown", scriptsDir .. "/Brightness.sh --dec", { description = "screen brightness down", locked = true, repeating = true })
+bind("", "XF86KbdBrightnessUp", scriptsDir .. "/BrightnessKbd.sh --inc", { description = "keyboard backlight up", locked = true, repeating = true })
+bind("", "XF86KbdBrightnessDown", scriptsDir .. "/BrightnessKbd.sh --dec", { description = "keyboard backlight down", locked = true, repeating = true })
+bind("", "XF86TouchpadToggle", scriptsDir .. "/TouchPad.sh", { description = "toggle touchpad" })
+
+-- For laptops without a Print key
+bind("SUPER", "F6", scriptsDir .. "/ScreenShot.sh --now", { description = "screenshot now" })
+bind("SUPER SHIFT", "F6", scriptsDir .. "/ScreenShot.sh --area", { description = "screenshot (area)" })
+bind("SUPER CTRL", "F6", scriptsDir .. "/ScreenShot.sh --in5", { description = "screenshot in 5s" })
+bind("SUPER ALT", "F6", scriptsDir .. "/ScreenShot.sh --in10", { description = "screenshot in 10s" })
+bind("ALT", "F6", scriptsDir .. "/ScreenShot.sh --active", { description = "screenshot active window" })
+
+-- Keep a touchpad disabled by TouchPad.sh across reloads
+local runtime = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
+local state = io.open(runtime .. "/touchpad.disabled", "r")
+if state then
+  local device = state:read("*l")
+  state:close()
+  if device and device ~= "" then
+    hl.device({ name = device, enabled = false })
+  end
+end
