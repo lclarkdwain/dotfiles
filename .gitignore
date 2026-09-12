@@ -27,3 +27,6 @@ claude/.claude-personal/settings.json
 # repo. Generated output, not config; regenerated on every scheme change.
 .config/btop/themes/caelestia.theme
 .config/hypr/scheme/
+# Rewritten by caelestia on every scheme change; it owns colour now and waybar's
+# cava module (the only consumer) is retired.
+.config/cava/config
