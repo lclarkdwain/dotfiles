@@ -5,6 +5,11 @@
             "enabled": false
         }
     },
+    "osd": {
+        "enabled": true,
+        "hideDelay": 4000,
+        "enableBrightness": false
+    },
     "paths": {
         "wallpaperDir": "~/Pictures/Wallpapers"
     }
