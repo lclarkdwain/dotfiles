@@ -24,7 +24,8 @@ end
 
 -- Converted from configs/Startup_Apps.conf
 local startup_commands = {
-  scriptsDir .. "/WallpaperDaemon.sh",
+  -- Retired: caelestia draws the wallpaper now, so awww-daemon would fight it.
+  -- scriptsDir .. "/WallpaperDaemon.sh",
   "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE",
   -- Chained, not a separate entry: exec_once backgrounds each command, so the target would race the import.
   "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start hyprland-session.target",

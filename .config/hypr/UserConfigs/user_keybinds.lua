@@ -96,3 +96,12 @@ unbind("ALT", "xf86audioraisevolume")
 unbind("ALT", "xf86audiolowervolume")
 bind("ALT", "xf86audioraisevolume", exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 1%+"), { description = "volume up precise", locked = true, repeating = true })
 bind("ALT", "xf86audiolowervolume", exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"), { description = "volume down precise", locked = true, repeating = true })
+
+-- The old wallpaper scripts drive awww + wallust, both retired. Caelestia owns the
+-- wallpaper now: type ">wallpaper" in its launcher, or use the binds below.
+unbind("SUPER", "W")
+unbind("SUPER SHIFT", "W")
+unbind("CTRL ALT", "W")
+-- Bare "caelestia wallpaper" randomises; the picker is the launcher's ">wallpaper" mode,
+-- which has no IPC entry point, so SUPER Space then ">wallpaper" is the way to browse.
+bind("SUPER", "W", exec_cmd("caelestia wallpaper"), { description = "next random wallpaper" })

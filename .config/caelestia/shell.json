@@ -1,8 +1,11 @@
 {
     "background": {
-        "enabled": false
+        "enabled": true,
+        "desktopClock": {
+            "enabled": false
+        }
     },
     "paths": {
-        "wallpaperDir": "~/.dotfiles/wallpapers"
+        "wallpaperDir": "~/Pictures/Wallpapers"
     }
 }
