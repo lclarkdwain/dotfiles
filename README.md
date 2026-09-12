@@ -32,5 +32,6 @@ make
 ## Docs
 
 - [Gaming](docs/gaming.md): Steam setup, pending manual steps, troubleshooting
+- [Monitoring](docs/monitoring.md): system panel, power readings, health check
 
 ## TODO automated installation and setup even on fresh environments
