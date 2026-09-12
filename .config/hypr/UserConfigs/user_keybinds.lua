@@ -54,3 +54,45 @@ unbind("SUPER ALT", "B")
 -- Same hazard: Refresh.sh restarts waybar. RefreshNoWaybar.sh is the existing variant that does not.
 unbind("SUPER ALT", "R")
 bind("SUPER ALT", "R", exec_cmd("$HOME/.config/hypr/scripts/RefreshNoWaybar.sh"), { description = "refresh menus" })
+
+-- Caelestia registers ~22 D-Bus global shortcuts but binds no keys to them; without
+-- these the launcher, dashboard, sidebar and OSD are unreachable.
+local function global(name)
+  return exec_cmd("hyprctl dispatch 'hl.dsp.global(\"caelestia:" .. name .. "\")'")
+end
+
+bind("SUPER", "space", global("launcher"), { description = "caelestia launcher" })
+bind("SUPER SHIFT", "space", global("showall"), { description = "caelestia launcher + dashboard + osd" })
+bind("SUPER", "K", global("dashboard"), { description = "caelestia dashboard" })
+bind("SUPER", "grave", global("nexus"), { description = "caelestia nexus" })
+bind("CTRL ALT", "C", global("clearNotifs"), { description = "clear notifications" })
+bind("SUPER", "escape", global("session"), { description = "caelestia session menu" })
+
+-- Reclaims the dead swaync binding: swaync is retired, so this opened nothing.
+unbind("SUPER SHIFT", "N")
+bind("SUPER SHIFT", "N", global("sidebar"), { description = "caelestia sidebar" })
+
+-- Volume goes straight to wpctl so caelestia's OSD picks it up; Volume.sh drew its own
+-- notify-send popup instead, which is why the slider never appeared.
+unbind("", "xf86audioraisevolume")
+unbind("", "xf86audiolowervolume")
+unbind("", "xf86audiomute")
+bind("", "xf86audioraisevolume", exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), { description = "volume up", locked = true, repeating = true })
+bind("", "xf86audiolowervolume", exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { description = "volume down", locked = true, repeating = true })
+bind("", "xf86audiomute", exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { description = "mute", locked = true })
+
+-- Media and brightness through caelestia so they share the same OSD.
+unbind("", "xf86audioplay")
+unbind("", "xf86audionext")
+unbind("", "xf86audioprev")
+unbind("", "xf86audiostop")
+bind("", "xf86audioplay", global("mediaToggle"), { description = "play/pause", locked = true })
+bind("", "xf86audionext", global("mediaNext"), { description = "next track", locked = true })
+bind("", "xf86audioprev", global("mediaPrev"), { description = "previous track", locked = true })
+bind("", "xf86audiostop", global("mediaStop"), { description = "stop", locked = true })
+
+-- The ALT "precise" variants still called Volume.sh, so they kept the old popup.
+unbind("ALT", "xf86audioraisevolume")
+unbind("ALT", "xf86audiolowervolume")
+bind("ALT", "xf86audioraisevolume", exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 1%+"), { description = "volume up precise", locked = true, repeating = true })
+bind("ALT", "xf86audiolowervolume", exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"), { description = "volume down precise", locked = true, repeating = true })
