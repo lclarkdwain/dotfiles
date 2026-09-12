@@ -33,7 +33,9 @@ local startup_commands = {
   scriptsDir .. "/Dropterminal.sh --startup wezterm",
   scriptsDir .. "/Polkit.sh",
   "nm-applet --indicator",
-  -- swaync retired: caelestia owns the notification bus. swaync.service is disabled, not removed.
+  -- swaync retired: caelestia owns the notification bus. swaync.service is masked, not just
+  -- disabled (.config/systemd/user/swaync.service -> /dev/null): D-Bus starts a disabled
+  -- unit on demand, and that beat caelestia to the bus.
   -- -l error: the network#speed module polls nl80211 every second on wlp6s0 and
   -- the driver returns EBUSY, emitting "nl80211: nl_send_sync get_station
   -- error -16" ~1x/sec. It is cosmetic (the module works) but it floods the log
@@ -48,6 +50,9 @@ local startup_commands = {
   "wl-paste --type text --watch cliphist store",
   "wl-paste --type image --watch cliphist store",
   "blueman-applet",
+  -- Bridges Bluetooth headset transport keys onto MPRIS. Media keys route through
+  -- caelestia now, and caelestia reads MPRIS, so without this headset buttons go nowhere.
+  "mpris-proxy",
   scriptsDir .. "/KeybindsLayoutInit.sh",
 }
 

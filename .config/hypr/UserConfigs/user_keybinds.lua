@@ -48,6 +48,8 @@ bind("SUPER SHIFT", "Y", exec_cmd("wezterm start --class sysdiag-report -- sh -c
 -- Waybar is retired, so its menus would restart it on top of caelestia.
 unbind("SUPER CTRL", "B")
 unbind("SUPER ALT", "B")
+-- Same: SIGUSR1 to a dead waybar, and it shadowed nothing else.
+unbind("SUPER CTRL ALT", "B")
 
 -- Same hazard: Refresh.sh restarts waybar. RefreshNoWaybar.sh is the existing variant that does not.
 unbind("SUPER ALT", "R")
@@ -55,9 +57,20 @@ bind("SUPER ALT", "R", exec_cmd("$HOME/.config/hypr/scripts/RefreshNoWaybar.sh")
 
 -- Caelestia registers ~22 D-Bus global shortcuts but binds no keys to them; without
 -- these the launcher, dashboard, sidebar and OSD are unreachable.
+-- LOCAL FIX: this used to shell out to `hyprctl dispatch hl.dsp.global(...)`, which
+-- fires a single press event. Caelestia's launcher toggles on *release*
+-- (modules/Shortcuts.qml), so no release ever arrived and SUPER+space did nothing --
+-- every other shortcut acts on press, which is why only the launcher looked broken.
+-- The native dispatcher sends both, as upstream's keybinds.lua does.
+local dsp = hl.dsp or hl
 local function global(name)
-  return exec_cmd("hyprctl dispatch 'hl.dsp.global(\"caelestia:" .. name .. "\")'")
+  return dsp.global("caelestia:" .. name)
 end
+
+-- Both chords were still on their KooLDots binds (togglefloating, layoutmsg
+-- cycleprev), and Hyprland fires every bind that matches, not just the last.
+unbind("SUPER", "space")
+unbind("SUPER", "K")
 
 bind("SUPER", "space", global("launcher"), { description = "caelestia launcher" })
 bind("SUPER SHIFT", "space", global("showall"), { description = "caelestia launcher + dashboard + osd" })
@@ -84,10 +97,26 @@ unbind("", "xf86audioplay")
 unbind("", "xf86audionext")
 unbind("", "xf86audioprev")
 unbind("", "xf86audiostop")
+-- Not covered by the alias table, so it kept its MediaCtrl.sh bind. Upstream
+-- caelestia drives play/pause off both keysyms, so bind it rather than drop it.
+unbind("", "XF86AudioPause")
 bind("", "xf86audioplay", global("mediaToggle"), { description = "play/pause", locked = true })
+bind("", "XF86AudioPause", global("mediaToggle"), { description = "play/pause", locked = true })
 bind("", "xf86audionext", global("mediaNext"), { description = "next track", locked = true })
 bind("", "xf86audioprev", global("mediaPrev"), { description = "previous track", locked = true })
 bind("", "xf86audiostop", global("mediaStop"), { description = "stop", locked = true })
+
+-- Brightness.sh drives brightnessctl, and this desktop has no backlight device,
+-- so the keys were a no-op. Caelestia's service talks DDC/CI, which this monitor
+-- answers on, and it shares the OSD. Kbd backlight stays on the laptop script.
+unbind("", "XF86MonBrightnessUp")
+unbind("", "XF86MonBrightnessDown")
+bind("", "XF86MonBrightnessUp", global("brightnessUp"), { description = "screen brightness up", locked = true, repeating = true })
+bind("", "XF86MonBrightnessDown", global("brightnessDown"), { description = "screen brightness down", locked = true, repeating = true })
+
+-- Volume.sh drew its own notify-send popup; wpctl lets the OSD pick the change up.
+unbind("", "XF86AudioMicMute")
+bind("", "XF86AudioMicMute", exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { description = "toggle mic mute", locked = true })
 
 -- The ALT "precise" variants still called Volume.sh, so they kept the old popup.
 unbind("ALT", "xf86audioraisevolume")
