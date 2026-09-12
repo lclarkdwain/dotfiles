@@ -30,3 +30,5 @@ claude/.claude-personal/settings.json
 # Rewritten by caelestia on every scheme change; it owns colour now and waybar's
 # cava module (the only consumer) is retired.
 .config/cava/config
+# Auto-created per-monitor overrides, keyed by connector name; machine-specific and empty.
+.config/caelestia/monitors/

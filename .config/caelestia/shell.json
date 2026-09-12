@@ -1,14 +1,19 @@
 {
-    "background": {
-        "enabled": true,
-        "desktopClock": {
+    "appearance": {
+        "transparency": {
             "enabled": false
         }
     },
+    "background": {
+        "desktopClock": {
+            "enabled": false
+        },
+        "enabled": true
+    },
     "osd": {
+        "enableBrightness": true,
         "enabled": true,
-        "hideDelay": 4000,
-        "enableBrightness": true
+        "hideDelay": 4000
     },
     "paths": {
         "wallpaperDir": "~/Pictures/Wallpapers"
