@@ -52,11 +52,11 @@ cat <<'NOTE'
     git -C ~/.dotfiles log --oneline   # find the pre-caelestia commit
 
   Do NOT run `git checkout -- .` unless the work you want to keep is already
-  committed; it discards every uncommitted change, sysmon included.
+  committed; it discards every uncommitted change.
 
-  To bring back the sysmon panel, uncomment its exec_once line in
-  .config/hypr/configs/system_startup.lua and its keybind in
-  UserConfigs/user_keybinds.lua, then: hyprctl reload
+  Restoring waybar and swaync: uncomment their exec_once lines in
+  .config/hypr/configs/system_startup.lua, re-enable swaync.service, then:
+  hyprctl reload
 
 NOTE
 

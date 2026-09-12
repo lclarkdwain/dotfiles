@@ -43,8 +43,6 @@ local startup_commands = {
   -- "waybar -l error",
   "caelestia shell -d",
   "qs -c overview",
-  -- Parked; the config still lives in .config/quickshell/sysmon.
-  -- "qs -c sysmon",
   "hypridle",
   scriptsDir .. "/Hyprsunset.sh init",
   "wl-paste --type text --watch cliphist store",

@@ -43,8 +43,6 @@ local unbind = user_keybinds_helper.unbind
 -- No active keybind entries were found in UserKeybinds.conf.
 -- bind("SUPER", "Z", exec_cmd("thunar"), { description = "Open file manager" })
 
--- Parked with the sysmon panel while caelestia is trialled.
--- bind("SUPER SHIFT", "D", exec_cmd("qs -c sysmon ipc call panel toggle"), { description = "toggle system monitor panel" })
 bind("SUPER SHIFT", "Y", exec_cmd("wezterm start --class sysdiag-report -- sh -c '$HOME/.local/bin/sysdiag; printf \"\\npress enter to close\"; read -r _'"), { description = "system health report" })
 
 -- Waybar is retired, so its menus would restart it on top of caelestia.
