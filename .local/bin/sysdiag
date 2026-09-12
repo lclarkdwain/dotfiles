@@ -50,24 +50,38 @@ SINCE=$(recent_since)
 # sessions); what actually matters is whether each startup process is still alive.
 check_session() {
 	missing=
+
+	# Checked by role, not by binary name, so swapping the shell (waybar -> caelestia)
+	# is not reported as a fault. Only "no bar at all" is a real problem.
+	if pgrep -f 'qs -c caelestia' >/dev/null 2>&1; then
+		shell_name="caelestia"
+	elif pgrep -x waybar >/dev/null 2>&1; then
+		shell_name="waybar"
+	else
+		shell_name=""
+		missing="$missing bar"
+	fi
+
+	# Any daemon owning the bus will do; which one is a choice, not a fault.
+	if ! busctl --user status org.freedesktop.Notifications >/dev/null 2>&1; then
+		missing="$missing notifications"
+	fi
+
 	for entry in \
-		"waybar:waybar" \
-		"swaync:swaync" \
 		"hypridle:hypridle" \
 		"nm-applet:nm-applet" \
 		"blueman-applet:blueman-applet" \
-		"overview:qs -c overview" \
-		"sysmon:qs -c sysmon" \
 		"cliphist:wl-paste"
 	do
 		name=${entry%%:*}
 		pat=${entry#*:}
 		pgrep -f -- "$pat" >/dev/null 2>&1 || missing="$missing $name"
 	done
+
 	if [ -n "$missing" ]; then
-		add session warn "Session processes not running:$missing" "Startup logs: /tmp/hypr-lua-system-startup-*.log"
+		add session warn "Session roles unfilled:$missing" "Startup logs: /tmp/hypr-lua-system-startup-*.log"
 	else
-		add session ok "All session processes running" ""
+		add session ok "Session complete (shell: ${shell_name})" ""
 	fi
 }
 

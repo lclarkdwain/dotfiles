@@ -6,7 +6,7 @@ and lock screen as one integrated system.
 
 [repo]: https://github.com/caelestia-dots/shell
 
-Status: **preparing**. Nothing is installed yet.
+Status: **trialling**. Installed and running; the old stack is still intact.
 
 ## Why this is a bigger change than it looks
 
@@ -89,6 +89,36 @@ overrides belong in the file.
 Keybinds use Hyprland **D-Bus global shortcuts**, not ordinary binds. The
 Hyprland side is not written yet — see `caelestia/hypr/hyprland/keybinds.lua`
 upstream for the shape.
+
+## Running the trial
+
+The shell is started manually, so a logout returns you to waybar/swaync
+automatically — the trial cannot strand you.
+
+```sh
+caelestia shell -d                      # start
+pkill waybar                            # one bar, not two
+systemctl --user stop swaync.service    # let caelestia own notifications
+```
+
+Back to the old stack:
+
+```sh
+pkill -f 'qs -c caelestia'
+systemctl --user start swaync.service
+waybar -l error &
+```
+
+### Three collisions, all resolved
+
+| collision | resolution |
+| --- | --- |
+| wallpaper | `background.enabled: false`; `awww-daemon` keeps it |
+| bar | stop waybar during the trial |
+| notifications | only one process can own `org.freedesktop.Notifications`; stop swaync first, or caelestia's notification UI silently receives nothing |
+
+paru installed the **`-git`** variants (`caelestia-shell-git`, `caelestia-cli-git`)
+and `quickshell-git` is **0.3.1**, a version ahead of the 0.3.0 that was replaced.
 
 ## During the trial
 
