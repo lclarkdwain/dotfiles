@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the health check shortly after login
+PartOf=graphical-session.target
+
+[Timer]
+OnActiveSec=90s
+AccuracySec=10s
+
+[Install]
+WantedBy=graphical-session.target

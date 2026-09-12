@@ -1,0 +1,328 @@
+#!/bin/sh
+# Post-boot health check for this desktop. Prints a report, or JSON with --json.
+# Usage: sysdiag [--json] [--save-baseline]
+
+set -u
+
+JSON=0
+SAVE_BASELINE=0
+NOTIFY=0
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/sysdiag"
+BASELINE="$STATE_DIR/baseline.json"
+RESULTS=$(mktemp)
+trap 'rm -f "$RESULTS"' EXIT
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		--json) JSON=1 ;;
+		--notify) NOTIFY=1 ;;
+		--save-baseline) SAVE_BASELINE=1 ;;
+		-h|--help) sed -n '2,3p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+		*) echo "sysdiag: unknown argument: $1" >&2; exit 2 ;;
+	esac
+	shift
+done
+
+# Severity is ranked ok < warn < crit; the report's verdict is the worst single check.
+add() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$RESULTS"; }
+
+json_escape() {
+	printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\t/ /g'
+}
+
+# Start of the "is something wrong right now" window. Never reaches back into the boot
+# burst: for the first 15 minutes of uptime the plain window would swallow startup noise
+# and flag amber on every fresh boot, which is the crying-wolf failure this check avoids.
+RECENT_WINDOW=900
+BOOT_SETTLE=90
+recent_since() {
+	_now=$(date +%s)
+	_up=$(cut -d. -f1 /proc/uptime)
+	_a=$(( _now - RECENT_WINDOW ))
+	_b=$(( _now - _up + BOOT_SETTLE ))
+	[ "$_b" -gt "$_a" ] && _a=$_b
+	date -d "@$_a" '+%Y-%m-%d %H:%M:%S'
+}
+SINCE=$(recent_since)
+
+# --- session processes -------------------------------------------------------
+# Grepping the exec_once logs is pure noise (they accumulate benign warnings across
+# sessions); what actually matters is whether each startup process is still alive.
+check_session() {
+	missing=
+	for entry in \
+		"waybar:waybar" \
+		"swaync:swaync" \
+		"hypridle:hypridle" \
+		"nm-applet:nm-applet" \
+		"blueman-applet:blueman-applet" \
+		"overview:qs -c overview" \
+		"sysmon:qs -c sysmon" \
+		"cliphist:wl-paste"
+	do
+		name=${entry%%:*}
+		pat=${entry#*:}
+		pgrep -f -- "$pat" >/dev/null 2>&1 || missing="$missing $name"
+	done
+	if [ -n "$missing" ]; then
+		add session warn "Session processes not running:$missing" "Startup logs: /tmp/hypr-lua-system-startup-*.log"
+	else
+		add session ok "All session processes running" ""
+	fi
+}
+
+# --- systemd units -----------------------------------------------------------
+check_units() {
+	sys=$(systemctl --failed --no-legend 2>/dev/null | awk '{print $1}' | tr '\n' ' ')
+	usr=$(systemctl --user --failed --no-legend 2>/dev/null | awk '{print $1}' | tr '\n' ' ')
+	all="$sys$usr"
+	count=$(printf '%s' "$all" | wc -w)
+	if [ "$count" -eq 0 ]; then
+		add units ok "No failed units" ""
+	else
+		add units crit "$count failed unit(s)" "$all"
+	fi
+
+	if ! systemctl --user is-active graphical-session.target >/dev/null 2>&1; then
+		add session-target crit "graphical-session.target is inactive" "Session units will never start; check hyprland-session.target"
+	else
+		add session-target ok "graphical-session.target active" ""
+	fi
+}
+
+# --- journal -----------------------------------------------------------------
+# Errors accumulate for the whole boot, so a total is a poor "is something wrong now" signal:
+# a rough startup would flag red all day. The recent window decides; the total is context.
+check_journal() {
+	recent=$(journalctl -p 3 --since "$SINCE" --no-pager -q 2>/dev/null | wc -l)
+	total=$(journalctl -p 3 -b --no-pager -q 2>/dev/null | wc -l)
+	top=$(journalctl -p 3 -b --no-pager -q -o json-pretty 2>/dev/null \
+		| grep -o '"_COMM"[^,]*' | cut -d'"' -f4 | sort | uniq -c | sort -rn \
+		| head -3 | awk '{printf "%s(%s) ", $2, $1}')
+
+	if [ "$recent" -ge 20 ]; then
+		add journal crit "$recent error(s) since $SINCE" "${top:-}"
+	elif [ "$recent" -gt 0 ]; then
+		add journal warn "$recent error(s) since $SINCE" "${top:-}"
+	elif [ "$total" -gt 0 ]; then
+		add journal ok "Quiet now; $total error(s) earlier this boot" "${top:-}"
+	else
+		add journal ok "No errors this boot" ""
+	fi
+}
+
+check_coredumps() {
+	command -v coredumpctl >/dev/null 2>&1 || return 0
+	boot_start=$(date -d "-$(cut -d. -f1 /proc/uptime) seconds" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)
+	[ -n "$boot_start" ] || return 0
+
+	n=$(coredumpctl list --no-pager -q --since "$boot_start" 2>/dev/null | wc -l)
+	recent=$(coredumpctl list --no-pager -q --since "$SINCE" 2>/dev/null | wc -l)
+	who=$(coredumpctl list --no-pager -q --since "$boot_start" 2>/dev/null \
+		| awk '{for(i=1;i<=NF;i++) if($i ~ /^\//) {n=split($i,p,"/"); print p[n]; break}}' \
+		| sort | uniq -c | sort -rn | head -3 | awk '{printf "%s(%s) ", $2, $1}')
+
+	if [ "$recent" -gt 0 ]; then
+		add coredumps crit "$recent crash(es) since $SINCE" "${who:-}"
+	elif [ "$n" -gt 0 ]; then
+		add coredumps warn "$n crash(es) earlier this boot" "${who:-}· details: coredumpctl list"
+	else
+		add coredumps ok "No crashes this boot" ""
+	fi
+}
+
+# --- boot timing -------------------------------------------------------------
+BOOT_USERSPACE=0
+check_boot() {
+	line=$(systemd-analyze 2>/dev/null | head -1)
+	# "Startup finished in ... + 3.356s (userspace) = 38.910s"
+	us=$(printf '%s' "$line" | sed -n 's/.*+ \([0-9.]*\)s (userspace).*/\1/p')
+	[ -n "$us" ] || us=0
+	BOOT_USERSPACE=$us
+	prev=""
+	[ -r "$BASELINE" ] && prev=$(sed -n 's/.*"userspace"[: ]*\([0-9.]*\).*/\1/p' "$BASELINE")
+
+	if [ -z "$prev" ]; then
+		add boot ok "Userspace boot ${us}s" "No baseline yet; run: sysdiag --save-baseline"
+	else
+		# Integer-only comparison in tenths, so no float arithmetic is needed.
+		now10=$(printf '%s' "$us" | awk -F. '{printf "%d", $1*10 + substr($2 "0", 1, 1)}')
+		prev10=$(printf '%s' "$prev" | awk -F. '{printf "%d", $1*10 + substr($2 "0", 1, 1)}')
+		delta=$(( now10 - prev10 ))
+		if [ "$delta" -gt 30 ]; then
+			add boot warn "Userspace boot ${us}s (baseline ${prev}s)" "Slower by $(( delta / 10 ))s"
+		else
+			add boot ok "Userspace boot ${us}s (baseline ${prev}s)" ""
+		fi
+	fi
+}
+
+# --- kernel and graphics -----------------------------------------------------
+check_kernel() {
+	running=$(uname -r)
+	if [ ! -d "/usr/lib/modules/$running" ]; then
+		add kernel crit "Running kernel $running has no module tree" "A kernel update removed it; reboot before loading any new module"
+		return
+	fi
+
+	stale=
+	for d in /usr/lib/modules/*/; do
+		k=${d%/}
+		k=${k##*/}
+		[ -e "$d/updates/dkms" ] || continue
+		ls "$d"/updates/dkms/nvidia*.ko* >/dev/null 2>&1 || stale="$stale $k"
+	done
+
+	installed=$(pacman -Q linux 2>/dev/null | awk '{print $2}' | tr '.' '-')
+	pending=0
+	case $installed in
+		"") ;;
+		*) printf '%s' "$installed" | grep -q "$(printf '%s' "$running" | tr '.' '-')" || pending=1 ;;
+	esac
+
+	if [ -n "$stale" ]; then
+		add nvidia crit "No NVIDIA module built for:$stale" "Next boot into that kernel loses the display; run: sudo dkms autoinstall"
+	elif [ "$pending" = 1 ]; then
+		add nvidia warn "Kernel update pending reboot" "Running $running, installed $installed"
+	else
+		add nvidia ok "NVIDIA module present for all installed kernels" ""
+	fi
+}
+
+# --- storage -----------------------------------------------------------------
+check_storage() {
+	root_pct=$(df --output=pcent / 2>/dev/null | tail -1 | tr -dc '0-9')
+	[ -n "$root_pct" ] || root_pct=0
+
+	unalloc=""
+	if command -v btrfs >/dev/null 2>&1 && [ "$(findmnt -n -o FSTYPE / 2>/dev/null)" = btrfs ]; then
+		unalloc=$(btrfs filesystem usage / 2>/dev/null | sed -n 's/.*Device unallocated:[[:space:]]*\([0-9.]*\)GiB.*/\1/p' | head -1)
+	fi
+
+	detail=""
+	[ -n "$unalloc" ] && detail="btrfs unallocated ${unalloc}GiB"
+
+	if [ "$root_pct" -ge 90 ]; then
+		add storage crit "Root filesystem ${root_pct}% full" "$detail"
+	elif [ "$root_pct" -ge 80 ]; then
+		add storage warn "Root filesystem ${root_pct}% full" "$detail"
+	else
+		add storage ok "Root filesystem ${root_pct}% full" "$detail"
+	fi
+}
+
+# --- packages ----------------------------------------------------------------
+check_packages() {
+	orphans=$(pacman -Qtdq 2>/dev/null | wc -l)
+	foreign=$(pacman -Qmq 2>/dev/null | wc -l)
+	pacnew=$(find /etc -name '*.pacnew' 2>/dev/null | wc -l)
+
+	if [ "$pacnew" -gt 0 ]; then
+		add packages warn "$pacnew .pacnew file(s) awaiting merge" "Run: sudo pacdiff"
+	elif [ "$orphans" -gt 20 ]; then
+		add packages warn "$orphans orphaned package(s)" "Review: pacman -Qtdq"
+	else
+		add packages ok "$orphans orphans, $foreign foreign, $pacnew pacnew" ""
+	fi
+}
+
+# --- memory pressure ---------------------------------------------------------
+check_pressure() {
+	swap_total=$(awk '/SwapTotal/{print $2}' /proc/meminfo)
+	[ -n "$swap_total" ] || swap_total=0
+	mem_pct=$(awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{if(t>0) printf "%d", (t-a)*100/t}' /proc/meminfo)
+
+	psi=0
+	if [ -r /proc/pressure/memory ]; then
+		psi=$(sed -n '1s/.*avg10=\([0-9.]*\).*/\1/p' /proc/pressure/memory)
+	fi
+
+	if [ "$swap_total" -eq 0 ]; then
+		add memory warn "No swap or zram active" "Memory pressure escalates straight to OOM kills"
+	elif [ "${mem_pct:-0}" -ge 90 ]; then
+		add memory warn "Memory ${mem_pct}% used" "PSI avg10 ${psi}"
+	else
+		add memory ok "Memory ${mem_pct}% used, swap $(( swap_total / 1024 ))MiB" "PSI avg10 ${psi}"
+	fi
+}
+
+check_session
+check_units
+check_journal
+check_coredumps
+check_boot
+check_kernel
+check_storage
+check_packages
+check_pressure
+
+# --- verdict -----------------------------------------------------------------
+overall=ok
+while IFS="$(printf '\t')" read -r id sev summary detail; do
+	case $sev in
+		crit) overall=crit ;;
+		warn) [ "$overall" = crit ] || overall=warn ;;
+	esac
+done < "$RESULTS"
+
+if [ "$SAVE_BASELINE" = 1 ]; then
+	mkdir -p "$STATE_DIR"
+	printf '{"userspace": %s, "saved": "%s"}\n' "$BOOT_USERSPACE" "$(date -Is)" > "$BASELINE"
+	[ "$JSON" = 1 ] || echo "Baseline saved to $BASELINE"
+fi
+
+# Silence on a healthy boot is the point: a check that greets you every morning gets muted.
+if [ "$NOTIFY" = 1 ]; then
+	[ "$overall" = ok ] && exit 0
+	body=$(awk -F'\t' '$2 != "ok" { printf "%s: %s\n", $1, $3 }' "$RESULTS")
+	case $overall in
+		crit) urg=critical; head="System check: problems found" ;;
+		*) urg=normal; head="System check: needs attention" ;;
+	esac
+	notify-send -u "$urg" -a sysdiag -i dialog-warning "$head" "$body"
+	exit 0
+fi
+
+if [ "$JSON" = 1 ]; then
+	printf '{"status":"%s","checks":[' "$overall"
+	sep=""
+	while IFS="$(printf '\t')" read -r id sev summary detail; do
+		printf '%s{"id":"%s","severity":"%s","summary":"%s","detail":"%s"}' \
+			"$sep" "$(json_escape "$id")" "$sev" "$(json_escape "$summary")" "$(json_escape "$detail")"
+		sep=","
+	done < "$RESULTS"
+	printf ']}\n'
+	exit 0
+fi
+
+if [ -t 1 ]; then
+	C_OK=$(printf '\033[32m'); C_WARN=$(printf '\033[33m'); C_CRIT=$(printf '\033[31m')
+	C_DIM=$(printf '\033[2m'); C_OFF=$(printf '\033[0m'); C_B=$(printf '\033[1m')
+else
+	C_OK=; C_WARN=; C_CRIT=; C_DIM=; C_OFF=; C_B=
+fi
+
+case $overall in
+	ok) vc=$C_OK; vt="HEALTHY" ;;
+	warn) vc=$C_WARN; vt="NEEDS ATTENTION" ;;
+	*) vc=$C_CRIT; vt="PROBLEMS FOUND" ;;
+esac
+
+printf '\n %s%s●%s %s%s%s   %s%s · up %s%s\n\n' \
+	"$vc" "$C_B" "$C_OFF" "$C_B" "$vt" "$C_OFF" \
+	"$C_DIM" "$(uname -n)" "$(uptime -p 2>/dev/null | sed 's/^up //')" "$C_OFF"
+
+while IFS="$(printf '\t')" read -r id sev summary detail; do
+	case $sev in
+		ok) mark="${C_OK}✓${C_OFF}" ;;
+		warn) mark="${C_WARN}!${C_OFF}" ;;
+		*) mark="${C_CRIT}✗${C_OFF}" ;;
+	esac
+	printf ' %s %-14s %s\n' "$mark" "$id" "$summary"
+	[ -n "$detail" ] && printf '   %s%-14s %s%s\n' "$C_DIM" "" "$detail" "$C_OFF"
+done < "$RESULTS"
+
+printf '\n'
+[ "$overall" = ok ] && exit 0
+[ "$overall" = warn ] && exit 1
+exit 2

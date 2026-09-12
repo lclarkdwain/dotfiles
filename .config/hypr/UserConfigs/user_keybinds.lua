@@ -45,3 +45,4 @@ local unbind = user_keybinds_helper.unbind
 
 -- Cycles auto -> pinned on -> pinned off; auto shows the panel only on an empty workspace.
 bind("SUPER SHIFT", "D", exec_cmd("qs -c sysmon ipc call panel toggle"), { description = "toggle system monitor panel" })
+bind("SUPER SHIFT", "Y", exec_cmd("wezterm start --class sysdiag-report -- sh -c '$HOME/.local/bin/sysdiag; printf \"\\npress enter to close\"; read -r _'"), { description = "system health report" })
