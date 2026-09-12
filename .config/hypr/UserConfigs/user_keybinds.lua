@@ -103,7 +103,3 @@ unbind("CTRL ALT", "W")
 -- Bare "caelestia wallpaper" randomises; the picker is the launcher's ">wallpaper" mode,
 -- which has no IPC entry point, so SUPER Space then ">wallpaper" is the way to browse.
 bind("SUPER", "W", exec_cmd("caelestia wallpaper"), { description = "next random wallpaper" })
-
--- Caelestia's launcher (SUPER Space) supersedes rofi's drun. Rofi stays installed:
--- 11 other keybinds still use it for things caelestia has no equivalent for.
-unbind("SUPER", "D")
