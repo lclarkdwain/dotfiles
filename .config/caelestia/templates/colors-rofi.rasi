@@ -24,7 +24,26 @@
     selected-urgent-foreground: #{{ onError.hex }};
 
     background-color: #{{ surface.hex }};
-    background: #{{ surface.hex }};
+    /* b3 keeps the translucency the wallust file had via rgba(...,0.7) */
+    background: #{{ surface.hex }}b3;
     foreground: #{{ onSurface.hex }};
     border-color: #{{ outline.hex }};
+
+    /* saint-rofi.rasi and friends resolve active/urgent/selected from these. */
+    color0: #{{ term0.hex }};
+    color1: #{{ term1.hex }};
+    color2: #{{ term2.hex }};
+    color3: #{{ term3.hex }};
+    color4: #{{ term4.hex }};
+    color5: #{{ term5.hex }};
+    color6: #{{ term6.hex }};
+    color7: #{{ term7.hex }};
+    color8: #{{ term8.hex }};
+    color9: #{{ term9.hex }};
+    color10: #{{ term10.hex }};
+    color11: #{{ term11.hex }};
+    color12: #{{ term12.hex }};
+    color13: #{{ term13.hex }};
+    color14: #{{ term14.hex }};
+    color15: #{{ term15.hex }};
 }
