@@ -1,0 +1,8 @@
+{
+    "background": {
+        "enabled": false
+    },
+    "paths": {
+        "wallpaperDir": "~/.dotfiles/wallpapers"
+    }
+}
