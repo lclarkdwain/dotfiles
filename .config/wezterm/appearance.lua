@@ -24,7 +24,10 @@ function M.setup(config)
     -- },
   }
 
-  config.window_background_opacity = 0.55
+  -- 0.495 preserves the effective opacity from when the Hyprland `terminal`
+  -- window rule still multiplied 0.9 onto this. That rule is opaque now, so
+  -- this value stands alone: 0.55 * 0.9 = 0.495.
+  config.window_background_opacity = 0.495
   -- config.window_background_opacity = 1.0
 
   config.win32_system_backdrop = "Acrylic"
