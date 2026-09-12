@@ -41,8 +41,9 @@ threshold = 11
 hypr.template = 'colors-hyprland.conf'
 hypr.target = '~/.config/hypr/wallust/wallust-hyprland.conf'
 
-rofi.template = 'colors-rofi.rasi'
-rofi.target = '~/.config/rofi/wallust/colors-rofi.rasi'
+# Retired: rofi now reads caelestia's user template output instead.
+#rofi.template = 'colors-rofi.rasi'
+#rofi.target = '~/.config/rofi/wallust/colors-rofi.rasi'
 
 #waybar.template = 'colors-waybar.css'
 #waybar.target = '~/.config/waybar/wallust/colors-waybar.css'

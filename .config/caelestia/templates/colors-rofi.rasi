@@ -1,0 +1,30 @@
+/* caelestia user template - rendered to ~/.local/state/caelestia/theme/ on every scheme change.
+   User templates use {{ name.format }}; the {{ $name }} form is for caelestia's own templates. */
+
+* {
+    active-background: #{{ primary.hex }};
+    active-foreground: #{{ onPrimary.hex }};
+    normal-background: #{{ surface.hex }};
+    normal-foreground: #{{ onSurface.hex }};
+    urgent-background: #{{ error.hex }};
+    urgent-foreground: #{{ onError.hex }};
+
+    alternate-active-background: #{{ primaryContainer.hex }};
+    alternate-active-foreground: #{{ onPrimaryContainer.hex }};
+    alternate-normal-background: #{{ surfaceContainer.hex }};
+    alternate-normal-foreground: #{{ onSurface.hex }};
+    alternate-urgent-background: #{{ errorContainer.hex }};
+    alternate-urgent-foreground: #{{ onErrorContainer.hex }};
+
+    selected-active-background: #{{ primary.hex }};
+    selected-active-foreground: #{{ onPrimary.hex }};
+    selected-normal-background: #{{ secondaryContainer.hex }};
+    selected-normal-foreground: #{{ onSecondaryContainer.hex }};
+    selected-urgent-background: #{{ error.hex }};
+    selected-urgent-foreground: #{{ onError.hex }};
+
+    background-color: #{{ surface.hex }};
+    background: #{{ surface.hex }};
+    foreground: #{{ onSurface.hex }};
+    border-color: #{{ outline.hex }};
+}

@@ -17,7 +17,7 @@ configuration {
 }
 
 /* ---- Load wallust colors ---- */
-@theme "~/.config/rofi/wallust/colors-rofi.rasi"
+@theme "~/.local/state/caelestia/theme/colors-rofi.rasi"
 
 /*****----- Global Properties -----*****/
 * {    
