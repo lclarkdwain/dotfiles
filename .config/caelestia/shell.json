@@ -8,7 +8,7 @@
     "osd": {
         "enabled": true,
         "hideDelay": 4000,
-        "enableBrightness": false
+        "enableBrightness": true
     },
     "paths": {
         "wallpaperDir": "~/Pictures/Wallpapers"
