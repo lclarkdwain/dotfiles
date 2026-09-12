@@ -24,14 +24,24 @@
     selected-urgent-foreground: #{{ onError.hex }};
 
     background-color: #{{ surface.hex }};
-    /* b3 keeps the translucency the wallust file had via rgba(...,0.7) */
-    background: #{{ surface.hex }}b3;
+    /* Opaque on purpose: saint-rofi.rasi uses @background as text-selected, and a
+       translucent text colour washes out against the light selection bar. Window
+       translucency is set by the theme itself, not here. */
+    background: #{{ surface.hex }};
     foreground: #{{ onSurface.hex }};
     border-color: #{{ outline.hex }};
 
-    /* saint-rofi.rasi and friends resolve active/urgent/selected from these. */
+    /* saint-rofi.rasi resolves selected/active/urgent from these slots, and pairs each
+       with a FIXED text colour: selected gets dark text (@background), active and urgent
+       get light text (@foreground). So these four are chosen for contrast against that
+       text, not for hue - a light term colour here is unreadable. The rest stay faithful
+       terminal colours. */
+    color1: #{{ surfaceContainerHighest.hex }};   /* background-alt, light text */
+    color11: #{{ secondaryContainer.hex }};       /* active, light text -> must be dark */
+    color12: #{{ primary.hex }};                  /* selected, dark text -> must be light */
+    color13: #{{ errorContainer.hex }};           /* urgent, light text -> must be dark */
+
     color0: #{{ term0.hex }};
-    color1: #{{ term1.hex }};
     color2: #{{ term2.hex }};
     color3: #{{ term3.hex }};
     color4: #{{ term4.hex }};
@@ -41,9 +51,6 @@
     color8: #{{ term8.hex }};
     color9: #{{ term9.hex }};
     color10: #{{ term10.hex }};
-    color11: #{{ term11.hex }};
-    color12: #{{ term12.hex }};
-    color13: #{{ term13.hex }};
     color14: #{{ term14.hex }};
     color15: #{{ term15.hex }};
 }
