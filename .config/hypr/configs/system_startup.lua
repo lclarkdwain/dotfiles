@@ -32,15 +32,17 @@ local startup_commands = {
   scriptsDir .. "/Dropterminal.sh --startup wezterm",
   scriptsDir .. "/Polkit.sh",
   "nm-applet --indicator",
-  -- swaync dropped: swaync.service owns it now, and two copies fight over the Notifications bus name.
+  -- swaync retired: caelestia owns the notification bus. swaync.service is disabled, not removed.
   -- -l error: the network#speed module polls nl80211 every second on wlp6s0 and
   -- the driver returns EBUSY, emitting "nl80211: nl_send_sync get_station
   -- error -16" ~1x/sec. It is cosmetic (the module works) but it floods the log
   -- and grows unbounded, burying real diagnostics. Warnings are suppressed;
   -- [error] lines (e.g. cava_mviz, power-profiles-daemon) still show.
-  "waybar -l error",
+  -- Retired: caelestia owns the bar. Re-enable by uncommenting and commenting caelestia below.
+  -- "waybar -l error",
+  "caelestia shell -d",
   "qs -c overview",
-  -- Parked while caelestia is trialled; the config still lives in .config/quickshell/sysmon.
+  -- Parked; the config still lives in .config/quickshell/sysmon.
   -- "qs -c sysmon",
   "hypridle",
   scriptsDir .. "/Hyprsunset.sh init",

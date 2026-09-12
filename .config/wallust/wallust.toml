@@ -33,8 +33,10 @@ palette = "dark16"
 threshold = 11
 
 [templates]
-cava.template = 'colors-cava'
-cava.target = '~/.config/cava/config'
+# Retired with waybar: caelestia owns colour now. Left here, disabled, so the
+# templates still exist if the old stack is ever restored.
+#cava.template = 'colors-cava'
+#cava.target = '~/.config/cava/config'
 
 hypr.template = 'colors-hyprland.conf'
 hypr.target = '~/.config/hypr/wallust/wallust-hyprland.conf'
@@ -42,11 +44,12 @@ hypr.target = '~/.config/hypr/wallust/wallust-hyprland.conf'
 rofi.template = 'colors-rofi.rasi'
 rofi.target = '~/.config/rofi/wallust/colors-rofi.rasi'
 
-waybar.template = 'colors-waybar.css'
-waybar.target = '~/.config/waybar/wallust/colors-waybar.css'
+#waybar.template = 'colors-waybar.css'
+#waybar.target = '~/.config/waybar/wallust/colors-waybar.css'
 
-quickshell.template = 'colors-quickshell.json'
-quickshell.target = '~/.config/quickshell/sysmon/wallust/colors.json'
+# Parked with the sysmon panel.
+#quickshell.template = 'colors-quickshell.json'
+#quickshell.target = '~/.config/quickshell/sysmon/wallust/colors.json'
 
 
 ghostty.template = 'colors-ghostty.conf'

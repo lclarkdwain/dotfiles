@@ -46,3 +46,11 @@ local unbind = user_keybinds_helper.unbind
 -- Parked with the sysmon panel while caelestia is trialled.
 -- bind("SUPER SHIFT", "D", exec_cmd("qs -c sysmon ipc call panel toggle"), { description = "toggle system monitor panel" })
 bind("SUPER SHIFT", "Y", exec_cmd("wezterm start --class sysdiag-report -- sh -c '$HOME/.local/bin/sysdiag; printf \"\\npress enter to close\"; read -r _'"), { description = "system health report" })
+
+-- Waybar is retired, so its menus would restart it on top of caelestia.
+unbind("SUPER CTRL", "B")
+unbind("SUPER ALT", "B")
+
+-- Same hazard: Refresh.sh restarts waybar. RefreshNoWaybar.sh is the existing variant that does not.
+unbind("SUPER ALT", "R")
+bind("SUPER ALT", "R", exec_cmd("$HOME/.config/hypr/scripts/RefreshNoWaybar.sh"), { description = "refresh menus" })
