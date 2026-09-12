@@ -13,9 +13,15 @@ log INFO "Stopping caelestia if it is running..."
 pkill -f 'qs -c caelestia' 2>/dev/null || true
 caelestia shell -k 2>/dev/null || true
 
-log INFO "Removing caelestia packages..."
-paru -Rns --noconfirm caelestia-shell caelestia-cli 2>/dev/null || \
-  log WARN "Some caelestia packages were already absent"
+# Resolved dynamically: paru may install either the tagged or the -git variant.
+CAELESTIA_PKGS=$(pacman -Qq 2>/dev/null | grep '^caelestia-' | tr '\n' ' ')
+if [ -n "$CAELESTIA_PKGS" ]; then
+  log INFO "Removing: $CAELESTIA_PKGS"
+  # shellcheck disable=SC2086
+  paru -Rns --noconfirm $CAELESTIA_PKGS || log WARN "Removal reported errors"
+else
+  log INFO "No caelestia packages installed"
+fi
 
 # quickshell-git conflicts with quickshell, so pacman swaps them back on install.
 log INFO "Restoring stable quickshell..."

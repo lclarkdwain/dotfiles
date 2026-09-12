@@ -45,7 +45,7 @@ case "$reply" in
 esac
 
 log INFO "Installing caelestia-shell and caelestia-cli (builds 6 AUR packages)..."
-paru -S --needed caelestia-shell caelestia-cli
+paru -S --needed caelestia-shell caelestia-cli   # paru may substitute the -git variants
 
 if command -v caelestia >/dev/null 2>&1; then
   log SUCCESS "caelestia-cli installed: $(caelestia --version 2>/dev/null || echo present)"
