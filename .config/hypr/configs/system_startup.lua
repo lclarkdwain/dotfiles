@@ -40,6 +40,7 @@ local startup_commands = {
   -- [error] lines (e.g. cava_mviz, power-profiles-daemon) still show.
   "waybar -l error",
   "qs -c overview",
+  "qs -c sysmon",
   "hypridle",
   scriptsDir .. "/Hyprsunset.sh init",
   "wl-paste --type text --watch cliphist store",

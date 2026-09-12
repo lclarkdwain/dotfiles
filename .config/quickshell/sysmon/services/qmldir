@@ -1,0 +1,2 @@
+singleton Sysinfo 1.0 Sysinfo.qml
+singleton Health 1.0 Health.qml

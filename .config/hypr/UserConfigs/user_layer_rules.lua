@@ -42,3 +42,13 @@ local apply_layer_rule = user_layer_rules_helper.apply_layer_rule
 --   blur = true,
 --   ignore_alpha = 0,
 -- })
+
+-- The sysmon panel sits on the background layer, so blur is what keeps it readable over a busy wallpaper.
+apply_layer_rule({
+  name = "layerrule-quickshell-sysmon",
+  match = {
+    namespace = "quickshell:sysmon",
+  },
+  blur = true,
+  ignore_alpha = 0.1,
+})

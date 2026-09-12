@@ -42,3 +42,6 @@ local unbind = user_keybinds_helper.unbind
 
 -- No active keybind entries were found in UserKeybinds.conf.
 -- bind("SUPER", "Z", exec_cmd("thunar"), { description = "Open file manager" })
+
+-- Cycles auto -> pinned on -> pinned off; auto shows the panel only on an empty workspace.
+bind("SUPER SHIFT", "D", exec_cmd("qs -c sysmon ipc call panel toggle"), { description = "toggle system monitor panel" })
