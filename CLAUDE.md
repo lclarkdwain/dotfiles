@@ -16,7 +16,6 @@ file is a broken desktop, not a failing test.
 | `.config/` | `$XDG_CONFIG_HOME` | one symlink per subfolder                 |
 | `.local/`  | `$HOME/.local`     |                                           |
 | `claude/`  | `$HOME`            | `--no-folding`: real dir, symlinked files |
-| `docs/`    | not stowed         | `gaming.md`: pending manual gaming steps  |
 
 `make dry-run` previews · `make link` deploys · `make unlink` removes
 

@@ -216,4 +216,4 @@ fi
 
 printf "\n%.0s" {1..1}
 log NOTE "Verify the runtime stack from inside a graphical session with {SKY_BLUE}vulkaninfo --summary{RESET} and {SKY_BLUE}mangohud vkcube{RESET}."
-log NOTE "Manual steps no script can do (BIOS, Steam settings, per-game options) are tracked in {SKY_BLUE}docs/gaming.md{RESET}."
+log NOTE "Some steps no script can do: BIOS settings, Steam launch options, per-game tweaks. Those are still on you."
