@@ -26,8 +26,12 @@ done
 
 
 
-# reload swaync
-swaync-client --reload-config
+# LOCAL FIX: caelestia owns notifications now and swaync.service is masked, so
+# this errored on every refresh. Guarded rather than removed: swaync is still
+# installed, and un-retiring it should make this work again without an edit.
+if pgrep -x swaync >/dev/null 2>&1; then
+    swaync-client --reload-config
+fi
 
 # Relaunching rainbow borders if the script exists
 sleep 1
