@@ -32,3 +32,8 @@ claude/.claude-personal/settings.json
 .config/cava/config
 # Auto-created per-monitor overrides, keyed by connector name; machine-specific and empty.
 .config/caelestia/monitors/
+
+# Upstream caelestia-dots/shell, cloned to the config path so its QML is edited
+# live and hot-reloaded, and so `git diff` inside it always shows exactly what we
+# changed against upstream. It is its own git repo; this one never tracks it.
+.config/quickshell/caelestia/
