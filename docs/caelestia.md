@@ -49,6 +49,23 @@ Three of those are `-git` packages, so they rebuild from source on every update.
 `power-profiles-daemon` is a happy accident: waybar's `power-profiles-daemon`
 module has been logging errors because the daemon was never installed.
 
+### GTK apps come up light without two extra packages
+
+The CLI's `apply_gtk` unconditionally runs `dconf write .../gtk-theme
+'adw-gtk3-dark'` and sets `icon-theme` to `Papirus-Dark`, but **depends on
+neither**. GTK silently falls back to stock Adwaita — which is light — when a
+named theme is missing, so Thunar and friends render light while everything else
+is dark. `install-caelestia.sh` now installs `adw-gtk-theme` and
+`papirus-icon-theme` for this reason.
+
+The colours themselves were never the problem: caelestia writes
+`~/.config/gtk-3.0/gtk.css` with `window_bg_color` and `accent_color` from the
+current scheme. Those overrides need a base theme to sit on top of.
+
+Note `~/.config/gtk-3.0/settings.ini` is a second, conflicting source of truth
+(it still names Flat-Remix) and is not tracked here. On Wayland the portal serves
+the dconf values, so settings.ini loses.
+
 ## Two collisions to resolve
 
 ### 1. Wallpaper — handled

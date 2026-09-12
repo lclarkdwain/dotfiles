@@ -47,6 +47,11 @@ esac
 log INFO "Installing caelestia-shell and caelestia-cli (builds 6 AUR packages)..."
 paru -S --needed caelestia-shell caelestia-cli   # paru may substitute the -git variants
 
+# caelestia's CLI hardcodes these two theme names via dconf but depends on neither; a
+# missing GTK theme falls back to stock Adwaita, which is light.
+log INFO "Installing the GTK and icon themes caelestia selects..."
+sudo pacman -S --needed --noconfirm adw-gtk-theme papirus-icon-theme
+
 if command -v caelestia >/dev/null 2>&1; then
   log SUCCESS "caelestia-cli installed: $(caelestia --version 2>/dev/null || echo present)"
 else
