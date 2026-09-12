@@ -53,11 +53,11 @@ else
   log WARN "caelestia cli not on PATH"
 fi
 
-log INFO "Verifying the existing overview shell still runs on quickshell-git..."
-if timeout 10 qs -c overview >/dev/null 2>&1; then
-  log SUCCESS "qs -c overview loads"
-else
-  log WARN "qs -c overview failed to load; check: qs -c overview"
+# The running overview keeps the old binary mapped until it is restarted.
+log INFO "quickshell is now: $(qs --version 2>&1 | head -1)"
+if pgrep -f 'qs -c overview' >/dev/null 2>&1; then
+  log WARN "overview is still running on the previous binary; restart it with:"
+  log WARN "  pkill -f 'qs -c overview' && hyprctl dispatch 'hl.dsp.exec_raw(\"qs -c overview\")'"
 fi
 
 log SUCCESS "Installed. Start it with: caelestia shell -d"
