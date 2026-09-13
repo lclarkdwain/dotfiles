@@ -38,6 +38,8 @@ if git clone --depth=1 "$source_theme" "$theme_name"; then
 
   # Move cloned theme to the themes directory
   sudo mv "$theme_name" "/usr/share/sddm/themes/$theme_name" 2>&1 | log PIPE
+  # Owned by the user so sddm-sync can update its wallpaper and colours without root
+  sudo chown -R "$(id -un):$(id -gn)" "/usr/share/sddm/themes/$theme_name" 2>&1 | log PIPE
 
   # setting up SDDM theme
   sddm_conf="/etc/sddm.conf"

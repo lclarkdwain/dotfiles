@@ -1,7 +1,6 @@
 #!/bin/bash
 
 clear
-wallpaper="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia/wallpaper/current"
 # Relative to .config/waybar, so the tracked symlinks carry no /home/<user> path.
 waybar_style="style/Wallust-Personal.css"
 waybar_config="configs/TOP-Personal"
@@ -192,22 +191,11 @@ link_waybar_default config "$config_file"
 
 printf "\n%.0s" {1..1}
 
-# for SDDM (simple_sddm_2)
+# SDDM (simple_sddm_2): sddm-sync keeps its wallpaper and colours in step with caelestia
 sddm_simple_sddm_2="/usr/share/sddm/themes/simple_sddm_2"
-# install-sddm-theme.sh re-clones the theme on every run, which resets its
-# background, so re-applying the current wallpaper is the default.
-if [ -d "$sddm_simple_sddm_2" ] && [ ! -e "$wallpaper" ]; then
-  echo "${NOTE} No caelestia wallpaper set yet; skipping the SDDM background." 2>&1 | log PIPE
-elif [ -d "$sddm_simple_sddm_2" ]; then
-  if confirm "SDDM simple_sddm_2 theme detected! Apply current wallpaper as SDDM background?" y; then
-    if sudo -n cp "$wallpaper" "$sddm_simple_sddm_2/Backgrounds/default"; then
-      echo "${NOTE} Current wallpaper applied as default SDDM background" 2>&1 | log PIPE
-    else
-      echo "${WARN} Could not copy the wallpaper to SDDM (sudo password required)." 2>&1 | log PIPE
-    fi
-  else
-    echo "${NOTE} You chose not to apply the current wallpaper to SDDM." 2>&1 | log PIPE
-  fi
+if [ -d "$sddm_simple_sddm_2" ]; then
+  systemctl --user enable --now sddm-sync.path sddm-sync.service 2>&1 | log PIPE || \
+    echo "${WARN} Could not enable sddm-sync; run: systemctl --user enable --now sddm-sync.path sddm-sync.service" 2>&1 | log PIPE
 fi
 
 # additional wallpapers

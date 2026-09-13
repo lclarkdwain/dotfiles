@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch caelestia's wallpaper and colours for the SDDM theme
+
+[Path]
+PathChanged=%h/.local/state/caelestia/theme/sddm.conf
+PathChanged=%h/.local/state/caelestia/wallpaper/path.txt
+
+[Install]
+WantedBy=default.target

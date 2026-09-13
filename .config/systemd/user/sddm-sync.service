@@ -1,0 +1,9 @@
+[Unit]
+Description=Sync caelestia's wallpaper and colours to the SDDM theme
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/sddm-sync
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,48 @@
+#!/bin/sh
+# Copy caelestia's current wallpaper and colours into the SDDM theme.
+set -eu
+
+THEME=${SDDM_THEME_DIR:-/usr/share/sddm/themes/simple_sddm_2}
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/caelestia
+CONF=$THEME/theme.conf
+
+if [ ! -w "$CONF" ]; then
+	echo "sddm-sync: $CONF is missing or not writable" >&2
+	exit 1
+fi
+
+keys=$(mktemp)
+merged=$(mktemp)
+trap 'rm -f "$keys" "$merged"' EXIT
+
+wall=$(readlink -f "$STATE/wallpaper/current" 2>/dev/null || true)
+if [ -n "$wall" ] && [ -f "$wall" ]; then
+	base=${wall##*/}
+	case $base in
+		*.*) ext=$(printf '%s' "${base##*.}" | tr '[:upper:]' '[:lower:]') ;;
+		*) ext=img ;;
+	esac
+	bg="Backgrounds/caelestia.$ext"
+	if ! cmp -s "$wall" "$THEME/$bg"; then
+		rm -f "$THEME"/Backgrounds/caelestia.*
+		cp "$wall" "$THEME/$bg"
+		chmod 644 "$THEME/$bg"
+	fi
+	printf 'Background="%s"\n' "$bg" >> "$keys"
+fi
+
+colours=$STATE/theme/sddm.conf
+if [ -f "$colours" ]; then
+	grep -E '^[A-Za-z]+=' "$colours" >> "$keys" || true
+fi
+
+[ -s "$keys" ] || exit 0
+
+awk 'NR == FNR { i = index($0, "="); v[substr($0, 1, i - 1)] = substr($0, i + 1); next }
+	{ i = index($0, "="); k = substr($0, 1, i - 1) }
+	i && (k in v) { print k "=" v[k]; next }
+	{ print }' "$keys" "$CONF" > "$merged"
+
+if ! cmp -s "$merged" "$CONF"; then
+	cat "$merged" > "$CONF"
+fi
