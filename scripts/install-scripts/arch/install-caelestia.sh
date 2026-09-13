@@ -2,9 +2,9 @@
 #
 # Caelestia desktop shell: upstream source, installed for local modification.
 #
-# Everything below this line belongs to caelestia and nothing else in these
-# dotfiles depends on it. Remove this script and its packages and the rest of the
-# desktop still comes up.
+# The Hyprland config (.config/hypr) is caelestia-dots' own and starts this shell at
+# login, so the desktop depends on it: without the shell there is no bar, launcher
+# or lock screen. The previous configs are kept in archive/pre-caelestia.
 #
 # The shell is a git clone at ~/.config/quickshell/caelestia, not a vendored copy.
 # Quickshell reads its QML straight from there, so edits are live and hot-reloaded,
@@ -12,7 +12,7 @@
 # changed against upstream. This repo gitignores that path; it is never tracked here.
 #
 # The C++ QML plugin has to be compiled. It installs to ~/.local (no sudo);
-# UserConfigs/user_env.lua puts ~/.local/lib/qt6/qml on Qt's import path.
+# .config/caelestia/hypr-user.lua puts ~/.local/lib/qt6/qml on Qt's import path.
 
 set -e
 
@@ -40,6 +40,8 @@ runtime_pkgs=(
   ddcutil brightnessctl libcava aubio lm_sensors libpipewire libqalculate
   networkmanager power-profiles-daemon
   ttf-material-symbols-variable ttf-rubik-vf ttf-cascadia-code-nerd
+  # fish is not a login shell here (that is zsh): the launcher's calculator runs
+  # qalc through `fish -C`, so the shell needs the binary.
   swappy fish
 )
 
@@ -55,6 +57,17 @@ cli_pkgs=(caelestia-cli)
 # theme falls back to stock Adwaita, which is light.
 theme_pkgs=(adw-gtk-theme papirus-icon-theme)
 
+# What the configs pulled from caelestia-dots (.config/hypr, foot, btop, fastfetch,
+# Thunar) call out to, per its manifest.toml. A missing one fails quietly: a dead
+# keybind, no night light, no trash cleanup. Apps are the ones set in
+# .config/caelestia/hypr-vars.lua, not upstream's defaults.
+dots_pkgs=(
+  xdg-desktop-portal-hyprland xdg-desktop-portal-gtk ttf-jetbrains-mono-nerd
+  foot btop fastfetch thunar pavucontrol
+  gnome-keyring polkit-gnome bluez-utils
+  wl-clipboard cliphist trash-cli ydotool hyprpicker gammastep geoclue
+)
+
 log INFO "Installing caelestia runtime dependencies..."
 install_packages "${runtime_pkgs[@]}"
 
@@ -66,6 +79,9 @@ install_packages "${cli_pkgs[@]}"
 
 log INFO "Installing the GTK and icon themes the CLI selects..."
 install_packages "${theme_pkgs[@]}"
+
+log INFO "Installing what the caelestia-dots configs depend on..."
+install_packages "${dots_pkgs[@]}"
 
 # These arrive as dependencies of nothing, so pacman lists them as orphans and a
 # later -Qdt sweep would take the runtime out from under us.
@@ -134,6 +150,31 @@ if systemctl --user cat swaync.service >/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------------------
+# ydotool
+# ---------------------------------------------------------------------------
+#
+# The hypr config pastes the latest clipboard entry with `ydotool type`, which only
+# works while the ydotoold daemon runs, and the daemon needs write access to
+# /dev/uinput. Steam's udev rule grants that to the logged-in user, but only when
+# steam is installed, so the same rule is added here when nothing else provides it.
+
+if ! grep -rqs 'KERNEL=="uinput".*uaccess' /usr/lib/udev/rules.d /etc/udev/rules.d; then
+  log INFO "Letting the logged-in user write to /dev/uinput (for ydotool)..."
+  echo 'KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"' |
+    sudo tee /etc/udev/rules.d/80-uinput-uaccess.rules >/dev/null
+  sudo udevadm control --reload-rules || true
+  sudo udevadm trigger --name-match=uinput || true
+fi
+
+if systemctl --user cat ydotool.service >/dev/null 2>&1; then
+  log INFO "Enabling the ydotool daemon..."
+  systemctl --user enable --now ydotool.service >/dev/null 2>&1 || \
+    log WARN "could not enable ydotool.service (no user session?); run: systemctl --user enable --now ydotool"
+else
+  log WARN "ydotool.service not found; start ydotoold yourself or the paste-latest keybind does nothing"
+fi
+
+# ---------------------------------------------------------------------------
 # Checks
 # ---------------------------------------------------------------------------
 
@@ -144,6 +185,6 @@ else
 fi
 
 log SUCCESS "Installed. Start the shell with: caelestia shell -d"
-log INFO "Qt does not search $PREFIX/lib/qt6/qml by default; UserConfigs/user_env.lua"
+log INFO "Qt does not search $PREFIX/lib/qt6/qml by default; .config/caelestia/hypr-user.lua"
 log INFO "sets QML_IMPORT_PATH and QML2_IMPORT_PATH so the plugin is found."
 log INFO "Local changes: edit QML in $SHELL_DIR and check 'git -C \"$SHELL_DIR\" diff'."

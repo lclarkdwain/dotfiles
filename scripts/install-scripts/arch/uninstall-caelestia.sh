@@ -67,9 +67,10 @@ cat <<NOTE
         remove the CLI with: paru -Rns caelestia-cli
         leave quickshell-git: the overview runs on it
 
-  The config in this repo still starts caelestia at login (system_startup.lua),
-  dispatches caelestia:* from the keybinds, and reads its colour files in hyprlock
-  and rofi. Revert those in git before logging out, or the next session has no bar.
+  .config/hypr is caelestia-dots' Hyprland config and starts the shell at login, so
+  the next session has no bar, launcher or lock screen. The previous configs are
+  kept in archive/pre-caelestia; move them back into .config in git before
+  logging out.
 
 NOTE
 

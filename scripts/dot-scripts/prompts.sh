@@ -29,22 +29,23 @@ prompt_detect_layout() {
     layout=$(setxkbmap -query 2>/dev/null | awk '/^layout/ {print $2}')
   fi
   if [ -z "$layout" ] || [ "$layout" = "(unset)" ]; then
-    layout=$(sed -n 's/^[[:space:]]*kb_layout = "\(.*\)".*/\1/p' .config/hypr/configs/system_settings.lua | head -n1)
+    layout=$(sed -n 's/.*kb_layout = "\([^"]*\)".*/\1/p' .config/caelestia/hypr-user.lua | head -n1)
   fi
   echo "${layout:-(unset)}"
 }
 
-# Write kb_layout into the Lua settings Hyprland actually loads.
+# Write kb_layout into hypr-user.lua, which Hyprland loads after the upstream
+# caelestia config (that one hardcodes "us" and must not be edited).
 set_kb_layout() {
   local layout="$1"
-  sed -i "s/^\([[:space:]]*kb_layout = \)\".*\"/\1\"$layout\"/" .config/hypr/configs/system_settings.lua
+  sed -i "s/\(kb_layout = \)\"[^\"]*\"/\1\"$layout\"/" .config/caelestia/hypr-user.lua
 }
 
 layout_help() {
   print_color $WARNING "
 Setting a wrong keyboard layout will cause Hyprland to crash.
 If you are not sure, just type ${YELLOW}us${RESET}
-${SKYBLUE}You can change it later in ~/.config/hypr/configs/system_settings.lua${RESET}
+${SKYBLUE}You can change it later in ~/.config/caelestia/hypr-user.lua${RESET}
 
 ${MAGENTA} NOTE:${RESET}
 •  You can also set more than 2 keyboard layouts
@@ -62,7 +63,7 @@ read_layout() {
   echo "$new_layout"
 }
 
-# Confirm or set keyboard layout; writes to configs/system_settings.lua.
+# Confirm or set keyboard layout; writes to .config/caelestia/hypr-user.lua.
 prompt_keyboard_layout() {
   local layout="$1"
 
@@ -114,34 +115,22 @@ prompt_resolution_choice() {
   done
 }
 
-# Prompt for 12H clock; sets waybar/hyprlock/SDDM changes when accepted.
+# Prompt for 12H clock; sets the caelestia shell and SDDM clocks when accepted.
 prompt_clock_12h() {
   echo -e "${NOTE} ${SKY_BLUE} By default, these dots use the 24H clock format."
   if confirm "Do you want to change to 12H (AM/PM) clock format?" n; then
-    # waybar clocks
-    sed -i 's#^\(\s*\)//\("format": " {:%I:%M %p}",\) #\1\2 #g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)\("format": " {:%H:%M:%S}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)\("format": "  {:%H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)//\("format": "{:%I:%M %p - %d/%b}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)\("format": "{:%H:%M - %d/%b}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)//\("format": "{:%B | %a %d, %Y | %I:%M %p}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)\("format": "{:%B | %a %d, %Y | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)//\("format": "{:%A, %I:%M %P}",\) #\1\2#g' .config/waybar/Modules 2>&1 | log PIPE
-    sed -i 's#^\(\s*\)\("format": "{:%a %d | %H:%M}",\) #\1//\2#g' .config/waybar/Modules 2>&1 | log PIPE
-
-    # hyprlock
-    local HYPRLOCK_FILE=".config/hypr/hyprlock.conf"
-    if [ ! -f "$HYPRLOCK_FILE" ] && [ -f ".config/hypr/hyprlock-1080p.conf" ]; then
-      HYPRLOCK_FILE=".config/hypr/hyprlock-1080p.conf"
-    fi
-    if [ -f "$HYPRLOCK_FILE" ]; then
-      sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%H\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-      sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/\1    text = cmd\[update:1000\] echo \"\$(date +\"%I\")\" #AM\/PM/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-      sed -i 's/^\s*text = cmd\[update:1000\] echo \"\$(date +\"%S\")\"/# &/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
-      sed -i 's/^\(\s*\)# *text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/\1    text = cmd\[update:1000\] echo \"\$(date +\"%S %p\")\" #AM\/PM/' "$HYPRLOCK_FILE" 2>&1 | log PIPE
+    # One setting covers every caelestia clock: bar, lock screen, dashboard, desktop.
+    # Written through cat so the tracked file keeps its inode behind the stow link.
+    local shell_json=".config/caelestia/shell.json" tmp
+    tmp=$(mktemp)
+    if command -v jq >/dev/null 2>&1 &&
+      jq --indent 4 '.services.useTwelveHourClock = true' "$shell_json" >"$tmp"; then
+      cat "$tmp" >"$shell_json"
+      echo "${OK} 12H format set on the caelestia clocks." 2>&1 | log PIPE
     else
-      echo "${WARN} hyprlock template not found; skipping 12H lock format edits" 2>&1 | log PIPE
+      echo "${WARN} Could not edit $shell_json; set services.useTwelveHourClock to true by hand." 2>&1 | log PIPE
     fi
+    rm -f "$tmp"
 
     if [ "${EXPRESS_MODE:-0}" -eq 0 ]; then
       apply_sddm_12h_format "/usr/share/sddm/themes/simple-sddm"
@@ -150,7 +139,6 @@ prompt_clock_12h() {
     else
       echo "${NOTE:-[NOTE]} Express mode: skipping SDDM 12H edits to avoid sudo prompts." 2>&1 | log PIPE
     fi
-    echo "${OK} 12H format set on waybar clocks succesfully." 2>&1 | log PIPE
   else
     echo "${NOTE} Keeping the 24H clock format." 2>&1 | log PIPE
   fi

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 clear
-wallpaper=$HOME/.dotfiles/.config/hypr/wallpaper_effects/.wallpaper_current
+# caelestia's current wallpaper (a symlink it maintains); absent until one is set.
+wallpaper="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia/wallpaper/current"
 # Relative to .config/waybar, so the tracked symlinks carry no /home/<user> path.
 waybar_style="style/Wallust-Personal.css"
 waybar_config="configs/TOP-Personal"
@@ -66,8 +67,8 @@ fi
 # update home directories
 xdg-user-dirs-update 2>&1 | log PIPE || true
 
-# NVIDIA and hyprcursor env vars are set by configs/system_env.lua (the NVIDIA
-# ones only when the driver is loaded), so nothing is sed-edited here.
+# NVIDIA env vars are set by .config/caelestia/hypr-user.lua (only when the driver
+# is loaded), so nothing is sed-edited here.
 
 printf "\n%.0s" {1..1}
 
@@ -78,7 +79,6 @@ enable_asusctl
 
 printf "\n%.0s" {1..1}
 
-choose_default_editor
 resolution=""
 while true; do
   echo "${INFO} Select monitor resolution for scaling:"
@@ -116,26 +116,12 @@ sed_if_changed() {
   rm -f "$tmp"
 }
 
-# Same for hyprlock.conf, which is replaced wholesale by a per-resolution variant.
-copy_if_changed() {
-  local src="$1" dst="$2"
-  [ -f "$src" ] || return 0
-  if cmp -s "$src" "$dst"; then
-    echo "${NOTE} $dst already matches $(basename "$src"); skipping." 2>&1 | log PIPE
-  else
-    cp "$src" "$dst"
-    echo "${OK} Copied $(basename "$src") to $dst." 2>&1 | log PIPE
-  fi
-}
-
 # rofi fonts are deliberately not scaled: the committed 15/13 is kept at every
-# resolution, including 1080p.
+# resolution, including 1080p. The lock screen is caelestia's and scales itself.
 if [ "$resolution" == "< 1440p" ]; then
   sed_if_changed .config/kitty/kitty.conf 's/font_size 16.0/font_size 14.0/'
-  copy_if_changed .config/hypr/hyprlock-1080p.conf .config/hypr/hyprlock.conf
 else
   sed_if_changed .config/kitty/kitty.conf 's/font_size 14.0/font_size 16.0/'
-  copy_if_changed .config/hypr/hyprlock-2k.conf .config/hypr/hyprlock.conf
 fi
 
 printf "\n%.0s" {1..1}
@@ -170,10 +156,6 @@ if cp -r wallpapers "$PICTURES_DIR/"; then
 else
   echo "${ERROR} Failed to copy some ${YELLOW}wallpapers${RESET}" | log PIPE
 fi
-
-# Set some files as executable
-chmod +x ".config/hypr/scripts/"* 2>&1 | log PIPE
-chmod +x ".config/hypr/UserScripts/"* 2>&1 | log PIPE
 
 # Reload user systemd and ensure hyprpolkitagent is enabled/running
 if command -v systemctl >/dev/null 2>&1; then
@@ -218,9 +200,11 @@ printf "\n%.0s" {1..1}
 sddm_simple_sddm_2="/usr/share/sddm/themes/simple_sddm_2"
 # install-sddm-theme.sh re-clones the theme on every run, which resets its
 # background, so re-applying the current wallpaper is the default.
-if [ -d "$sddm_simple_sddm_2" ]; then
+if [ -d "$sddm_simple_sddm_2" ] && [ ! -e "$wallpaper" ]; then
+  echo "${NOTE} No caelestia wallpaper set yet; skipping the SDDM background." 2>&1 | log PIPE
+elif [ -d "$sddm_simple_sddm_2" ]; then
   if confirm "SDDM simple_sddm_2 theme detected! Apply current wallpaper as SDDM background?" y; then
-    if sudo -n cp ".config/hypr/wallpaper_effects/.wallpaper_current" "$sddm_simple_sddm_2/Backgrounds/default"; then
+    if sudo -n cp "$wallpaper" "$sddm_simple_sddm_2/Backgrounds/default"; then
       echo "${NOTE} Current wallpaper applied as default SDDM background" 2>&1 | log PIPE
     else
       echo "${WARN} Could not copy the wallpaper to SDDM (sudo password required)." 2>&1 | log PIPE
@@ -254,11 +238,6 @@ else
 fi
 
 link_waybar_default style.css "$waybar_style"
-
-printf "\n%.0s" {1..1}
-
-# initialize wallust to avoid config error on hyprland
-wallust run -s $wallpaper 2>&1 | log PIPE
 
 printf "\n%.0s" {1..2}
 printf "${OK} GREAT! dots is configured"
