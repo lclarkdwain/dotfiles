@@ -24,7 +24,9 @@ hl.animation({ leaf = "border", enabled = true, speed = 1, bezier = "liner" })
 -- NOTE: UserAnimations.conf had speed 180, but Hyprland's Lua API caps animation
 -- speed at 100 (hyprlang did not enforce this). 100 is the maximum, so the border
 -- rotation is slightly faster than it was under the old config.
-hl.animation({ leaf = "borderangle", enabled = true, speed = 100, bezier = "liner", style = "loop" })
+-- Off: this loops forever and redraws every frame, but the border is a single colour,
+-- so the rotation shows nothing. Measured: Hyprland 1165 -> 167 wakeups/s, 15.5 -> 11.9 W.
+hl.animation({ leaf = "borderangle", enabled = false, speed = 100, bezier = "liner", style = "loop" })
 hl.animation({ leaf = "fade", enabled = true, speed = 3, bezier = "smoothOut" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 5, bezier = "overshot" })
 hl.animation({ leaf = "workspacesIn", enabled = true, speed = 5, bezier = "winIn", style = "slide" })
