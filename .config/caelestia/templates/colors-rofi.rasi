@@ -1,5 +1,4 @@
-/* caelestia user template - rendered to ~/.local/state/caelestia/theme/ on every scheme change.
-   User templates use {{ name.format }}; the {{ $name }} form is for caelestia's own templates. */
+/* caelestia user template for rofi (user templates use {{ name.format }}) */
 
 * {
     active-background: #{{ primary.hex }};
@@ -24,18 +23,12 @@
     selected-urgent-foreground: #{{ onError.hex }};
 
     background-color: #{{ surface.hex }};
-    /* Opaque on purpose: saint-rofi.rasi uses @background as text-selected, and a
-       translucent text colour washes out against the light selection bar. Window
-       translucency is set by the theme itself, not here. */
+    /* Opaque: saint-rofi.rasi uses @background as the selected text colour */
     background: #{{ surface.hex }};
     foreground: #{{ onSurface.hex }};
     border-color: #{{ outline.hex }};
 
-    /* saint-rofi.rasi resolves selected/active/urgent from these slots, and pairs each
-       with a FIXED text colour: selected gets dark text (@background), active and urgent
-       get light text (@foreground). So these four are chosen for contrast against that
-       text, not for hue - a light term colour here is unreadable. The rest stay faithful
-       terminal colours. */
+    /* Chosen for contrast with saint-rofi.rasi's fixed text colours, not hue */
     color1: #{{ surfaceContainerHighest.hex }};   /* background-alt, light text */
     color11: #{{ secondaryContainer.hex }};       /* active, light text -> must be dark */
     color12: #{{ primary.hex }};                  /* selected, dark text -> must be light */

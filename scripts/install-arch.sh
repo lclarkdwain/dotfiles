@@ -181,8 +181,7 @@ sleep 1
 execute_script "install-quickshell.sh"
 sleep 1
 
-# The shell itself: installs its dependencies, clones upstream and builds its QML
-# plugin. Runs after install-aur.sh because quickshell-git comes from the AUR.
+# After install-aur.sh: quickshell-git comes from the AUR
 execute_script "install-caelestia.sh"
 sleep 1
 

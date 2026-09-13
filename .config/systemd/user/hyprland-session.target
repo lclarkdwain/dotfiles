@@ -1,5 +1,5 @@
 [Unit]
-# Nothing else starts graphical-session.target, so session units never run.
+# Started from hypr-user.lua so graphical-session.target units run
 Description=Hyprland session
 BindsTo=graphical-session.target
 Wants=graphical-session-pre.target

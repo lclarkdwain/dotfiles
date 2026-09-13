@@ -33,15 +33,13 @@ palette = "dark16"
 threshold = 11
 
 [templates]
-# Retired with waybar: caelestia owns colour now. Left here, disabled, so the
-# templates still exist if the old stack is ever restored.
+# Disabled: caelestia owns these colours now
 #cava.template = 'colors-cava'
 #cava.target = '~/.config/cava/config'
 
 hypr.template = 'colors-hyprland.conf'
 hypr.target = '~/.config/hypr/wallust/wallust-hyprland.conf'
 
-# Retired: rofi now reads caelestia's user template output instead.
 #rofi.template = 'colors-rofi.rasi'
 #rofi.target = '~/.config/rofi/wallust/colors-rofi.rasi'
 

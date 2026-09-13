@@ -5,5 +5,4 @@ PartOf=graphical-session.target
 
 [Service]
 Type=oneshot
-# --notify stays silent when everything is green.
 ExecStart=%h/.local/bin/sysdiag --notify

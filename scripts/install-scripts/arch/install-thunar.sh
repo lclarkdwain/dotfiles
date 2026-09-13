@@ -21,8 +21,7 @@ install_packages "${thunar_pkgs[@]}"
 
 printf "\n%.0s" {1..1}
 
-# Check for existing configs and copy if does not exist. Thunar is not here: its
-# config is caelestia-dots', tracked in .config/Thunar and linked by `make link`.
+# Check for existing configs and copy if does not exist (Thunar is tracked in .config)
 for DIR1 in gtk-3.0 xfce4; do
   DIRPATH=~/.config/$DIR1
   if [ -d "$DIRPATH" ]; then

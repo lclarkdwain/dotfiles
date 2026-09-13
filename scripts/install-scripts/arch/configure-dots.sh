@@ -1,7 +1,6 @@
 #!/bin/bash
 
 clear
-# caelestia's current wallpaper (a symlink it maintains); absent until one is set.
 wallpaper="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia/wallpaper/current"
 # Relative to .config/waybar, so the tracked symlinks carry no /home/<user> path.
 waybar_style="style/Wallust-Personal.css"
@@ -67,9 +66,6 @@ fi
 # update home directories
 xdg-user-dirs-update 2>&1 | log PIPE || true
 
-# NVIDIA env vars are set by .config/caelestia/hypr-user.lua (only when the driver
-# is loaded), so nothing is sed-edited here.
-
 printf "\n%.0s" {1..1}
 
 layout=$(prompt_detect_layout)
@@ -117,7 +113,7 @@ sed_if_changed() {
 }
 
 # rofi fonts are deliberately not scaled: the committed 15/13 is kept at every
-# resolution, including 1080p. The lock screen is caelestia's and scales itself.
+# resolution, including 1080p.
 if [ "$resolution" == "< 1440p" ]; then
   sed_if_changed .config/kitty/kitty.conf 's/font_size 16.0/font_size 14.0/'
 else

@@ -23,16 +23,13 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-# Severity is ranked ok < warn < crit; the report's verdict is the worst single check.
 add() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$RESULTS"; }
 
 json_escape() {
 	printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\t/ /g'
 }
 
-# Start of the "is something wrong right now" window. Never reaches back into the boot
-# burst: for the first 15 minutes of uptime the plain window would swallow startup noise
-# and flag amber on every fresh boot, which is the crying-wolf failure this check avoids.
+# Start of the "recent" window, never reaching back into the boot burst.
 RECENT_WINDOW=900
 BOOT_SETTLE=90
 recent_since() {
@@ -46,13 +43,9 @@ recent_since() {
 SINCE=$(recent_since)
 
 # --- session processes -------------------------------------------------------
-# Grepping the exec_once logs is pure noise (they accumulate benign warnings across
-# sessions); what actually matters is whether each startup process is still alive.
 check_session() {
 	missing=
 
-	# Checked by role, not by binary name, so swapping the shell (waybar -> caelestia)
-	# is not reported as a fault. Only "no bar at all" is a real problem.
 	if pgrep -f 'qs -c caelestia' >/dev/null 2>&1; then
 		shell_name="caelestia"
 	elif pgrep -x waybar >/dev/null 2>&1; then
@@ -62,13 +55,11 @@ check_session() {
 		missing="$missing bar"
 	fi
 
-	# Any daemon owning the bus will do; which one is a choice, not a fault.
 	if ! busctl --user status org.freedesktop.Notifications >/dev/null 2>&1; then
 		missing="$missing notifications"
 	fi
 
-	# caelestia fills the idle, network and bluetooth roles itself (IdleMonitors and
-	# its bar), so those daemons are only expected under the waybar session.
+	# caelestia covers idle, network and bluetooth itself
 	roles="cliphist:wl-paste"
 	if [ "$shell_name" != "caelestia" ]; then
 		roles="hypridle:hypridle nm-applet:nm-applet blueman-applet:blueman-applet $roles"
@@ -108,8 +99,7 @@ check_units() {
 }
 
 # --- journal -----------------------------------------------------------------
-# Errors accumulate for the whole boot, so a total is a poor "is something wrong now" signal:
-# a rough startup would flag red all day. The recent window decides; the total is context.
+# The recent window sets severity; the boot total is context.
 check_journal() {
 	recent=$(journalctl -p 3 --since "$SINCE" --no-pager -q 2>/dev/null | wc -l)
 	total=$(journalctl -p 3 -b --no-pager -q 2>/dev/null | wc -l)
@@ -162,7 +152,6 @@ check_boot() {
 	if [ -z "$prev" ]; then
 		add boot ok "Userspace boot ${us}s" "No baseline yet; run: sysdiag --save-baseline"
 	else
-		# Integer-only comparison in tenths, so no float arithmetic is needed.
 		now10=$(printf '%s' "$us" | awk -F. '{printf "%d", $1*10 + substr($2 "0", 1, 1)}')
 		prev10=$(printf '%s' "$prev" | awk -F. '{printf "%d", $1*10 + substr($2 "0", 1, 1)}')
 		delta=$(( now10 - prev10 ))
@@ -288,7 +277,6 @@ if [ "$SAVE_BASELINE" = 1 ]; then
 	[ "$JSON" = 1 ] || echo "Baseline saved to $BASELINE"
 fi
 
-# Silence on a healthy boot is the point: a check that greets you every morning gets muted.
 if [ "$NOTIFY" = 1 ]; then
 	[ "$overall" = ok ] && exit 0
 	body=$(awk -F'\t' '$2 != "ok" { printf "%s: %s\n", $1, $3 }' "$RESULTS")

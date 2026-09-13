@@ -1,19 +1,10 @@
-Set device-backed sink/source volume with wpctl as well as through Quickshell.
-
-Quickshell (since upstream 522d126) only writes a device node's volume through its
-route when the route reports a volumeStep. PipeWire's bluez5 module emits volumeStep
-only while the transport's hardware (AVRCP absolute) volume is active, so for many
-Bluetooth outputs the slider moved but the volume never changed, until a wpctl
-keybind changed the route and Quickshell resynced.
-
-Upstream: Quickshell issue #807 (also #857), fixed by PR #808, which was still unmerged
-on 2026-09-13 (https://github.com/quickshell-mirror/quickshell/pull/808).
-
-Applied on top of the shell clone by install-caelestia.sh. Drop it once the installed
-quickshell-git includes PR #808.
+Set device-backed sink/source volume with wpctl as well as through Quickshell, which
+drops route volume writes when a route has no volumeStep (e.g. Bluetooth outputs
+without AVRCP absolute volume). Upstream: Quickshell #807, fix in PR #808; drop this
+patch once quickshell-git includes it.
 
 diff --git a/services/Audio.qml b/services/Audio.qml
-index c83d80ab..fffa2a16 100644
+index c83d80ab..4caeb472 100644
 --- a/services/Audio.qml
 +++ b/services/Audio.qml
 @@ -33,8 +33,10 @@ Singleton {
@@ -40,17 +31,12 @@ index c83d80ab..fffa2a16 100644
          }
      }
  
-@@ -167,6 +171,36 @@ Singleton {
+@@ -167,6 +171,31 @@ Singleton {
          target: Pipewire.nodes
      }
  
-+    // LOCAL FIX: Quickshell only writes a device-backed node's volume through its route
-+    // when the route reports a volumeStep (node.cpp, PwNodeBoundAudio::setVolumes).
-+    // Bluetooth routes report none, so the write was dropped silently: the slider moved
-+    // while the sink kept its volume, until a wpctl keybind changed the route and
-+    // Quickshell resynced. Device-backed nodes are therefore also set with wpctl, the
-+    // path the volume keys use. The native write above is kept so the slider follows a
-+    // drag at once; writes are coalesced so a drag does not spawn a process per step.
++    // LOCAL FIX: Quickshell drops route volume writes when a route has no volumeStep
++    // (e.g. Bluetooth), so device-backed nodes are also set with wpctl (Quickshell #807).
 +    property var pendingDeviceVolumes: ({})
 +
 +    function setDeviceVolume(node: PwNode, volume: real): void {

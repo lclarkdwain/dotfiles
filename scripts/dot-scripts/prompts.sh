@@ -34,8 +34,7 @@ prompt_detect_layout() {
   echo "${layout:-(unset)}"
 }
 
-# Write kb_layout into hypr-user.lua, which Hyprland loads after the upstream
-# caelestia config (that one hardcodes "us" and must not be edited).
+# Write kb_layout into .config/caelestia/hypr-user.lua.
 set_kb_layout() {
   local layout="$1"
   sed -i "s/\(kb_layout = \)\"[^\"]*\"/\1\"$layout\"/" .config/caelestia/hypr-user.lua
@@ -119,8 +118,7 @@ prompt_resolution_choice() {
 prompt_clock_12h() {
   echo -e "${NOTE} ${SKY_BLUE} By default, these dots use the 24H clock format."
   if confirm "Do you want to change to 12H (AM/PM) clock format?" n; then
-    # One setting covers every caelestia clock: bar, lock screen, dashboard, desktop.
-    # Written through cat so the tracked file keeps its inode behind the stow link.
+    # cat, not mv, so the stowed file stays in place
     local shell_json=".config/caelestia/shell.json" tmp
     tmp=$(mktemp)
     if command -v jq >/dev/null 2>&1 &&

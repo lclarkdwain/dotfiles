@@ -1,25 +1,9 @@
 #!/bin/bash
-#
-# Remove what install-caelestia.sh built, and nothing else.
-#
-# Removed:
-#   - the QML plugin and version helper under ~/.local, read file by file from CMake's
-#     install manifest, so nothing else under ~/.local can be touched
-#   - the out-of-tree build (~1.7G of precompiled headers)
-#   - the swaync mask, so a notification daemon can take the bus again. .config/systemd
-#     is stowed, so this deletes the tracked link .config/systemd/user/swaync.service.
-#
-# Kept, deliberately:
-#   - the clone at ~/.config/quickshell/caelestia: it may hold local changes that exist
-#     nowhere else (check with `git -C ~/.config/quickshell/caelestia status`)
-#   - ~/.local/state/caelestia: scheme, wallpaper and notification history
-#   - every package: quickshell-git is also the runtime for the overview, and the fonts
-#     and tools may be wanted on their own
-#   - the config in this repo that points at caelestia; that rollback lives in git
+# Remove what install-caelestia.sh built: the plugin files from its install manifest,
+# the build tree and the swaync mask. The shell clone, caelestia state and packages stay.
 
 set -e
 
-# global_fn.sh provides log and sources utilities.sh itself.
 if ! source "$(dirname "$(realpath "$0")")/global_fn.sh"; then
   echo "failed to source global_fn.sh"
   exit 1

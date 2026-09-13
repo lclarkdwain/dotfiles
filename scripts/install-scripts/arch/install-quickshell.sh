@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# quickshell-git, not quickshell: caelestia-shell requires the git build and the
-# two conflict, so installing the extra/ release here only to replace it later
-# costs a second build. `qs -c overview` runs on the git build unchanged.
+# quickshell-git: caelestia requires the git build, which conflicts with quickshell
 quickshell_pkgs=(
   qt6-5compat
   quickshell-git
