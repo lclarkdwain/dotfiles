@@ -210,14 +210,3 @@ apply_window_rule({
   float = true,
   center = true,
 })
-
--- The sysdiag report is a read-and-close window, so it floats instead of retiling the workspace.
-apply_window_rule({
-  name = "sysdiag-report-float",
-  match = {
-    class = "^(sysdiag-report)$",
-  },
-  float = true,
-  center = true,
-  size = "(monitor_w*0.5) (monitor_h*0.6)",
-})

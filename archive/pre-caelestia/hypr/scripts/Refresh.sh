@@ -1,14 +1,6 @@
 #!/usr/bin/env bash
 # Scripts for refreshing ags, waybar, rofi, swaync, wallust
 
-# LOCAL FIX: caelestia is the bar and owns the notification bus. The upstream body
-# below restarts waybar on top of it and relaunches swaync with a plain `swaync &`,
-# which masking swaync.service cannot stop. Eight scripts still call this file
-# (ThemeChanger on SUPER+T, HyprPerfMode on SUPER+SHIFT+G, and the wallpaper and
-# waybar menus), so it hands off to the variant that restarts neither instead of every
-# caller being repointed. Delete these lines to restore the upstream behaviour.
-exec "$(dirname "$(realpath "$0")")/RefreshNoWaybar.sh" "$@"
-
 SCRIPTSDIR=$HOME/.config/hypr/scripts
 UserScripts=$HOME/.config/hypr/UserScripts
 

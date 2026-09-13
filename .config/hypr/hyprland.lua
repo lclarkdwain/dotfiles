@@ -1,19 +1,76 @@
--- KoolDots Hyprland Lua config entrypoint.
--- Mirrors hyprland.conf include order for features currently supported by Lua config.
-local configHome = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
-local hyprDir = configHome .. "/hypr"
+local home   = os.getenv("HOME")
+local hypr   = home .. "/.config/hypr"
+package.path = package.path .. ";" .. home .. "/.config/caelestia/?.lua"
 
-local function load_module(name)
-  dofile(hyprDir .. "/lua/" .. name .. ".lua")
+-- Create a file if it doesn't exist, optionally with initial content
+local function maybe_create(file, content)
+    local f = io.open(file)
+
+    if f then
+        f:close()
+        return
+    end
+
+    f = io.open(file, "w")
+    if f then
+        if content then f:write(content) end
+        f:close()
+    end
 end
 
--- In Lua workflow, runtime config is loaded from split files under:
---   ~/.config/hypr/configs/system_*.lua
---   ~/.config/hypr/UserConfigs/user_*.lua
--- via lua/user_overrides.lua. lua/ holds only the loaders and helpers; upstream's
--- template copies of the system_*.lua files were removed because they were never
--- loaded and kept drifting from the real ones.
-load_module("user_defaults")
-load_module("user_overrides")
-load_module("monitors")
-load_module("workspaces")
+-- Copy src to dst, but only if dst doesn't already exist
+local function maybe_copy(src, dst)
+    local out = io.open(dst)
+    if out then
+        out:close()
+        return
+    end
+
+    local input = io.open(src, "r")
+    if not input then return end
+
+    out = io.open(dst, "w")
+    if out then
+        out:write(input:read("*a"))
+        out:close()
+    end
+    input:close()
+end
+
+-- Maybe set current colours to defaults
+maybe_copy(hypr .. "/scheme/default.lua", hypr .. "/scheme/current.lua")
+
+-- User variables
+maybe_create(home .. "/.config/caelestia/hypr-vars.lua", "return {}\n")
+local overrides = require("hypr-vars")
+if type(overrides) == "table" then
+    local vars = require("variables")
+    for k, v in pairs(overrides) do
+        vars[k] = v
+    end
+end
+
+-- Default monitor conf
+hl.monitor({
+    output   = "",
+    mode     = "preferred",
+    position = "auto",
+    scale    = 1,
+})
+
+-- Configs
+require("hyprland.env")
+require("hyprland.general")
+require("hyprland.input")
+require("hyprland.misc")
+require("hyprland.animations")
+require("hyprland.decoration")
+require("hyprland.group")
+require("hyprland.execs")
+require("hyprland.rules")
+require("hyprland.gestures")
+require("hyprland.keybinds")
+
+-- User configs
+maybe_create(home .. "/.config/caelestia/hypr-user.lua")
+require("hypr-user")

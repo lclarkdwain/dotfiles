@@ -20,13 +20,12 @@ claude/.claude-personal/settings.json
 # Rewritten by the wallpaper scripts on every change, pointing at an absolute
 # path under ~/Pictures. Runtime state, not config.
 .config/rofi/.current_wallpaper*
-# Per-monitor copies of the current wallpaper, written by WallpaperSelect.sh.
-.config/hypr/wallpaper_effects/.wallpaper_current_*
 
 # Written by caelestia's Material You pipeline into dirs that stow links into this
 # repo. Generated output, not config; regenerated on every scheme change.
 .config/btop/themes/caelestia.theme
-.config/hypr/scheme/
+# Only current.lua: scheme/default.lua is part of the upstream hypr config.
+.config/hypr/scheme/current.lua
 # Rewritten by caelestia on every scheme change; it owns colour now and waybar's
 # cava module (the only consumer) is retired.
 .config/cava/config

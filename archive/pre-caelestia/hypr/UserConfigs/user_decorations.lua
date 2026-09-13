@@ -41,33 +41,6 @@ end
 local load_wallust_colors = user_decorations_helper.load_wallust_colors
 
 local wallust = load_wallust_colors(wallust_colors_file)
-
--- Caelestia rewrites scheme/current.lua on every wallpaper change; wallust no longer
--- runs at all, so without this the borders stay frozen at the last wallust output.
--- Key names and the rgba() alpha suffixes are taken from caelestia's own dots.
-local scheme = nil
-do
-  local scheme_path = config_home .. "/hypr/scheme/current.lua"
-  local f = io.open(scheme_path, "r")
-  if f then
-    f:close()
-    local ok, loaded = pcall(dofile, scheme_path)
-    if ok and type(loaded) == "table" and loaded.primary then
-      scheme = loaded
-    end
-  end
-end
-
-local function scheme_color(key, alpha, fallback_wallust, fallback)
-  if scheme and scheme[key] then
-    return "rgba(" .. scheme[key] .. alpha .. ")"
-  end
-  local value = wallust[fallback_wallust]
-  if value ~= nil then
-    return value
-  end
-  return fallback
-end
 local function wallust_color(name, fallback)
   local value = wallust[name]
   if value ~= nil then
@@ -78,19 +51,19 @@ end
 
 hl.config({
   general = {
-    border_size = 1,
+    border_size = 2,
     gaps_in = 2,
     gaps_out = 4,
     col = {
-      active_border = scheme_color("primary", "e6", "color12", "rgba(8db4ffff)"),
-      inactive_border = scheme_color("onSurfaceVariant", "11", "color10", "rgba(5f6578ff)"),
+      active_border = wallust_color("color12", "rgba(8db4ffff)"),
+      inactive_border = wallust_color("color10", "rgba(5f6578ff)"),
     },
   },
 })
 
 hl.config({
   decoration = {
-    rounding = 15,
+    rounding = 10,
     active_opacity = 1.0,
     inactive_opacity = 0.9,
     fullscreen_opacity = 1.0,
@@ -99,15 +72,15 @@ hl.config({
     dim_special = 0.8,
     shadow = {
       enabled = true,
-      range = 15,
-      render_power = 4,
-      color = scheme_color("inversePrimary", "10", "color12", "rgba(8db4ffff)"),
-      color_inactive = scheme_color("onSurfaceVariant", "10", "color10", "rgba(5f6578ff)"),
+      range = 3,
+      render_power = 1,
+      color = wallust_color("color12", "rgba(8db4ffff)"),
+      color_inactive = wallust_color("color10", "rgba(5f6578ff)"),
     },
     blur = {
       enabled = true,
-      size = 8,
-      passes = 2,
+      size = 6,
+      passes = 3,
       new_optimizations = true,
       xray = true,
       ignore_opacity = true,
@@ -120,11 +93,11 @@ hl.config({
 hl.config({
   group = {
     col = {
-      border_active = scheme_color("secondary", "ff", "color15", "rgba(ffffffff)"),
+      border_active = wallust_color("color15", "rgba(ffffffff)"),
     },
     groupbar = {
       col = {
-        active = scheme_color("surfaceContainer", "ff", "color0", "rgba(0f111aff)"),
+        active = wallust_color("color0", "rgba(0f111aff)"),
       },
     },
   },

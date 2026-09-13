@@ -45,9 +45,7 @@ apply_layer_rule({
 apply_layer_rule({
   name = "layerrule-quickshell-overview",
   match = {
-    -- LOCAL FIX: the live namespace is plain "quickshell" (hyprctl layers); the
-    -- "quickshell:overview" form never matched, so blur and ignore_alpha were dead.
-    namespace = "quickshell",
+    namespace = "quickshell:overview",
   },
   blur = true,
   ignore_alpha = 0.5,

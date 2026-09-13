@@ -24,35 +24,26 @@ end
 
 -- Converted from configs/Startup_Apps.conf
 local startup_commands = {
-  -- Retired: caelestia draws the wallpaper now, so awww-daemon would fight it.
-  -- scriptsDir .. "/WallpaperDaemon.sh",
-  "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE",
-  -- Chained, not a separate entry: exec_once backgrounds each command, so the target would race the import.
-  "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start hyprland-session.target",
+  scriptsDir .. "/WallpaperDaemon.sh",
+  "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
+  "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
   -- --startup keeps it hidden; terminal must match the SUPER SHIFT Return bind
   scriptsDir .. "/Dropterminal.sh --startup wezterm",
   scriptsDir .. "/Polkit.sh",
   "nm-applet --indicator",
-  -- swaync retired: caelestia owns the notification bus. swaync.service is masked, not just
-  -- disabled (.config/systemd/user/swaync.service -> /dev/null): D-Bus starts a disabled
-  -- unit on demand, and that beat caelestia to the bus.
+  "swaync",
   -- -l error: the network#speed module polls nl80211 every second on wlp6s0 and
   -- the driver returns EBUSY, emitting "nl80211: nl_send_sync get_station
   -- error -16" ~1x/sec. It is cosmetic (the module works) but it floods the log
   -- and grows unbounded, burying real diagnostics. Warnings are suppressed;
   -- [error] lines (e.g. cava_mviz, power-profiles-daemon) still show.
-  -- Retired: caelestia owns the bar. Re-enable by uncommenting and commenting caelestia below.
-  -- "waybar -l error",
-  "caelestia shell -d",
+  "waybar -l error",
   "qs -c overview",
   "hypridle",
   scriptsDir .. "/Hyprsunset.sh init",
   "wl-paste --type text --watch cliphist store",
   "wl-paste --type image --watch cliphist store",
   "blueman-applet",
-  -- Bridges Bluetooth headset transport keys onto MPRIS. Media keys route through
-  -- caelestia now, and caelestia reads MPRIS, so without this headset buttons go nowhere.
-  "mpris-proxy",
   scriptsDir .. "/KeybindsLayoutInit.sh",
 }
 
