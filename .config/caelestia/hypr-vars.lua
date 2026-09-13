@@ -4,4 +4,5 @@ return {
     editor        = "code",
     audioSettings = "pavucontrol",
     cursorTheme   = "Bibata-Modern-Ice",
+    sleepGestureCmd = "systemctl suspend", -- no hibernation (zram swap only)
 }
