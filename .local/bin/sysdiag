@@ -67,11 +67,14 @@ check_session() {
 		missing="$missing notifications"
 	fi
 
-	for entry in \
-		"hypridle:hypridle" \
-		"nm-applet:nm-applet" \
-		"blueman-applet:blueman-applet" \
-		"cliphist:wl-paste"
+	# caelestia fills the idle, network and bluetooth roles itself (IdleMonitors and
+	# its bar), so those daemons are only expected under the waybar session.
+	roles="cliphist:wl-paste"
+	if [ "$shell_name" != "caelestia" ]; then
+		roles="hypridle:hypridle nm-applet:nm-applet blueman-applet:blueman-applet $roles"
+	fi
+
+	for entry in $roles
 	do
 		name=${entry%%:*}
 		pat=${entry#*:}
