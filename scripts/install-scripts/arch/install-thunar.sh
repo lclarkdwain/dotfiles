@@ -21,8 +21,9 @@ install_packages "${thunar_pkgs[@]}"
 
 printf "\n%.0s" {1..1}
 
-# Check for existing configs and copy if does not exist
-for DIR1 in gtk-3.0 Thunar xfce4; do
+# Check for existing configs and copy if does not exist. Thunar is not here: its
+# config is caelestia-dots', tracked in .config/Thunar and linked by `make link`.
+for DIR1 in gtk-3.0 xfce4; do
   DIRPATH=~/.config/$DIR1
   if [ -d "$DIRPATH" ]; then
     echo -e "${NOTE} Config for ${MAGENTA}$DIR1${RESET} found, no need to copy." 2>&1 | log PIPE

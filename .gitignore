@@ -31,6 +31,15 @@ claude/.claude-personal/settings.json
 .config/cava/config
 # Auto-created per-monitor overrides, keyed by connector name; machine-specific and empty.
 .config/caelestia/monitors/
+# Theme files caelestia generates into config dirs pulled from caelestia-dots.
+.config/zed/themes/
+.config/spicetify/Themes/caelestia/color.ini
+# Runtime state the apps write next to their tracked config.
+.config/Thunar/accels.scm
+.config/micro/*
+!.config/micro/settings.json
+.config/spicetify/*
+!.config/spicetify/Themes/
 
 # Upstream caelestia-dots/shell, cloned to the config path so its QML is edited
 # live and hot-reloaded, and so `git diff` inside it always shows exactly what we
