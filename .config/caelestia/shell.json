@@ -53,6 +53,11 @@
     "osd": {
         "hideDelay": 4000
     },
+    "session": {
+        "commands": {
+            "logout": ["hyprctl", "dispatch", "hl.dsp.exit()"]
+        }
+    },
     "utilities": {
         "enabled": true,
         "quickToggles": [
