@@ -26,6 +26,8 @@ fi
 
 SHELL_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia"
 SHELL_REPO="https://github.com/caelestia-dots/shell.git"
+# Fixes carried on top of the upstream clone until they land there.
+PATCH_DIR="$(dirname "$(realpath "$0")")/patches/caelestia-shell"
 BUILD_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-plugin-build"
 PREFIX="$HOME/.local"
 
@@ -93,8 +95,38 @@ sudo pacman -D --asexplicit "${runtime_pkgs[@]}" >/dev/null 2>&1 || \
 # Source
 # ---------------------------------------------------------------------------
 
+# Patches are uncommitted changes in the clone, so they are taken out before a pull
+# (a patched file would block --ff-only) and put back after. Each step checks the
+# patch state first, so re-runs and half-applied states are safe.
+unapply_patches() {
+  local patch
+  for patch in "$PATCH_DIR"/*.patch; do
+    [ -e "$patch" ] || continue
+    if git -C "$SHELL_DIR" apply --reverse --check "$patch" 2>/dev/null; then
+      git -C "$SHELL_DIR" apply --reverse "$patch"
+    fi
+  done
+}
+
+apply_patches() {
+  local patch name
+  for patch in "$PATCH_DIR"/*.patch; do
+    [ -e "$patch" ] || continue
+    name=$(basename "$patch")
+    if git -C "$SHELL_DIR" apply --reverse --check "$patch" 2>/dev/null; then
+      log INFO "Patch $name already applied."
+    elif git -C "$SHELL_DIR" apply --check "$patch" 2>/dev/null; then
+      git -C "$SHELL_DIR" apply "$patch"
+      log INFO "Applied patch $name."
+    else
+      log WARN "Patch $name no longer applies: upstream changed that code. Check whether it is still needed."
+    fi
+  done
+}
+
 if [ -d "$SHELL_DIR/.git" ]; then
   log INFO "Updating the caelestia shell source in $SHELL_DIR..."
+  unapply_patches
   git -C "$SHELL_DIR" pull --ff-only || \
     log WARN "could not fast-forward; you have local commits or uncommitted changes. Resolve by hand."
 elif [ -e "$SHELL_DIR" ]; then
@@ -105,6 +137,9 @@ else
   mkdir -p "$(dirname "$SHELL_DIR")"
   git clone "$SHELL_REPO" "$SHELL_DIR"
 fi
+
+log INFO "Applying local patches to the caelestia shell..."
+apply_patches
 
 # ---------------------------------------------------------------------------
 # Plugin
