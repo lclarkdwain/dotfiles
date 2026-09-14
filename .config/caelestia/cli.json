@@ -1,5 +1,8 @@
 {
     "toggles": {
+        "communication": {
+            "slack": { "enable": true, "match": [{ "class": "slack" }], "command": ["slack"], "move": true }
+        },
         "sysmon": {
             "btop": {
                 "command": ["foot", "-a", "btop", "-T", "btop", "btop"]
