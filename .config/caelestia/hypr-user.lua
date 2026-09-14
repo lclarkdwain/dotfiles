@@ -63,6 +63,7 @@ to_workspace("3", { { class = "^(zen|firefox|Firefox)$" } })
 to_workspace("4", { { class = "^(chromium|google-chrome|brave-browser)$" } })
 to_workspace("5", { { class = "^([Tt]hunar|org.gnome.Nautilus)$" } })
 to_workspace("8", { { class = "^([Oo]bsidian)$" } })
+to_workspace("special:communication", { { class = "^([Ss]lack)$" } }) -- upstream's communication tag misses Slack
 to_workspace("9", {
     { class = "^([Ss]team)$" },
     { class = "^(com.heroicgameslauncher.hgl)$" },
