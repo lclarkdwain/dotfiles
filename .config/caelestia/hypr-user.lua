@@ -5,6 +5,51 @@ local home = os.getenv("HOME")
 -- Monitors: "preferred" drops to 60 Hz and "highrr" to 1024x768
 hl.monitor({ output = "", mode = "highres", position = "auto", scale = 1 })
 
+hl.monitor({ output = "desc:HKC OVERSEAS LIMITED 34E6UC 0000000000001", mode = "3440x1440@180", position = "0x0", scale = 1 })
+
+-- Laptop + external: panel off, external is main. Desktop: defaults. Read from DRM (disabled panels aren't Hyprland monitors)
+local internal_prefixes = { "eDP", "LVDS", "DSI" }
+local function connected_outputs()
+    local internal, external = {}, {}
+    local ok, p = pcall(io.popen, "grep -lx connected /sys/class/drm/card*-*/status 2>/dev/null")
+    if not ok or not p then return internal, external end
+    local out = p:read("*a") or ""
+    p:close()
+    for name in out:gmatch("card%d+%-([^/]+)/status") do
+        local is_internal = false
+        for _, prefix in ipairs(internal_prefixes) do
+            if name:sub(1, #prefix) == prefix then is_internal = true end
+        end
+        table.insert(is_internal and internal or external, name)
+    end
+    return internal, external
+end
+
+local internal, external = connected_outputs()
+local panel_off = #internal > 0 and #external > 0
+if #internal > 0 then
+    for _, panel in ipairs(internal) do
+        hl.monitor({ output = panel, mode = "highres", position = "auto-left", scale = 1, disabled = panel_off })
+    end
+    if panel_off then
+        local main = external[1]
+        for ws = 1, 10 do
+            hl.workspace_rule({ workspace = tostring(ws), monitor = main, default = ws == 1 })
+        end
+        hl.config({ cursor = { default_monitor = main } })
+    end
+
+    -- Hotplug: reload only on change (no loop); restart shell, its bar breaks when an output vanishes
+    for _, event in ipairs({ "monitor.added", "monitor.removed" }) do
+        hl.on(event, function()
+            local _, now_external = connected_outputs()
+            if (#now_external > 0) ~= panel_off then
+                hl.exec_cmd("hyprctl reload && sleep 1 && qs kill -c caelestia; caelestia shell -d")
+            end
+        end)
+    end
+end
+
 -- Env
 if home then
     local qml_dir = home .. "/.local/lib/qt6/qml" -- caelestia QML plugin from install-caelestia.sh
