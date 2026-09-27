@@ -202,19 +202,22 @@ fi
 printf "\n%.0s" {1..1}
 echo "${MAGENTA}By default only a few wallpapers are copied${RESET}..."
 
-echo "${NOTE} A number of these wallpapers are AI generated or enhanced. Select (N/n) if this is an issue for you. "
-if confirm "Would you like to download additional wallpapers? ${WARN} This is 1GB in size" n; then
+if confirm "Would you like to download additional wallpapers? ${WARN} This is 1.2GB in size" n; then
   echo "${NOTE} Downloading additional wallpapers..."
-  if git clone "https://github.com/LinuxBeginnings/Wallpaper-Bank.git"; then
+  wallpaper_repo=$(mktemp -d)
+  if git clone --depth=1 "https://github.com/mylinuxforwork/wallpaper.git" "$wallpaper_repo"; then
     echo "${OK} Wallpapers downloaded successfully." 2>&1 | log PIPE
     mkdir -p "$PICTURES_DIR/wallpapers"
-    if cp -R Wallpaper-Bank/wallpapers/* "$PICTURES_DIR/wallpapers/"; then
+    # Images sit at the repo root beside README and LICENSE
+    if find "$wallpaper_repo" -maxdepth 1 -type f -iregex '.*\.\(jpe?g\|png\|gif\)' \
+      -exec cp -t "$PICTURES_DIR/wallpapers/" {} +; then
       echo "${OK} Wallpapers copied successfully." 2>&1 | log PIPE
     else
       echo "${ERROR} Copying wallpapers failed" 2>&1 | log PIPE
     fi
-    rm -rf Wallpaper-Bank
+    rm -rf "$wallpaper_repo"
   else
+    rm -rf "$wallpaper_repo"
     echo "${ERROR} Downloading additional wallpapers failed" 2>&1 | log PIPE
   fi
 else
