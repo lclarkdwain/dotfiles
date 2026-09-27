@@ -134,6 +134,21 @@ else
   log INFO "Skipping scx_lavd."
 fi
 
+# Lenovo laptops only
+conservation_wanted=false
+if grep -qs 'Long_Life' /sys/class/power_supply/BAT*/charge_types ||
+  compgen -G "/sys/bus/platform/drivers/ideapad_acpi/*/conservation_mode" >/dev/null; then
+  printf "\n%.0s" {1..1}
+  read -rp "Enable battery conservation mode? Charging stops at about 80% to extend battery life. [y/N]: " conservation_response
+  conservation_response=${conservation_response,,}
+  if [[ "$conservation_response" == "y" || "$conservation_response" == "yes" ]]; then
+    conservation_wanted=true
+    log INFO "Battery conservation mode will be enabled."
+  else
+    log INFO "Skipping battery conservation mode."
+  fi
+fi
+
 printf "\n%.0s" {1..1}
 
 # Base. configure-pacman.sh first: its -Syu refreshes the sync databases
@@ -218,6 +233,11 @@ sleep 1
 
 execute_script "install-zram.sh"
 sleep 1
+
+if [ "$conservation_wanted" == "true" ]; then
+  execute_script "configure-battery-conservation.sh"
+  sleep 1
+fi
 
 if [ "$scx_wanted" == "true" ]; then
   execute_script "install-scx.sh"
