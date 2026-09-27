@@ -58,7 +58,7 @@ main() {
   # A paru that no longer starts (e.g. an old paru-bin) is replaced
   if command_exists paru && ! paru --version &>/dev/null; then
     log WARN "The installed {MAGENTA}paru{RESET} does not run. Replacing it..."
-    for broken in paru-bin paru; do
+    for broken in paru-bin-debug paru-bin paru-debug paru; do
       pacman -Q "$broken" &>/dev/null && uninstall_paru "$broken"
     done
     hash -r # forget the removed binary's cached path
