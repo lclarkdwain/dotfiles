@@ -86,9 +86,9 @@ install_pacman_package() {
 # Function to install a single package using an AUR helper
 install_aur_package() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   else
     log ERROR "No AUR helper found. Please install one (e.g., paru or yay)."
@@ -124,9 +124,9 @@ install_aur_package() {
 # Function to install a single package (auto-detects AUR helper)
 install_package() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   fi
   if [[ -n "$aur_helper" ]]; then
@@ -169,9 +169,9 @@ install_pacman_packages() {
 
 install_aur_packages() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   else
     log ERROR "No AUR helper found. Please install one (e.g., paru or yay)."
@@ -206,9 +206,9 @@ install_aur_packages() {
 
 install_packages() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   fi
   if [[ -n "$aur_helper" ]]; then
@@ -254,9 +254,9 @@ uninstall_pacman_package() {
 # Function to uninstall a single package using an AUR helper
 uninstall_aur_package() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   else
     log ERROR "No AUR helper found. Please install one (e.g., paru or yay)."
@@ -295,9 +295,9 @@ uninstall_aur_package() {
 # Function to uninstall a single package (auto-detects AUR helper)
 uninstall_package() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   fi
   if [[ -n "$aur_helper" ]]; then
@@ -343,9 +343,9 @@ uninstall_pacman_packages() {
 
 uninstall_aur_packages() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   else
     log ERROR "No AUR helper found. Please install one (e.g., paru or yay)."
@@ -384,9 +384,9 @@ uninstall_aur_packages() {
 
 uninstall_packages() {
   local aur_helper=""
-  if command -v paru &>/dev/null; then
+  if paru --version &>/dev/null; then
     aur_helper="paru"
-  elif command -v yay &>/dev/null; then
+  elif yay --version &>/dev/null; then
     aur_helper="yay"
   fi
   if [[ -n "$aur_helper" ]]; then

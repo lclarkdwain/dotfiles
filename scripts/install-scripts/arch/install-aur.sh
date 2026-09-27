@@ -51,7 +51,17 @@ uninstall_paru() {
 }
 
 main() {
-  local helper="paru-bin"
+  # Built from source: paru-bin's prebuilt binary lags pacman's libalpm soname
+  # and stops starting after a pacman upgrade
+  local helper="paru"
+
+  # A paru that no longer starts (e.g. an old paru-bin) is replaced
+  if command_exists paru && ! paru --version &>/dev/null; then
+    log WARN "The installed {MAGENTA}paru{RESET} does not run. Replacing it..."
+    for broken in paru-bin paru; do
+      pacman -Q "$broken" &>/dev/null && uninstall_paru "$broken"
+    done
+  fi
 
   log INFO "Checking if {MAGENTA}$helper{RESET} is already installed..."
   if command_exists paru; then
