@@ -55,7 +55,11 @@
     },
     "session": {
         "commands": {
-            "logout": ["hyprctl", "dispatch", "hl.dsp.exit()"]
+            "logout": [
+                "hyprctl",
+                "dispatch",
+                "hl.dsp.exit()"
+            ]
         }
     },
     "utilities": {

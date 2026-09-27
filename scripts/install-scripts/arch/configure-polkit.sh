@@ -19,8 +19,12 @@ fi
 OVERRIDE_DIR="$HOME/.config/systemd/user/hyprpolkitagent.service.d"
 OVERRIDE_FILE="$OVERRIDE_DIR/override.conf"
 
-mkdir -p "$OVERRIDE_DIR"
-cat >"$OVERRIDE_FILE" <<'EOF'
+# Keep the tracked override
+if [ -e "$OVERRIDE_FILE" ]; then
+  echo "${NOTE} $OVERRIDE_FILE already exists. Keeping it." | log PIPE
+else
+  mkdir -p "$OVERRIDE_DIR"
+  cat >"$OVERRIDE_FILE" <<'EOF'
 [Unit]
 After=
 After=dbus.service
@@ -29,6 +33,7 @@ PartOf=
 [Install]
 WantedBy=default.target
 EOF
+fi
 
 systemctl --user daemon-reload 2>&1 | log PIPE || true
 systemctl --user enable hyprpolkitagent 2>&1 | log PIPE || true

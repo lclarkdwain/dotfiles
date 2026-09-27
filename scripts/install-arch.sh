@@ -37,6 +37,8 @@ fi
 
 DRY_RUN=0
 SCRIPTS_DIR=scripts/install-scripts/arch
+REPO_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+failed_scripts=()
 
 execute_script() {
   local script="$1"
@@ -53,9 +55,13 @@ execute_script() {
       if [ "${DRY_RUN:-0}" -eq 1 ]; then
         log INFO "{GOLD}Dry-run mode:{RESET} Skipping execution of '$script'."
       else
-        env "$script_path" "$@" || log ERROR "Script '$script' failed with exit code $?."
+        if env "$script_path" "$@"; then
+          log OK "Finished execution of {GREEN}$script{RESET}."
+        else
+          log ERROR "Script '$script' failed with exit code $?."
+          failed_scripts+=("$script")
+        fi
       fi
-      log OK "Finished execution of {GREEN}$script{RESET}."
     else
       log ERROR "Failed to make script '$script' executable."
     fi
@@ -130,10 +136,19 @@ fi
 
 printf "\n%.0s" {1..1}
 
-# Base
+# Base. configure-pacman.sh first: its -Syu refreshes the sync databases
+execute_script "configure-pacman.sh"
+sleep 1
 execute_script "00-install-base.sh"
 sleep 1
-execute_script "configure-pacman.sh"
+
+# Link first: `make link` rm -rf's tracked ~/.config dirs that later scripts create
+log INFO "Linking the dotfiles before installing..."
+sudo pacman -S --needed --noconfirm stow
+if ! make -C "$REPO_DIR" --no-print-directory link; then
+  log ERROR "make link failed. Resolve it and re-run; continuing would install into unlinked config directories."
+  exit 1
+fi
 sleep 1
 
 # AUR
@@ -164,9 +179,10 @@ else
 fi
 sleep 1
 
+# configure-nouveau.sh first, so the blacklist lands in the rebuilt initramfs
 if [ "$nvidia_detected" == "true" ]; then
-  execute_script "install-nvidia.sh"
   execute_script "configure-nouveau.sh"
+  execute_script "install-nvidia.sh"
 fi
 sleep 1
 
@@ -224,15 +240,22 @@ execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-nvm.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rust.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rtk.sh" "$COMMON_SCRIPTS_DIR"
-execute_script "configure-granted.sh" "$COMMON_SCRIPTS_DIR"
 sleep 1
 
 execute_script "install-applications.sh"
 sleep 1
-
-clear
+# After install-applications.sh: it needs the browser
+execute_script "configure-granted.sh" "$COMMON_SCRIPTS_DIR"
+sleep 1
+execute_script "install-wezterm.sh"
+sleep 1
 
 execute_script "02-post-install.sh"
+
+if [ ${#failed_scripts[@]} -gt 0 ]; then
+  printf "\n%.0s" {1..1}
+  log ERROR "These scripts failed; check ${REPO_DIR}/logs/ and re-run them:\n\n$(printf '%s\n' "${failed_scripts[@]}")"
+fi
 
 printf "\n%.0s" {1..1}
 

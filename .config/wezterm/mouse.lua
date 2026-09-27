@@ -12,10 +12,6 @@ function M.setup(config)
     -- Don't open links without modifier
     {
       event = { Up = { streak = 1, button = "Left" } },
-      action = wezterm.action.CompleteSelection("ClipboardAndPrimarySelection"),
-    },
-    {
-      event = { Up = { streak = 1, button = "Left" } },
       action = wezterm.action.CompleteSelectionOrOpenLinkAtMouseCursor("ClipboardAndPrimarySelection"),
     },
   }

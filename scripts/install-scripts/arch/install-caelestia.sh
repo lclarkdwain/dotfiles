@@ -60,6 +60,34 @@ log INFO "Marking runtime dependencies as explicitly installed..."
 sudo pacman -D --asexplicit "${runtime_pkgs[@]}" >/dev/null 2>&1 || \
   log WARN "could not mark all runtime packages explicit; check 'pacman -Qdt' before any orphan sweep"
 
+# --- Services -----------------------------------------------------------------
+
+# The shell's network and power-profile controls need these daemons
+if systemctl is-enabled --quiet NetworkManager.service 2>/dev/null; then
+  log INFO "NetworkManager is already enabled."
+else
+  other_net=""
+  for unit in systemd-networkd iwd dhcpcd wpa_supplicant netctl; do
+    systemctl is-enabled --quiet "$unit.service" 2>/dev/null && other_net+=" $unit"
+  done
+  if [ -n "$other_net" ]; then
+    # Switching mid-install could drop the connection
+    log WARN "Networking is managed by:${other_net}. Not enabling NetworkManager alongside it."
+    log WARN "To switch after the install: sudo systemctl disable --now${other_net} && sudo systemctl enable --now NetworkManager"
+  else
+    # No --now: it could take over the device mid-install
+    log INFO "Enabling NetworkManager (starts on next boot)..."
+    sudo systemctl enable NetworkManager.service
+  fi
+fi
+
+if systemctl is-enabled --quiet tlp.service 2>/dev/null || systemctl is-enabled --quiet auto-cpufreq.service 2>/dev/null; then
+  log WARN "tlp or auto-cpufreq is enabled; not enabling power-profiles-daemon, which conflicts with them."
+else
+  log INFO "Enabling power-profiles-daemon..."
+  sudo systemctl enable --now power-profiles-daemon.service
+fi
+
 # --- Source -------------------------------------------------------------------
 
 # Patches are uncommitted changes in the clone: removed before a pull, reapplied after.

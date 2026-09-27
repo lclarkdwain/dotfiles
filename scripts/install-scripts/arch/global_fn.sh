@@ -7,6 +7,18 @@ if ! source "$(dirname "$(realpath "$0")")/../../utilities.sh"; then
   exit 1
 fi
 
+# Failed installs are collected and reported on exit, failing the script
+failed_pkgs=()
+report_failed_pkgs() {
+  local status=$?
+  if [ ${#failed_pkgs[@]} -gt 0 ]; then
+    log ERROR "Failed to install: {GOLD}${failed_pkgs[*]}{RESET}"
+    [ "$status" -eq 0 ] && status=1
+  fi
+  exit "$status"
+}
+trap report_failed_pkgs EXIT
+
 is_package_installed() {
   pacman -Q "$1" &>/dev/null
 }
@@ -58,11 +70,12 @@ install_pacman_package() {
     return 1
   fi
   if $force_reinstall || ! is_package_installed "$pkg"; then
-    (sudo pacman -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
+    (set -o pipefail; sudo pacman -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
     pid=$!
     spinner "$pid" "$pkg" "1" "1" "Installing"
     wait "$pid" || {
       log ERROR "Error installing {GOLD}$pkg{RESET}."
+      failed_pkgs+=("$pkg")
       return 1
     }
   else
@@ -95,11 +108,12 @@ install_aur_package() {
     return 1
   fi
   if $force_reinstall || ! is_package_installed "$pkg"; then
-    ($aur_helper -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
+    (set -o pipefail; $aur_helper -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
     pid=$!
     spinner "$pid" "$pkg" "1" "1" "Installing"
     wait "$pid" || {
       log ERROR "Error installing {GOLD}$pkg{RESET}."
+      failed_pkgs+=("$pkg")
       return 1
     }
   else
@@ -140,12 +154,12 @@ install_pacman_packages() {
   for pkg in "${packages[@]}"; do
     count=$((count + 1))
     if $force_reinstall || ! is_package_installed "$pkg"; then
-      (sudo pacman -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
+      (set -o pipefail; sudo pacman -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
       pid=$!
       spinner "$pid" "$pkg" "$total" "$count" "Installing"
       wait "$pid" || {
         log ERROR "Error installing {GOLD}$pkg{RESET}."
-        return 1
+        failed_pkgs+=("$pkg")
       }
     else
       log "{BLUE}[$count/$total]{RESET} Package {GOLD}$pkg{RESET} is already installed. Skipping."
@@ -177,12 +191,12 @@ install_aur_packages() {
   for pkg in "${packages[@]}"; do
     count=$((count + 1))
     if $force_reinstall || ! is_package_installed "$pkg"; then
-      ($aur_helper -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
+      (set -o pipefail; $aur_helper -S --noconfirm "$pkg" 2>&1 | log PIPE_NO_TERM) &
       pid=$!
       spinner "$pid" "$pkg" "$total" "$count" "Installing"
       wait "$pid" || {
         log ERROR "Error installing {GOLD}$pkg{RESET}."
-        return 1
+        failed_pkgs+=("$pkg")
       }
     else
       log "{BLUE}[$count/$total]{RESET} Package {GOLD}$pkg{RESET} is already installed. Skipping."

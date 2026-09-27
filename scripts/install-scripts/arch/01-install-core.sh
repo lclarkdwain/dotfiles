@@ -41,10 +41,8 @@ core_pkgs=(
   python-requests
   python-pyquery
   qt5ct
-  qt-style-kvantum
   qt6ct
   qt6-svg
-  qt6-style-kvantum
   rofi
   slurp
   swappy

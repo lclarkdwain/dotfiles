@@ -11,6 +11,7 @@ DRY_RUN ?= false
 STOW_CMD = $(if $(filter $(DRY_RUN),true),echo stow,stow)
 RM_CMD = $(if $(filter $(DRY_RUN),true),echo rm -rf,rm -rf)
 GIT_CMD = $(if $(filter $(DRY_RUN),true),echo git,git)
+MKDIR_CMD = $(if $(filter $(DRY_RUN),true),echo mkdir,mkdir)
 
 all: install link
 
@@ -26,6 +27,8 @@ submodules:
 
 link: backup submodules
 	@echo "$(DOTFILES) Linking configurations..."
+	@# Real dirs, so stow doesn't fold ~/.local/share into the repo
+	@$(MKDIR_CMD) -p $(XDG_CONFIG_HOME) $(HOME)/.local/share/applications
 	@$(STOW_CMD) -t $(HOME) zsh
 	@echo "Linking .config (removing any conflicts)..."
 	@for dir in .config/*/; do \
