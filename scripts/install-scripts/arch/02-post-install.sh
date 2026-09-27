@@ -7,7 +7,7 @@ packages=(
   imagemagick
   swaync
   awww
-  wallust
+  # wallust # unused under caelestia; see 01-install-core.sh
   waybar
   wl-clipboard
   wlogout

@@ -49,7 +49,11 @@ core_pkgs=(
   swaync
   awww
   unzip # needed later
-  wallust
+  # wallust: unused under caelestia, which generates its own colours. Restore for
+  # the pre-caelestia (main) setup. AUR 3.5.2-1 fails its checksum: Codeberg
+  # regenerated the archive (contents identical to the 3.5.2 tag). Until the
+  # PKGBUILD is fixed: paru -S wallust --mflags --skipchecksums
+  # wallust
   # waybar-git, not waybar: the released 0.15.0 sends legacy hyprlang dispatch
   # strings over IPC, which Hyprland's Lua config parser rejects -- clicking a
   # workspace in the bar does nothing. master translates them via
