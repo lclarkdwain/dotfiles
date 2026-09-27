@@ -20,6 +20,14 @@ install_paru() {
     exit 1
   fi
 
+  # An orphaned -debug package owns the files the new build's -debug package installs
+  local flavour
+  for flavour in paru-bin paru; do
+    if pacman -Q "$flavour-debug" &>/dev/null && ! pacman -Q "$flavour" &>/dev/null; then
+      uninstall_paru "$flavour-debug"
+    fi
+  done
+
   # Create a temporary directory for the installation
   temp_dir=$(mktemp -d)
   trap 'rm -rf "$temp_dir"' EXIT
