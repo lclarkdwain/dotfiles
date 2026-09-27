@@ -66,6 +66,25 @@ else
   log WARN "{MAGENTA}[multilib]{RESET} is not enabled; skipping {GOLD}lib32-nvidia-utils{RESET}. Steam and Proton will not run until configure-pacman.sh enables it."
 fi
 
+# The package counting as installed does not mean the module was built: pacman
+# registers it before the dkms hook compiles, so an interrupted build (reboot,
+# killed run) leaves no nvidia.ko while install_package skips it on every rerun.
+# Verify each kernel actually has the module and build it in the foreground if
+# not, so a rerun repairs the damage instead of silently booting without it.
+for kdir in /usr/lib/modules/*/; do
+  [[ -f "${kdir}pkgbase" ]] || continue
+  kver=$(basename "$kdir")
+  if modinfo -k "$kver" nvidia &>/dev/null; then
+    log OK "NVIDIA module present for {GOLD}$kver{RESET}."
+  else
+    log WARN "NVIDIA module missing for {GOLD}$kver{RESET}; building it now. This takes several minutes, do not interrupt it."
+    if ! sudo dkms autoinstall -k "$kver"; then
+      log ERROR "dkms failed to build the NVIDIA module for {GOLD}$kver{RESET}. See /var/lib/dkms/nvidia/*/build/make.log."
+      exit 1
+    fi
+  fi
+done
+
 # Check if the Nvidia modules are already added in mkinitcpio.conf and add if not
 if grep -qE '^MODULES=.*nvidia. *nvidia_modeset.*nvidia_uvm.*nvidia_drm' /etc/mkinitcpio.conf; then
   echo "Nvidia modules already included in /etc/mkinitcpio.conf" 2>&1 | log PIPE
