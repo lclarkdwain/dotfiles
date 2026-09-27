@@ -61,6 +61,7 @@ main() {
     for broken in paru-bin paru; do
       pacman -Q "$broken" &>/dev/null && uninstall_paru "$broken"
     done
+    hash -r # forget the removed binary's cached path
   fi
 
   log INFO "Checking if {MAGENTA}$helper{RESET} is already installed..."
