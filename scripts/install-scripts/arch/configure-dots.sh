@@ -145,8 +145,9 @@ printf "\n%.0s" {1..1}
 
 # wallpaper stuff
 PICTURES_DIR="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")"
-mkdir -p "$PICTURES_DIR/wallpapers"
-if cp -r wallpapers "$PICTURES_DIR/"; then
+WALLPAPER_DIR="$PICTURES_DIR/Wallpapers" # caelestia's default paths.wallpaperDir
+mkdir -p "$WALLPAPER_DIR"
+if cp -r wallpapers/. "$WALLPAPER_DIR/"; then
   echo "${OK} Some ${MAGENTA}wallpapers${RESET} copied successfully!" | log PIPE
 else
   echo "${ERROR} Failed to copy some ${YELLOW}wallpapers${RESET}" | log PIPE
@@ -207,10 +208,10 @@ if confirm "Would you like to download additional wallpapers? ${WARN} This is 1.
   wallpaper_repo=$(mktemp -d)
   if git clone --depth=1 "https://github.com/mylinuxforwork/wallpaper.git" "$wallpaper_repo"; then
     echo "${OK} Wallpapers downloaded successfully." 2>&1 | log PIPE
-    mkdir -p "$PICTURES_DIR/wallpapers"
+    mkdir -p "$WALLPAPER_DIR"
     # Images sit at the repo root beside README and LICENSE
     if find "$wallpaper_repo" -maxdepth 1 -type f -iregex '.*\.\(jpe?g\|png\|gif\)' \
-      -exec cp -t "$PICTURES_DIR/wallpapers/" {} +; then
+      -exec cp -t "$WALLPAPER_DIR/" {} +; then
       echo "${OK} Wallpapers copied successfully." 2>&1 | log PIPE
     else
       echo "${ERROR} Copying wallpapers failed" 2>&1 | log PIPE
