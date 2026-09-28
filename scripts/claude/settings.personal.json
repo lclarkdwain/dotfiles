@@ -21,6 +21,7 @@
   "statusLine": {
     "type": "command",
     "command": "$HOME/.dotfiles/scripts/claude/statusline.sh personal",
-    "refreshInterval": 30
+    "refreshInterval": 30,
+    "hideVimModeIndicator": true
   }
 }
