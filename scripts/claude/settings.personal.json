@@ -20,6 +20,7 @@
   "theme": "dark-ansi",
   "statusLine": {
     "type": "command",
-    "command": "$HOME/.dotfiles/scripts/claude/statusline.sh personal"
+    "command": "$HOME/.dotfiles/scripts/claude/statusline.sh personal",
+    "refreshInterval": 30
   }
 }
