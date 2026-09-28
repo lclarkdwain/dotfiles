@@ -16,6 +16,7 @@ claude/.claude-personal/.claude.json
 claude/.claude-personal/settings.json
 
 .config/zsh/.zshrc.d/*.local.zsh
+.config/caelestia/hypr.local.lua
 
 # Rewritten by the wallpaper scripts on every change, pointing at an absolute
 # path under ~/Pictures. Runtime state, not config.

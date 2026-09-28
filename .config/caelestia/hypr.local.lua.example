@@ -1,0 +1,7 @@
+-- Copy to hypr.local.lua (gitignored). Loaded last by hypr-user.lua, on this machine only.
+
+-- VRR / FreeSync: 0 off, 1 always, 2 fullscreen only, 3 fullscreen games and video
+-- hl.config({ misc = { vrr = 2 } })
+
+-- Per-monitor override (by connector or "desc:<description>" from hyprctl monitors)
+-- hl.monitor({ output = "DP-1", mode = "2560x1440@165", position = "0x0", scale = 1, vrr = 2 })

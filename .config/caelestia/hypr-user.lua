@@ -39,13 +39,14 @@ if #internal > 0 then
         hl.config({ cursor = { default_monitor = main } })
     end
 
-    -- Hotplug: reload only on change (no loop); restart shell, its bar breaks when an output vanishes
+    -- Hotplug: reload only on change (no loop); restart shell, its bar breaks when an output vanishes.
+    -- flock queues the runs a replug fires back to back, so one can't kill the shell another just started
+    local on_hotplug = "flock \"${XDG_RUNTIME_DIR:-/tmp}/hypr-hotplug.lock\" sh -c "
+        .. "'sleep 1; hyprctl reload; sleep 1; qs kill -c caelestia; caelestia shell -d'"
     for _, event in ipairs({ "monitor.added", "monitor.removed" }) do
         hl.on(event, function()
             local _, now_external = connected_outputs()
-            if (#now_external > 0) ~= panel_off then
-                hl.exec_cmd("hyprctl reload && sleep 1 && qs kill -c caelestia; caelestia shell -d")
-            end
+            if (#now_external > 0) ~= panel_off then hl.exec_cmd(on_hotplug) end
         end)
     end
 end
@@ -135,3 +136,11 @@ hl.window_rule({
     center = true,
     size   = "(monitor_w*0.5) (monitor_h*0.6)",
 })
+
+-- Machine-specific overrides, gitignored; see hypr.local.lua.example
+local machine_conf = home and home .. "/.config/caelestia/hypr.local.lua"
+local f = machine_conf and io.open(machine_conf)
+if f then
+    f:close()
+    dofile(machine_conf)
+end
