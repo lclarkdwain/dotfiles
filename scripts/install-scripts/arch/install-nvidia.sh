@@ -66,6 +66,15 @@ else
   log WARN "{MAGENTA}[multilib]{RESET} is not enabled; skipping {GOLD}lib32-nvidia-utils{RESET}. Steam and Proton will not run until configure-pacman.sh enables it."
 fi
 
+# Laptops only: nvidia-powerd runs Dynamic Boost. Without it the GPU stays at its
+# base power limit (35 W instead of 76 W on an RTX 5050 laptop). nvidia-utils
+# ships it disabled; on a desktop card it has nothing to do.
+if compgen -G "/sys/class/power_supply/BAT*" >/dev/null; then
+  log INFO "Laptop detected - enabling {SKY_BLUE}nvidia-powerd{RESET} (Dynamic Boost)..."
+  (set -o pipefail; sudo systemctl enable --now nvidia-powerd.service 2>&1 | log PIPE) ||
+    log WARN "Could not enable nvidia-powerd; run: sudo systemctl enable --now nvidia-powerd"
+fi
+
 # The package counting as installed does not mean the module was built: pacman
 # registers it before the dkms hook compiles, so an interrupted build (reboot,
 # killed run) leaves no nvidia.ko while install_package skips it on every rerun.
