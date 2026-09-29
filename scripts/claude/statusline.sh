@@ -2,7 +2,7 @@
 # Claude Code status line. Payload schema: https://code.claude.com/docs/en/statusline
 #
 #   ● PERSONAL  me@example.com · dotfiles  main* ↑1 · PR #12 approved · my-session
-#   ● PERSONAL  me@example.com · dotfiles ⎇ my-feature  wt-my-feature* · from main   (linked worktree)
+#   ● PERSONAL  me@example.com · dotfiles ⎇ my-feature  wt-my-feature* · 3↑ 12↓ main · left main   (linked worktree)
 #   Opus high · ▰▰▱▱▱▱▱▱▱▱ 18% 180k/1M · 5h 23% ↻2h10m · 7d 41% ↻3d · cache 42m · $1.23 · 12m · +156 −23
 set -uo pipefail
 
@@ -132,14 +132,16 @@ link() { printf '\033]8;;%s\a%s\033]8;;\a' "$1" "$2"; }
 
 # --- git ------------------------------------------------------------------
 # Cached briefly per directory: the status line re-runs on every message and
-# `git status` is not free in large repos. The cache holds four lines:
-# branch segment, git dir, common git dir, worktree top level.
-git_seg= git_dir= git_common= git_top=
+# `git status` is not free in large repos. The cache holds five lines:
+# branch segment, git dir, common git dir, worktree top level, and drift from
+# the default branch.
+git_seg= git_dir= git_common= git_top= base_seg=
 if [[ -n $cwd && -d $cwd ]]; then
   cache_dir=${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/claude-statusline
   cache_file=$cache_dir/$(printf '%s' "$cwd" | cksum | cut -d' ' -f1)
   if [[ -f $cache_file ]] && (( now - $(stat -c %Y "$cache_file" 2>/dev/null || echo 0) < 5 )); then
-    { IFS= read -r git_seg; IFS= read -r git_dir; IFS= read -r git_common; IFS= read -r git_top; } <"$cache_file"
+    { IFS= read -r git_seg; IFS= read -r git_dir; IFS= read -r git_common; IFS= read -r git_top
+      IFS= read -r base_seg; } <"$cache_file"
   else
     if porcelain=$(git -C "$cwd" --no-optional-locks status --porcelain=v2 --branch 2>/dev/null); then
       branch= oid= ahead=0 behind=0 dirty=
@@ -158,9 +160,24 @@ if [[ -n $cwd && -d $cwd ]]; then
       (( behind > 0 )) && git_seg+="${dim} ↓${behind}${reset}"
       { IFS= read -r git_dir; IFS= read -r git_common; IFS= read -r git_top; } < <(
         git -C "$cwd" rev-parse --path-format=absolute --git-dir --git-common-dir --show-toplevel 2>/dev/null)
+
+      # Drift from the default branch: commits made here since the fork point
+      # (↑) and commits the default branch gained since (↓). Remote refs are
+      # as fresh as the last fetch. Skipped on the default branch itself.
+      base=$(git -C "$cwd" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null)
+      if [[ -z $base ]]; then
+        for ref in origin/main origin/master main master; do
+          git -C "$cwd" rev-parse -q --verify "$ref^{commit}" >/dev/null 2>&1 && { base=$ref; break; }
+        done
+      fi
+      if [[ -n $base && $branch != "${base#origin/}" ]] &&
+         read -r mine theirs < <(git -C "$cwd" rev-list --left-right --count "HEAD...$base" 2>/dev/null) &&
+         (( mine + theirs > 0 )); then
+        base_seg="${dim}${mine}↑ ${theirs}↓ ${base#origin/}${reset}"
+      fi
     fi
     mkdir -p "$cache_dir" 2>/dev/null &&
-      printf '%s\n' "$git_seg" "$git_dir" "$git_common" "$git_top" >"$cache_file" 2>/dev/null
+      printf '%s\n' "$git_seg" "$git_dir" "$git_common" "$git_top" "$base_seg" >"$cache_file" 2>/dev/null
   fi
 fi
 
@@ -189,8 +206,11 @@ if [[ -n $wt ]]; then
 elif [[ -n $cwd ]]; then
   line1+="${dim} · ${cwd##*/}${reset}"
 fi
-[[ -n $git_seg ]] && line1+=" ${git_seg}"
-[[ -n $wt && -n $wt_from ]] && line1+="${sep}${dim}from ${wt_from}${reset}"
+[[ -n $git_seg  ]] && line1+=" ${git_seg}"
+[[ -n $base_seg ]] && line1+="${sep}${base_seg}"
+# original_branch is what the session had checked out before entering the
+# worktree, i.e. where it returns to, not the branch the worktree forked from.
+[[ -n $wt && -n $wt_from ]] && line1+="${sep}${dim}left ${wt_from}${reset}"
 if [[ -n $pr_num ]]; then
   case $pr_state in
     approved)          c=$green  ;;
