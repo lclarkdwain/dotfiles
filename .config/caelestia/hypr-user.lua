@@ -67,6 +67,8 @@ if nvidia then
     hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
     hl.env("NVD_BACKEND", "direct")
     hl.env("GSK_RENDERER", "ngl")
+    hl.env("MOZ_DISABLE_RDD_SANDBOX", "1") -- Firefox/Zen VA-API decode needs the NVIDIA device
+    hl.env("CUDA_DISABLE_PERF_BOOST", "1") -- no forced high-power state while decoding video
 end
 
 -- Settings
