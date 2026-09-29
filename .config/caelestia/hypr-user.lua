@@ -75,6 +75,10 @@ hl.config({ input = { kb_layout = "us" } }) -- rewritten by set_kb_layout in pro
 hl.config({
     general = { allow_tearing = true },
     render  = { direct_scanout = 2 }, -- games only
+    -- Focusing past a maximized window hands it the maximized state instead of
+    -- dropping back to tiling (upstream's 2), so Alt+Tab flips between
+    -- full-size WezTerm project windows.
+    misc    = { on_focus_under_fullscreen = 1 },
 })
 
 -- Execs: start graphical-session.target so session units run; uwsm does this itself
