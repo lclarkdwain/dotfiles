@@ -5,8 +5,20 @@
 #   Opus high · ▰▰▱▱▱▱▱▱▱▱ 18% 180k/1M · 5h 23% ↻2h10m · 7d 41% ↻3d · cache 42m · $1.23 · 12m · +156 −23
 set -uo pipefail
 
-side=${1:-unknown}
+side=${1:-}
 payload=$(cat)
+
+# No argument: infer the account from the config dir the claude() wrapper in
+# .config/zsh/.zshrc.d/claude.zsh launched with. Work runs with it unset.
+if [[ -z $side ]]; then
+  if [[ -z ${CLAUDE_CONFIG_DIR:-} ]]; then
+    side=work
+  elif [[ $CLAUDE_CONFIG_DIR -ef ${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal} ]]; then
+    side=personal
+  else
+    side=unknown
+  fi
+fi
 
 case $side in
   work)     state=$HOME/.claude.json

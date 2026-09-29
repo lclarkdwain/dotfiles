@@ -188,17 +188,26 @@ _claude-term-unmark() {
   return 0
 }
 
+# Settings both accounts share (status line etc.), layered over each account's
+# own settings.json via --settings so an update here reaches both.
+: ${CLAUDE_SHARED_SETTINGS:=$HOME/.dotfiles/scripts/claude/settings.shared.json}
+
+_claude-shared-settings() {
+  [[ -r $CLAUDE_SHARED_SETTINGS ]] && print -rl -- --settings "$CLAUDE_SHARED_SETTINGS"
+  return 0
+}
+
 _claude-run-work() {
   local rc
   _claude-term-mark work
-  { command env -u CLAUDE_CONFIG_DIR claude "$@"; rc=$? } always { _claude-term-unmark }
+  { command env -u CLAUDE_CONFIG_DIR claude ${(f)"$(_claude-shared-settings)"} "$@"; rc=$? } always { _claude-term-unmark }
   return $rc
 }
 
 _claude-run-personal() {
   local rc
   _claude-term-mark personal
-  { CLAUDE_CONFIG_DIR="$CLAUDE_PERSONAL_CONFIG_DIR" command claude "$@"; rc=$? } always { _claude-term-unmark }
+  { CLAUDE_CONFIG_DIR="$CLAUDE_PERSONAL_CONFIG_DIR" command claude ${(f)"$(_claude-shared-settings)"} "$@"; rc=$? } always { _claude-term-unmark }
   return $rc
 }
 

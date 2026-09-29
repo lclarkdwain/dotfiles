@@ -17,15 +17,5 @@
     "frontend-design@claude-plugins-official": true
   },
   "tui": "fullscreen",
-  "theme": "dark-ansi",
-  "statusLine": {
-    "type": "command",
-    "command": "$HOME/.dotfiles/scripts/claude/statusline.sh personal",
-    "refreshInterval": 30,
-    "hideVimModeIndicator": true
-  },
-  "subagentStatusLine": {
-    "type": "command",
-    "command": "$HOME/.dotfiles/scripts/claude/subagent-statusline.sh"
-  }
+  "theme": "dark-ansi"
 }
