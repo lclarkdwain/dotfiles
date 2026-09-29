@@ -156,6 +156,8 @@ execute_script "configure-pacman.sh"
 sleep 1
 execute_script "00-install-base.sh"
 sleep 1
+execute_script "configure-timesync.sh"
+sleep 1
 
 # Link first: `make link` rm -rf's tracked ~/.config dirs that later scripts create
 log INFO "Linking the dotfiles before installing..."
