@@ -80,6 +80,7 @@ uninstall_pkgs=(
   rofi-lbonn-wayland
   rofi-lbonn-wayland-git
   xfce-polkit # hyprpolkitagent is the agent; two fight over registration
+  awww # caelestia sets the wallpaper itself
 )
 
 source_dir=$(dirname "$(realpath "$0")")
