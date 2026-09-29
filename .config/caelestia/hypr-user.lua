@@ -134,6 +134,9 @@ hl.window_rule({
 hl.window_rule({ match = { tag = "game" }, content = "game" })
 hl.window_rule({ match = { class = "^(.+\\.x86_64)$" }, content = "game" })
 
+-- Game splash screens and launchers (Proton) centre on the screen's 0,0 corner
+hl.window_rule({ match = { class = "^(steam_app_[0-9]+)$", float = true }, center = true })
+
 hl.window_rule({ match = { class = "^(Emulator)$" }, workspace = "2", float = true })
 hl.window_rule({ match = { class = "^([Ss]team)$", title = "(Sign in to Steam)" }, float = true, center = true })
 hl.window_rule({
