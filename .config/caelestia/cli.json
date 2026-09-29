@@ -1,7 +1,14 @@
 {
     "toggles": {
         "communication": {
+            "discord": { "enable": false },
             "slack": { "enable": true, "match": [{ "class": "slack" }], "command": ["slack"], "move": true }
+        },
+        "music": {
+            "spotify": { "enable": false }
+        },
+        "todo": {
+            "todoist": { "enable": false }
         },
         "sysmon": {
             "btop": {

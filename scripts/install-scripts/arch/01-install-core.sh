@@ -45,7 +45,6 @@ core_pkgs=(
   qt6-svg
   slurp
   swappy
-  awww
   unzip # needed later
   wget
   wl-clipboard

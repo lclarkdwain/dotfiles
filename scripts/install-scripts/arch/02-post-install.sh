@@ -4,7 +4,6 @@ packages=(
   cliphist
   kvantum
   imagemagick
-  awww
   wl-clipboard
   kitty
   hypridle
