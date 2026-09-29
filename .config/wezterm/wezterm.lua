@@ -10,6 +10,7 @@ require("links").setup(config)
 require("nvidia").setup(config)
 require("appearance").setup(config)
 require("fonts").setup(config)
+require("mux").setup(config)
 require("keys").setup(config)
 require("events").setup()
 
