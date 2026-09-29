@@ -146,6 +146,18 @@ hl.window_rule({
     size   = "(monitor_w*0.5) (monitor_h*0.6)",
 })
 
+-- Zoom: its Xwayland popups open as normal windows, so float all but the main ones
+hl.window_rule({
+    match = { class = "^(zoom)$", title = "negative:^(Zoom Workplace|Zoom Meeting|Meeting)$" },
+    float = true,
+})
+hl.window_rule({ match = { class = "^(zoom)$", title = "^(menu window|confirm window)$" }, stay_focused = true }) -- menus close on mouse move otherwise
+hl.window_rule({
+    match            = { class = "^(zoom)$", title = "^(as_toolbar|zoom_linux_float_video_window)$" }, -- share toolbar, mini video
+    pin              = true,
+    no_initial_focus = true,
+})
+
 -- Machine-specific overrides, gitignored; see hypr.local.lua.example
 local machine_conf = home and home .. "/.config/caelestia/hypr.local.lua"
 local f = machine_conf and io.open(machine_conf)
