@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Claude Code status line. Payload schema: https://code.claude.com/docs/en/statusline
 #
-#   ● PERSONAL  me@example.com · dotfiles  main* ↑1 · PR #12 approved · ⎇ wt · my-session
+#   ● PERSONAL  me@example.com · dotfiles  main* ↑1 · PR #12 approved · my-session
+#   ● PERSONAL  me@example.com · dotfiles ⎇ my-feature  wt-my-feature* · from main   (linked worktree)
 #   Opus high · ▰▰▱▱▱▱▱▱▱▱ 18% 180k/1M · 5h 23% ↻2h10m · 7d 41% ↻3d · cache 42m · $1.23 · 12m · +156 −23
 set -uo pipefail
 
@@ -55,7 +56,8 @@ fi
 
 # One jq pass, emitted as shell assignments. Missing fields become ''; the
 # defaults cover a payload jq cannot parse.
-cwd= model= effort= fast= session= vim= agent= wt= pr_num= pr_url= pr_state=
+cwd= model= effort= fast= session= vim= agent= pr_num= pr_url= pr_state=
+wt= wt_path= wt_from= repo_name=
 ctx_pct= ctx_used= ctx_size= rl5_pct= rl5_at= rl7_pct= rl7_at=
 cache_on= cache_warm= cache_exp= cost=0 dur_ms= added= removed=
 eval "$(printf '%s' "$payload" | jq -r '
@@ -70,6 +72,9 @@ eval "$(printf '%s' "$payload" | jq -r '
     vim:        .vim.mode,
     agent:      .agent.name,
     wt:         (.worktree.name // .workspace.git_worktree),
+    wt_path:    .worktree.path,
+    wt_from:    .worktree.original_branch,
+    repo_name:  .workspace.repo.name,
     pr_num:     .pr.number,
     pr_url:     .pr.url,
     pr_state:   .pr.review_state,
@@ -127,13 +132,14 @@ link() { printf '\033]8;;%s\a%s\033]8;;\a' "$1" "$2"; }
 
 # --- git ------------------------------------------------------------------
 # Cached briefly per directory: the status line re-runs on every message and
-# `git status` is not free in large repos.
-git_seg=
+# `git status` is not free in large repos. The cache holds four lines:
+# branch segment, git dir, common git dir, worktree top level.
+git_seg= git_dir= git_common= git_top=
 if [[ -n $cwd && -d $cwd ]]; then
   cache_dir=${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/claude-statusline
   cache_file=$cache_dir/$(printf '%s' "$cwd" | cksum | cut -d' ' -f1)
   if [[ -f $cache_file ]] && (( now - $(stat -c %Y "$cache_file" 2>/dev/null || echo 0) < 5 )); then
-    git_seg=$(<"$cache_file")
+    { IFS= read -r git_seg; IFS= read -r git_dir; IFS= read -r git_common; IFS= read -r git_top; } <"$cache_file"
   else
     if porcelain=$(git -C "$cwd" --no-optional-locks status --porcelain=v2 --branch 2>/dev/null); then
       branch= oid= ahead=0 behind=0 dirty=
@@ -150,14 +156,41 @@ if [[ -n $cwd && -d $cwd ]]; then
       git_seg="${magenta} ${branch}${dirty}${reset}"
       (( ahead  > 0 )) && git_seg+="${dim} ↑${ahead}${reset}"
       (( behind > 0 )) && git_seg+="${dim} ↓${behind}${reset}"
+      { IFS= read -r git_dir; IFS= read -r git_common; IFS= read -r git_top; } < <(
+        git -C "$cwd" rev-parse --path-format=absolute --git-dir --git-common-dir --show-toplevel 2>/dev/null)
     fi
-    mkdir -p "$cache_dir" 2>/dev/null && printf '%s' "$git_seg" >"$cache_file" 2>/dev/null
+    mkdir -p "$cache_dir" 2>/dev/null &&
+      printf '%s\n' "$git_seg" "$git_dir" "$git_common" "$git_top" >"$cache_file" 2>/dev/null
   fi
 fi
 
+# A linked worktree has its own git dir but shares the main checkout's common
+# one. Claude's worktree sessions report it in the payload; plain
+# `git worktree add` checkouts are only visible through git.
+if [[ -z $wt && -n $git_dir && $git_dir != "$git_common" ]]; then
+  wt=${git_top##*/}
+fi
+[[ -n $wt && -z $wt_path ]] && wt_path=$git_top
+
 # --- line 1: where am I ---------------------------------------------------
-[[ -n $cwd ]] && line1+="${dim} · ${cwd##*/}${reset}"
+if [[ -n $wt ]]; then
+  # Name the repo the worktree belongs to, not the worktree's own directory.
+  main=${repo_name:-}
+  if [[ -z $main && -n $git_common ]]; then
+    main=${git_common%/.git}; main=${main%.git}; main=${main##*/}
+  fi
+  where=$wt
+  [[ -n $wt_path ]] && where=$(link "file://$wt_path" "$wt")
+  line1+="${dim} · ${main:+$main }${reset}${blue}⎇ ${where}${reset}"
+  # Show how far below the worktree root the session has wandered.
+  if [[ -n $wt_path && -n $cwd && $cwd == "$wt_path"/* ]]; then
+    line1+="${dim}/${cwd#"$wt_path"/}${reset}"
+  fi
+elif [[ -n $cwd ]]; then
+  line1+="${dim} · ${cwd##*/}${reset}"
+fi
 [[ -n $git_seg ]] && line1+=" ${git_seg}"
+[[ -n $wt && -n $wt_from ]] && line1+="${sep}${dim}from ${wt_from}${reset}"
 if [[ -n $pr_num ]]; then
   case $pr_state in
     approved)          c=$green  ;;
@@ -169,7 +202,6 @@ if [[ -n $pr_num ]]; then
   line1+="${sep}${c}${pr}${reset}"
   [[ -n $pr_state ]] && line1+="${dim} ${pr_state//_/ }${reset}"
 fi
-[[ -n $wt      ]] && line1+="${sep}${blue}⎇ ${wt}${reset}"
 [[ -n $agent   ]] && line1+="${sep}${blue}@${agent}${reset}"
 [[ -n $session ]] && line1+="${sep}${dim}${session}${reset}"
 
