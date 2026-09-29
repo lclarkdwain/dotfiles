@@ -1,0 +1,13 @@
+#!/bin/sh
+# Restart the caelestia shell after it crashes; leaves deliberate kills alone.
+
+crashes="${XDG_CACHE_HOME:-$HOME/.cache}/quickshell/crashes"
+marker="${XDG_RUNTIME_DIR:-/tmp}/caelestia-watchdog.marker"
+
+touch "$marker"
+while sleep 5; do
+	pgrep -x qs >/dev/null && continue
+	[ -n "$(find "$crashes" -mindepth 1 -maxdepth 1 -newer "$marker" 2>/dev/null)" ] || continue
+	touch "$marker"
+	caelestia shell -d
+done

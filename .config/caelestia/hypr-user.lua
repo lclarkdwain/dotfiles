@@ -83,6 +83,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("dbus-update-activation-environment --systemd " .. vars)
     hl.exec_cmd("systemctl --user import-environment " .. vars ..
         " && systemctl --user start hyprland-session.target")
+    hl.exec_cmd("flock -n \"${XDG_RUNTIME_DIR:-/tmp}/caelestia-watchdog.lock\" \"$HOME/.local/bin/caelestia-watchdog\"") -- restart shell on crash
 end)
 
 -- Keybinds
