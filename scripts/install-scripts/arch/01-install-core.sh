@@ -48,7 +48,6 @@ core_pkgs=(
   unzip # needed later
   wget
   wl-clipboard
-  xfce-polkit
   xdg-user-dirs
   xdg-utils
   yad
@@ -80,6 +79,7 @@ uninstall_pkgs=(
   wallust-git
   rofi-lbonn-wayland
   rofi-lbonn-wayland-git
+  xfce-polkit # hyprpolkitagent is the agent; two fight over registration
 )
 
 source_dir=$(dirname "$(realpath "$0")")
