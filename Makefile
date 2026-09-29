@@ -12,6 +12,7 @@ STOW_CMD = $(if $(filter $(DRY_RUN),true),echo stow,stow)
 RM_CMD = $(if $(filter $(DRY_RUN),true),echo rm -rf,rm -rf)
 GIT_CMD = $(if $(filter $(DRY_RUN),true),echo git,git)
 MKDIR_CMD = $(if $(filter $(DRY_RUN),true),echo mkdir,mkdir)
+XDG_MIME_CMD = $(if $(filter $(DRY_RUN),true),echo xdg-mime,xdg-mime)
 
 all: install link
 
@@ -40,6 +41,10 @@ link: backup submodules
 	done
 	@$(STOW_CMD) -t $(XDG_CONFIG_HOME) .config
 	@$(STOW_CMD) -t $(HOME)/.local .local
+	@# The local Zoom.desktop hides the system one, so GLib apps (Zen) lose its link handlers
+	@if command -v xdg-mime >/dev/null; then \
+		$(XDG_MIME_CMD) default Zoom.desktop x-scheme-handler/zoommtg x-scheme-handler/zoomus x-scheme-handler/zoomphonecall; \
+	fi
 	@echo "Linking personal Claude Code config..."
 	@$(STOW_CMD) --no-folding -t $(HOME) claude
 	@$(MAKE) --no-print-directory claude-settings
