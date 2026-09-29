@@ -1,29 +1,13 @@
 #!/bin/sh
-# Restart the caelestia shell after a crash (locking again if it was locked) or after an unlock caelestia-hotplug deferred it to.
+# Restart the caelestia shell after it crashes; leaves deliberate kills alone.
 
 crashes="${XDG_CACHE_HOME:-$HOME/.cache}/quickshell/crashes"
 marker="${XDG_RUNTIME_DIR:-/tmp}/caelestia-watchdog.marker"
-pending="${XDG_RUNTIME_DIR:-/tmp}/caelestia-restart.pending"
-locked=false
 
 touch "$marker"
 while sleep 5; do
-	if pgrep -x qs >/dev/null; then
-		state=$(qs -c caelestia ipc call lock isLocked 2>/dev/null)
-		case $state in true | false) locked=$state ;; esac
-		if [ "$locked" = false ] && [ -e "$pending" ]; then
-			# Shares caelestia-hotplug's lock so only one of them restarts
-			flock "${XDG_RUNTIME_DIR:-/tmp}/hypr-hotplug.lock" \
-				sh -c 'rm "$1" 2>/dev/null && exec "$HOME/.local/bin/caelestia-restart"' sh "$pending"
-		fi
-		continue
-	fi
+	pgrep -x qs >/dev/null && continue
 	[ -n "$(find "$crashes" -mindepth 1 -maxdepth 1 -newer "$marker" 2>/dev/null)" ] || continue
 	touch "$marker"
 	caelestia shell -d
-	[ "$locked" = true ] || continue
-	for _ in $(seq 20); do
-		qs -c caelestia ipc call lock lock >/dev/null 2>&1 && break
-		sleep 0.5
-	done
 done
