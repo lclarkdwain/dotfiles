@@ -77,13 +77,18 @@ hl.config({
     render  = { direct_scanout = 2 }, -- games only
 })
 
--- Execs: start graphical-session.target so session units run
+-- Execs: start graphical-session.target so session units run; uwsm does this itself
 hl.on("hyprland.start", function()
     local vars = "WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE"
-    hl.exec_cmd("dbus-update-activation-environment --systemd " .. vars)
-    hl.exec_cmd("systemctl --user import-environment " .. vars ..
-        " && systemctl --user start hyprland-session.target")
+    hl.exec_cmd("uwsm check is-active 2>/dev/null || { dbus-update-activation-environment --systemd " .. vars ..
+        "; systemctl --user import-environment " .. vars ..
+        " && systemctl --user start hyprland-session.target; }")
     hl.exec_cmd("flock -n \"${XDG_RUNTIME_DIR:-/tmp}/caelestia-watchdog.lock\" \"$HOME/.local/bin/caelestia-watchdog\"") -- restart shell on crash
+end)
+
+-- Stop the session target on exit; left active, it blocks the next uwsm login
+hl.on("hyprland.shutdown", function()
+    os.execute("systemctl --user stop --no-block hyprland-session.target")
 end)
 
 -- Keybinds

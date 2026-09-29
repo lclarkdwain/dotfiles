@@ -396,3 +396,23 @@ uninstall_packages() {
     uninstall_pacman_packages "$@"
   fi
 }
+
+# Preselect a session on the SDDM login screen, which opens on the last one used.
+# With "if-unset", an existing choice is kept.
+sddm_preselect_session() {
+  local session="$1" mode="${2:-}" sddm_home state
+  sddm_home=$(getent passwd sddm | cut -d: -f6)
+  [ -n "$sddm_home" ] && [ -d "$sddm_home" ] && [ -f "$session" ] || return 0
+  state="$sddm_home/state.conf"
+
+  [ -f "$state" ] || sudo install -o sddm -g sddm -m 600 /dev/null "$state"
+  if sudo grep -q '^Session=' "$state"; then
+    [ "$mode" = "if-unset" ] && return 0
+    sudo sed -i "s|^Session=.*|Session=$session|" "$state"
+  elif sudo grep -q '^\[Last\]' "$state"; then
+    sudo sed -i "/^\[Last\]/a Session=$session" "$state"
+  else
+    printf '[Last]\nSession=%s\n' "$session" | sudo tee -a "$state" >/dev/null
+  fi
+  log INFO "SDDM will preselect ${session##*/}"
+}

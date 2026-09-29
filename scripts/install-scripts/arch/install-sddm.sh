@@ -55,4 +55,7 @@ wayland_sessions_dir=/usr/share/wayland-sessions
   sudo mkdir "$wayland_sessions_dir" 2>&1 | log PIPE
 }
 
+# Fresh install: open on the uwsm session, keeping any existing choice
+sddm_preselect_session "$wayland_sessions_dir/hyprland-uwsm.desktop" if-unset
+
 printf "\n%.0s" {1..2}
