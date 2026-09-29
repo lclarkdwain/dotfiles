@@ -8,6 +8,18 @@ function M.setup()
     window:gui_window():maximize()
   end)
 
+  -- Project windows (`wezterm connect`, see mux.lua) skip gui-startup, so
+  -- maximize them here instead.
+  wezterm.on("gui-attached", function()
+    local workspace = mux.get_active_workspace()
+    for _, window in ipairs(mux.all_windows()) do
+      local gui = window:gui_window()
+      if gui and window:get_workspace() == workspace then
+        gui:maximize()
+      end
+    end
+  end)
+
   wezterm.on("new-tab-button-click", function(window, pane)
     window:perform_action(wezterm.action.SpawnCommandInNewTab({ cwd = "~" }), pane)
     return false

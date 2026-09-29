@@ -37,15 +37,10 @@ function M.setup(config)
     { key = "LeftArrow", mods = "CTRL|ALT|SHIFT", action = act.MoveTabRelative(-1) },
     { key = "RightArrow", mods = "CTRL|ALT|SHIFT", action = act.MoveTabRelative(1) },
 
-    -- SUPER+Space launcher, SUPER+S special workspace, SUPER+V clipboard
+    -- SUPER+Space launcher, SUPER+V clipboard
     { key = "Space", mods = "ALT", action = act.ActivateCommandPalette },
     { key = "p", mods = "ALT", action = mux.pick_project },
-    { key = "s", mods = "ALT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) },
     { key = "v", mods = "ALT", action = act.ActivateCopyMode },
-
-    -- Persistent mux domain
-    { key = "a", mods = "ALT", action = act.AttachDomain(mux.domain) },
-    { key = "d", mods = "ALT", action = act.DetachDomain({ DomainName = mux.domain }) },
   }
 
   -- SUPER+1..9 workspaces
