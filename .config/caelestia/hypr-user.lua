@@ -74,7 +74,7 @@ hl.config({ input = { kb_layout = "us" } }) -- rewritten by set_kb_layout in pro
 
 hl.config({
     general = { allow_tearing = true },
-    render  = { direct_scanout = 1 },
+    render  = { direct_scanout = 2 }, -- games only: on NVIDIA it flickers with the software cursor
 })
 
 -- Execs: start graphical-session.target so session units run
@@ -127,6 +127,10 @@ hl.window_rule({
     immediate    = true,
     idle_inhibit = "always",
 })
+
+-- Mark games as game content: direct_scanout = 2 and vrr = 3 only act on it
+hl.window_rule({ match = { tag = "game" }, content = "game" })
+hl.window_rule({ match = { class = "^(.+\\.x86_64)$" }, content = "game" })
 
 hl.window_rule({ match = { class = "^(Emulator)$" }, workspace = "2", float = true })
 hl.window_rule({ match = { class = "^([Ss]team)$", title = "(Sign in to Steam)" }, float = true, center = true })
