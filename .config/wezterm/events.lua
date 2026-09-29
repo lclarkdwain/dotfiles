@@ -6,18 +6,12 @@ function M.setup()
   wezterm.on("gui-startup", function(cmd)
     local tab, pane, window = mux.spawn_window(cmd or {})
     window:gui_window():maximize()
-  end)
-
-  -- Project windows (`wezterm connect`, see mux.lua) skip gui-startup, so
-  -- maximize them here instead.
-  wezterm.on("gui-attached", function()
-    local workspace = mux.get_active_workspace()
-    for _, window in ipairs(mux.all_windows()) do
-      local gui = window:gui_window()
-      if gui and window:get_workspace() == workspace then
-        gui:maximize()
-      end
-    end
+    -- Reconnect to project workspaces that outlived the last window, so they
+    -- show up in ALT+s and ALT+p switches to them instead of opening a
+    -- duplicate tab. Best effort: a failure must not block the window.
+    pcall(function()
+      mux.get_domain(require("mux").domain):attach()
+    end)
   end)
 
   wezterm.on("new-tab-button-click", function(window, pane)
