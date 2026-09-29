@@ -1,7 +1,11 @@
 #!/bin/sh
-# Restart the caelestia shell, locking again if the session was locked.
+# Restart the caelestia shell, locking again if the session was locked (--lock: always lock).
 
-locked=$(qs -c caelestia ipc call lock isLocked 2>/dev/null)
+if [ "$1" = --lock ]; then
+	locked=true
+else
+	locked=$(qs -c caelestia ipc call lock isLocked 2>/dev/null)
+fi
 caelestia shell -r -d
 [ "$locked" = true ] || exit 0
 
