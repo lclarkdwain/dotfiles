@@ -8,12 +8,16 @@ local M = {}
 -- first use and dies on logout, not on window close.
 M.domain = "unix"
 
--- Git repos two levels down, e.g. ~/code/<group>/<repo>. Discovered at runtime
--- so no project names are tracked here.
+-- Git repos two levels down, e.g. ~/code/<group>/<repo>, plus ~/.dotfiles.
+-- Discovered at runtime so no project names are tracked here.
 local function projects()
   local home = os.getenv("HOME")
   local choices = {}
-  for _, git in ipairs(wezterm.glob(home .. "/code/*/*/.git")) do
+  local gits = wezterm.glob(home .. "/code/*/*/.git")
+  for _, git in ipairs(wezterm.glob(home .. "/.dotfiles/.git")) do
+    table.insert(gits, git)
+  end
+  for _, git in ipairs(gits) do
     local dir = git:gsub("/%.git$", "")
     table.insert(choices, { id = dir, label = (dir:gsub("^" .. home, "~")) })
   end
