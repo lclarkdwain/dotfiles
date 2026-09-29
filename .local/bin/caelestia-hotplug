@@ -1,0 +1,26 @@
+#!/bin/sh
+# Apply a monitor change once it settles; skips monitors that only blinked (standby wake).
+# $1: whether an external output was connected when the config loaded (true/false)
+
+sleep 5
+
+external=false
+for status in /sys/class/drm/card*-*/status; do
+	name=${status%/status}
+	name=${name#*/card*-}
+	case $name in eDP* | LVDS* | DSI*) continue ;; esac
+	[ "$(cat "$status")" = connected ] && external=true
+done
+[ "$external" = "$1" ] && exit 0
+
+hyprctl reload
+sleep 1
+
+# Locked: keep the lock screen, caelestia-watchdog restarts the shell after unlock
+pending="${XDG_RUNTIME_DIR:-/tmp}/caelestia-restart.pending"
+if [ "$(qs -c caelestia ipc call lock isLocked 2>/dev/null)" = true ]; then
+	touch "$pending"
+	exit 0
+fi
+rm -f "$pending"
+exec "$HOME/.local/bin/caelestia-restart"
