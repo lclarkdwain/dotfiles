@@ -3,14 +3,9 @@
 packages=(
   cliphist
   kvantum
-  rofi-wayland
   imagemagick
-  swaync
   awww
-  # wallust # unused under caelestia; see 01-install-core.sh
-  waybar
   wl-clipboard
-  wlogout
   kitty
   hypridle
   hyprlock

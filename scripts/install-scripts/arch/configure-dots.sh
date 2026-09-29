@@ -1,10 +1,6 @@
 #!/bin/bash
 
 clear
-# Relative to .config/waybar, so the tracked symlinks carry no /home/<user> path.
-waybar_style="style/Wallust-Personal.css"
-waybar_config="configs/TOP-Personal"
-waybar_config_laptop="configs/TOP-Default-Laptop"
 
 source_dir=$(dirname "$(realpath "$0")")
 if ! source "${source_dir}/global_fn.sh"; then
@@ -16,9 +12,6 @@ dot_scripts_dir=$(realpath "${source_dir}/../../dot-scripts")
 
 # shellcheck source=../../dot-scripts/apps.sh
 [[ -f "${dot_scripts_dir}/apps.sh" ]] && source "${dot_scripts_dir}/apps.sh"
-
-# shellcheck source=../../dot-scripts/detect.sh
-[[ -f "${dot_scripts_dir}/detect.sh" ]] && source "${dot_scripts_dir}/detect.sh"
 
 # shellcheck source=../../dot-scripts/prompts.sh
 [[ -f "${dot_scripts_dir}/prompts.sh" ]] && source "${dot_scripts_dir}/prompts.sh"
@@ -111,8 +104,6 @@ sed_if_changed() {
   rm -f "$tmp"
 }
 
-# rofi fonts are deliberately not scaled: the committed 15/13 is kept at every
-# resolution, including 1080p.
 if [ "$resolution" == "< 1440p" ]; then
   sed_if_changed .config/kitty/kitty.conf 's/font_size 16.0/font_size 14.0/'
 else
@@ -122,25 +113,6 @@ fi
 printf "\n%.0s" {1..1}
 prompt_clock_12h
 printf "\n%.0s" {1..1}
-printf "\n%.0s" {1..1}
-
-# Define the target directory for rofi themes
-rofi_DIR="$HOME/.local/share/rofi/themes"
-
-if [ ! -d "$rofi_DIR" ]; then
-  mkdir -p "$rofi_DIR"
-fi
-if [ -d "$HOME/.config/rofi/themes" ]; then
-  if [ -z "$(ls -A $HOME/.config/rofi/themes)" ]; then
-    echo '/* Dummy Rofi theme */' >"$HOME/.config/rofi/themes/dummy.rasi"
-  fi
-  ln -snf "$HOME/.config/rofi/themes/"* "$HOME/.local/share/rofi/themes/"
-  # Delete the dummy file if it was created
-  if [ -f "$HOME/.config/rofi/themes/dummy.rasi" ]; then
-    rm "$HOME/.config/rofi/themes/dummy.rasi"
-  fi
-fi
-
 printf "\n%.0s" {1..1}
 
 # wallpaper stuff
@@ -165,30 +137,6 @@ if command -v systemctl >/dev/null 2>&1; then
     fi
   fi
 fi
-
-chassis_type=$(detect_waybar_config)
-if [ "$chassis_type" = "desktop" ]; then
-  config_file="$waybar_config"
-else
-  config_file="$waybar_config_laptop"
-fi
-
-# Point a waybar symlink at a default, relative to .config/waybar -- but only
-# when it is missing or broken. A working link is a layout/style chosen with
-# WaybarLayout.sh / WaybarStyles.sh and must survive a reinstall.
-link_waybar_default() {
-  local link="$1" target="$2"
-  local waybar_dir="$HOME/.dotfiles/.config/waybar"
-  if [ ! -e "$waybar_dir/$target" ]; then
-    echo "${WARN} Waybar default $target not found; leaving $link as-is." 2>&1 | log PIPE
-  elif [ -e "$waybar_dir/$link" ]; then
-    echo "${NOTE} Waybar $link already set; keeping it." 2>&1 | log PIPE
-  else
-    ln -sfn "$target" "$waybar_dir/$link" 2>&1 | log PIPE
-  fi
-}
-
-link_waybar_default config "$config_file"
 
 printf "\n%.0s" {1..1}
 
@@ -224,8 +172,6 @@ if confirm "Would you like to download additional wallpapers? ${WARN} This is 1.
 else
   echo "${NOTE} You chose not to download additional wallpapers." 2>&1 | log PIPE
 fi
-
-link_waybar_default style.css "$waybar_style"
 
 printf "\n%.0s" {1..2}
 printf "${OK} GREAT! dots is configured"

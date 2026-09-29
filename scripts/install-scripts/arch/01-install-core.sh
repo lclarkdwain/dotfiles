@@ -43,28 +43,12 @@ core_pkgs=(
   qt5ct
   qt6ct
   qt6-svg
-  rofi
   slurp
   swappy
-  swaync
   awww
   unzip # needed later
-  # wallust: unused under caelestia, which generates its own colours. Restore for
-  # the pre-caelestia (main) setup. AUR 3.5.2-1 fails its checksum: Codeberg
-  # regenerated the archive (contents identical to the 3.5.2 tag). Until the
-  # PKGBUILD is fixed: paru -S wallust --mflags --skipchecksums
-  # wallust
-  # waybar-git, not waybar: the released 0.15.0 sends legacy hyprlang dispatch
-  # strings over IPC, which Hyprland's Lua config parser rejects -- clicking a
-  # workspace in the bar does nothing. master translates them via
-  # buildLuaDispatch() (hl.dsp.focus). Provides/conflicts waybar, so the
-  # pacman -Qi waybar check in 02-post-install.sh still resolves.
-  # Revert to plain `waybar` once the fix lands in a tagged release.
-  waybar-git
-  waybar-weather
   wget
   wl-clipboard
-  wlogout
   xfce-polkit
   xdg-user-dirs
   xdg-utils
