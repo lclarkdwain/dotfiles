@@ -2,9 +2,9 @@ local wezterm = require("wezterm") --[[@as Wezterm]]
 local act = wezterm.action
 local M = {}
 
--- Persistent sessions live in a wezterm-mux-server, opened with SUPER+SHIFT+Return
--- (`wezterm connect unix`); plain `wezterm` stays local. Closing the persistent
--- window detaches it, and the server dies on logout, not on window close.
+-- Every pane lives in a wezterm-mux-server: `wezterm` connects to it on launch,
+-- closing a window detaches (panes keep running), and the server dies on logout.
+-- Once WezTerm is open, use CTRL+SHIFT+N for new windows; another launch mirrors.
 M.domain = "unix"
 
 -- Git repos two levels down, e.g. ~/code/<group>/<repo>, plus ~/.dotfiles.
@@ -54,6 +54,7 @@ end)
 ---@param config Config
 function M.setup(config)
   config.unix_domains = { { name = M.domain } }
+  config.default_gui_startup_args = { "connect", M.domain }
 end
 
 return M
