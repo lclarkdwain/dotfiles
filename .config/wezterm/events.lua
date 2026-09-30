@@ -1,7 +1,36 @@
 local wezterm = require("wezterm") --[[@as Wezterm]]
 local M = {}
 
+-- Pending resize settle per window; a newer resize supersedes older ones.
+local resize_generation = {}
+
+-- Re-sends the pane size to the mux by shrinking one column, then restoring.
+local function nudge_size(window)
+  local overrides = window:get_config_overrides() or {}
+  local nudged = {}
+  for k, v in pairs(overrides) do
+    nudged[k] = v
+  end
+  nudged.window_padding = { left = 0, right = "1cell", top = 0, bottom = 0 }
+  window:set_config_overrides(nudged)
+  wezterm.time.call_after(0.1, function()
+    window:set_config_overrides(overrides)
+  end)
+end
+
 function M.setup()
+  -- Mux panes can keep a stale size after a burst of tiling resizes.
+  wezterm.on("window-resized", function(window)
+    local id = window:window_id()
+    local generation = (resize_generation[id] or 0) + 1
+    resize_generation[id] = generation
+    wezterm.time.call_after(0.5, function()
+      if resize_generation[id] == generation then
+        nudge_size(window)
+      end
+    end)
+  end)
+
   wezterm.on("new-tab-button-click", function(window, pane)
     window:perform_action(wezterm.action.SpawnCommandInNewTab({ cwd = "~" }), pane)
     return false
