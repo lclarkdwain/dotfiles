@@ -97,6 +97,7 @@ end)
 
 -- Keybinds
 hl.bind("SUPER + Return", hl.dsp.exec_cmd("wezterm"))
+hl.bind("SUPER + SHIFT + Return", hl.dsp.exec_cmd("wezterm connect unix")) -- persistent sessions
 hl.bind("SUPER + CTRL + ALT + L", hl.dsp.exec_cmd("$HOME/.local/bin/caelestia-restart --lock"), { locked = true }) -- recover a dead lock screen
 hl.bind("SUPER + Space", hl.dsp.global("caelestia:launcher"))
 hl.bind("SUPER + Grave", hl.dsp.global("caelestia:nexus"))

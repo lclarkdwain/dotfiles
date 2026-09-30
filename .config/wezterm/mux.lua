@@ -2,10 +2,9 @@ local wezterm = require("wezterm") --[[@as Wezterm]]
 local act = wezterm.action
 local M = {}
 
--- Panes spawned in this domain live in a wezterm-mux-server that outlives the
--- GUI: close the window, reopen, and they are still running (gui-startup in
--- events.lua reattaches; ALT+a does it by hand). The server auto-starts on
--- first use and dies on logout, not on window close.
+-- Persistent sessions live in a wezterm-mux-server, opened with SUPER+SHIFT+Return
+-- (`wezterm connect unix`); plain `wezterm` stays local. Closing the persistent
+-- window detaches it, and the server dies on logout, not on window close.
 M.domain = "unix"
 
 -- Git repos two levels down, e.g. ~/code/<group>/<repo>, plus ~/.dotfiles.

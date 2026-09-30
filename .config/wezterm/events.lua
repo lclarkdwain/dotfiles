@@ -1,19 +1,7 @@
 local wezterm = require("wezterm") --[[@as Wezterm]]
-local mux = wezterm.mux
 local M = {}
 
 function M.setup()
-  wezterm.on("gui-startup", function(cmd)
-    local tab, pane, window = mux.spawn_window(cmd or {})
-    window:gui_window():maximize()
-    -- Reconnect to project workspaces that outlived the last window, so they
-    -- show up in ALT+s and ALT+p switches to them instead of opening a
-    -- duplicate tab. Best effort: a failure must not block the window.
-    pcall(function()
-      mux.get_domain(require("mux").domain):attach()
-    end)
-  end)
-
   wezterm.on("new-tab-button-click", function(window, pane)
     window:perform_action(wezterm.action.SpawnCommandInNewTab({ cwd = "~" }), pane)
     return false

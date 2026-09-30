@@ -42,10 +42,6 @@ function M.setup(config)
     { key = "p", mods = "ALT", action = mux.pick_project },
     { key = "s", mods = "ALT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) },
     { key = "v", mods = "ALT", action = act.ActivateCopyMode },
-
-    -- Persistent mux domain
-    { key = "a", mods = "ALT", action = act.AttachDomain(mux.domain) },
-    { key = "d", mods = "ALT", action = act.DetachDomain({ DomainName = mux.domain }) },
   }
 
   -- SUPER+1..9 workspaces
