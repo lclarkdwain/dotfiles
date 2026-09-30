@@ -13,6 +13,9 @@
 # SAVEHIST=10000
 # HISTFILE=~/.zsh_history
 
+# Hide the % marker after output without a trailing newline.
+PROMPT_EOL_MARK=''
+
 # Lazy-load (autoload) Zsh function files from a directory.
 ZFUNCDIR=${ZDOTDIR:-$HOME}/.zfunctions
 fpath=($ZFUNCDIR $fpath)
