@@ -41,8 +41,10 @@ if #internal > 0 then
 
     -- Hotplug: reload only on change (no loop); restart shell, its bar breaks when an output vanishes.
     -- flock queues the runs a replug fires back to back, so one can't kill the shell another just started
+    -- Refocus workspace 1 after the reload, the reattached output otherwise wakes on a fresh one past 10
     local on_hotplug = "flock \"${XDG_RUNTIME_DIR:-/tmp}/hypr-hotplug.lock\" sh -c "
-        .. "'sleep 1; hyprctl reload; sleep 1; \"$HOME/.local/bin/caelestia-restart\"'"
+        .. "'sleep 1; hyprctl reload; hyprctl dispatch \"hl.dsp.focus({ workspace = 1 })\"; "
+        .. "sleep 1; \"$HOME/.local/bin/caelestia-restart\"'"
     for _, event in ipairs({ "monitor.added", "monitor.removed" }) do
         hl.on(event, function()
             local _, now_external = connected_outputs()
