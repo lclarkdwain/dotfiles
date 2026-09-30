@@ -19,6 +19,10 @@
         }
     },
     "bar": {
+        "scrollActions": {
+            "volume": false,
+            "brightness": false
+        },
         "statusIcons": [
             {
                 "enabled": true,
