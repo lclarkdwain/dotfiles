@@ -3,5 +3,8 @@
 -- VRR / FreeSync: 0 off, 1 always, 2 fullscreen only, 3 fullscreen games and video
 -- hl.config({ misc = { vrr = 2 } })
 
+-- Direct scanout: 0 off, 1 on, 2 games only. Off on hybrid laptops, where it crashed the cross-GPU blit
+-- hl.config({ render = { direct_scanout = 0 } })
+
 -- Per-monitor override (by connector or "desc:<description>" from hyprctl monitors)
 -- hl.monitor({ output = "DP-1", mode = "2560x1440@165", position = "0x0", scale = 1, vrr = 2 })
