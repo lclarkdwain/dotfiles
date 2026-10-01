@@ -78,7 +78,7 @@ hl.config({ input = { kb_layout = "us" } }) -- rewritten by set_kb_layout in pro
 
 hl.config({
     general = { allow_tearing = true },
-    render  = { direct_scanout = 2 }, -- games only
+    render  = { direct_scanout = 0 }, -- off, crashes the cross-GPU blit when VRAM runs out
 })
 
 -- Execs: start graphical-session.target so session units run; uwsm does this itself
