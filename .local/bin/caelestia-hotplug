@@ -1,0 +1,36 @@
+#!/bin/sh
+# Apply a monitor change: reload Hyprland and restart the shell once the outputs settle.
+
+runtime="${XDG_RUNTIME_DIR:-/tmp}"
+dirty="$runtime/hypr-hotplug.dirty"
+
+# Mark the event, then let one run wait behind the one in progress
+touch "$dirty"
+exec 8>"$runtime/hypr-hotplug.wait"
+flock -n 8 || exit 0
+exec 9>"$runtime/hypr-hotplug.lock"
+flock 9
+exec 8>&-
+[ -e "$dirty" ] || exit 0 # the run before this one settled after the event
+
+outputs() { grep -lx connected /sys/class/drm/card*-*/status 2>/dev/null; }
+
+# Wait for 5s without an event or a change so a monitor that only blinked is back; give up after 30s
+rm -f "$dirty"
+seen=$(outputs)
+stable=0
+tries=0
+while [ "$stable" -lt 5 ] && [ "$tries" -lt 30 ]; do
+	sleep 1
+	tries=$((tries + 1))
+	stable=$((stable + 1))
+	[ -e "$dirty" ] && rm -f "$dirty" && stable=0
+	now=$(outputs)
+	[ "$now" = "$seen" ] || { seen=$now stable=0; }
+done
+
+# Refocus workspace 1 after the reload, the reattached output otherwise wakes on a fresh one past 10
+hyprctl reload
+hyprctl dispatch 'hl.dsp.focus({ workspace = 1 })'
+sleep 1
+"$HOME/.local/bin/caelestia-restart" 9>&-

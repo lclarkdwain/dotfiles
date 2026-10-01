@@ -4,7 +4,9 @@
 if [ "$1" = --lock ]; then
 	locked=true
 else
-	locked=$(qs -c caelestia ipc call lock isLocked 2>/dev/null)
+	# Ask Hyprland first, a dead shell can't answer and leaves the session on a dead lock screen
+	locked=$(hyprctl locked 2>/dev/null)
+	[ "$locked" = true ] || locked=$(qs -c caelestia ipc call lock isLocked 2>/dev/null)
 fi
 caelestia shell -r -d
 [ "$locked" = true ] || exit 0
