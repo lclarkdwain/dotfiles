@@ -101,6 +101,13 @@ if lspci | grep -i "nvidia" &>/dev/null; then
   log NOTE "NVIDIA GPU detected in your system.\n\nNOTE: The script will install nvidia-dkms, nvidia-utils, and nvidia-settings."
 fi
 
+# Check if an Intel GPU is detected
+intel_gpu_detected=false
+if lspci | grep -Ei "(vga|3d|display).*intel" &>/dev/null; then
+  intel_gpu_detected=true
+  log NOTE "Intel GPU detected in your system.\n\nNOTE: The script will install intel-media-driver for video decoding."
+fi
+
 # Add 'input_group' option if user is not in input group
 input_group_detected=false
 if ! groups "$(whoami)" | grep -q '\binput\b'; then
@@ -200,6 +207,11 @@ sleep 1
 if [ "$nvidia_detected" == "true" ]; then
   execute_script "configure-nouveau.sh"
   execute_script "install-nvidia.sh"
+fi
+sleep 1
+
+if [ "$intel_gpu_detected" == "true" ]; then
+  execute_script "install-intel.sh"
 fi
 sleep 1
 

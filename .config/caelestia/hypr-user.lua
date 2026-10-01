@@ -59,7 +59,8 @@ end
 
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 
-local nvidia = io.open("/proc/driver/nvidia/version", "r")
+-- NVIDIA as the render GPU; skipped when uwsm/env-hyprland put the Intel iGPU first
+local nvidia = not os.getenv("AQ_DRM_DEVICES") and io.open("/proc/driver/nvidia/version", "r")
 if nvidia then
     nvidia:close()
     hl.env("LIBVA_DRIVER_NAME", "nvidia")

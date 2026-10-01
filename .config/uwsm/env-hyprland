@@ -12,3 +12,16 @@ export XDG_SESSION_DESKTOP=Hyprland
 
 # ############# Others #############
 export _JAVA_AWT_WM_NONREPARENTING=1
+
+# LOCAL DEVIATION: hybrid laptops render on the Intel iGPU when a monitor is plugged into it
+igpu='' dgpus=''
+for card in /sys/class/drm/card*; do
+	case ${card##*/} in *-*) continue ;; esac
+	[ -r "$card/device/vendor" ] || continue
+	read -r vendor <"$card/device/vendor"
+	if [ "$vendor" = 0x8086 ]; then igpu=${card##*/}; else dgpus="$dgpus:/dev/dri/${card##*/}"; fi
+done
+if [ -n "$igpu" ] && [ -n "$dgpus" ] && grep -qx connected "/sys/class/drm/$igpu"-*/status 2>/dev/null; then
+	export AQ_DRM_DEVICES="/dev/dri/$igpu$dgpus"
+fi
+unset card vendor igpu dgpus
