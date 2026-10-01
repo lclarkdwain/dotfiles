@@ -37,5 +37,5 @@ while sleep 5; do
 		continue
 	fi
 	touch "$marker"
-	caelestia shell -d
+	"$HOME/.local/bin/caelestia-restart" # locks again if the session is locked
 done
