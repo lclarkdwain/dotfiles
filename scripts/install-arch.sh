@@ -130,6 +130,20 @@ else
   log INFO "Skipping the gaming stack."
 fi
 
+# Laptops only
+gamemode_governor_wanted=false
+if [ "$gaming_wanted" == "true" ] && compgen -G "/sys/class/power_supply/BAT*" >/dev/null; then
+  printf "\n%.0s" {1..1}
+  read -rp "Keep the CPU governor unchanged in games? GameMode otherwise switches it to performance, which runs hotter. [y/N]: " gamemode_governor_response
+  gamemode_governor_response=${gamemode_governor_response,,}
+  if [[ "$gamemode_governor_response" == "y" || "$gamemode_governor_response" == "yes" ]]; then
+    gamemode_governor_wanted=true
+    log INFO "GameMode will leave the CPU governor alone."
+  else
+    log INFO "GameMode will switch to the performance governor in games."
+  fi
+fi
+
 scx_wanted=false
 printf "\n%.0s" {1..1}
 read -rp "Enable scx_lavd, a latency-focused CPU scheduler? It replaces the kernel's scheduler system-wide. [y/N]: " scx_response
@@ -267,6 +281,10 @@ if [ "$gaming_wanted" == "true" ]; then
   sleep 1
   execute_script "configure-games-subvol.sh"
   sleep 1
+  if [ "$gamemode_governor_wanted" == "true" ]; then
+    execute_script "configure-gamemode-governor.sh"
+    sleep 1
+  fi
 fi
 
 COMMON_SCRIPTS_DIR="scripts/install-scripts/common"
