@@ -1,13 +1,41 @@
 #!/bin/sh
-# Restart the caelestia shell after it crashes; leaves deliberate kills alone.
+# Restart the caelestia shell after it crashes or the compositor restarts; leaves deliberate kills alone.
 
+runtime="${XDG_RUNTIME_DIR:-/tmp}"
 crashes="${XDG_CACHE_HOME:-$HOME/.cache}/quickshell/crashes"
-marker="${XDG_RUNTIME_DIR:-/tmp}/caelestia-watchdog.marker"
+marker="$runtime/caelestia-watchdog.marker"
+
+# Succeed if the Hyprland instance with this signature is still running
+alive() {
+	[ -r "$runtime/hypr/$1/hyprland.lock" ] || return 1
+	read -r pid <"$runtime/hypr/$1/hyprland.lock"
+	[ "$(cat "/proc/$pid/comm" 2>/dev/null)" = Hyprland ]
+}
+
+# Point the environment at the running Hyprland instance
+adopt() {
+	for lock in "$runtime"/hypr/*/hyprland.lock; do
+		sig=${lock%/hyprland.lock}
+		sig=${sig##*/}
+		alive "$sig" || continue
+		HYPRLAND_INSTANCE_SIGNATURE=$sig
+		WAYLAND_DISPLAY=$(sed -n 2p "$lock")
+		export HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY
+		return 0
+	done
+	return 1
+}
 
 touch "$marker"
 while sleep 5; do
 	pgrep -x qs >/dev/null && continue
-	[ -n "$(find "$crashes" -mindepth 1 -maxdepth 1 -newer "$marker" 2>/dev/null)" ] || continue
+	if ! alive "$HYPRLAND_INSTANCE_SIGNATURE"; then
+		adopt || continue
+		sleep 5 # the new compositor's own autostart goes first
+		pgrep -x qs >/dev/null && continue
+	elif [ -z "$(find "$crashes" -mindepth 1 -maxdepth 1 -newer "$marker" 2>/dev/null)" ]; then
+		continue
+	fi
 	touch "$marker"
 	caelestia shell -d
 done
