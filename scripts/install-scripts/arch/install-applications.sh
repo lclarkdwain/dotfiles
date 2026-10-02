@@ -7,6 +7,7 @@ application_pkgs=(
   google-chrome
   slack-desktop
   zoom
+  obsidian
 )
 
 source_dir=$(dirname "$(realpath "$0")")

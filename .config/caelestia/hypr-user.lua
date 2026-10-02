@@ -117,7 +117,7 @@ to_workspace("2", {
 to_workspace("3", { { class = "^(zen|firefox|Firefox)$" } })
 to_workspace("4", { { class = "^(chromium|google-chrome|brave-browser)$" } })
 to_workspace("5", { { class = "^([Tt]hunar|org.gnome.Nautilus)$" } })
-to_workspace("8", { { class = "^([Oo]bsidian)$" } })
+to_workspace("8", { { class = "^(md.obsidian.Obsidian|[Oo]bsidian)$" } }) -- native Wayland app id, then Xwayland
 to_workspace("special:communication", { { class = "^([Ss]lack)$" } }) -- upstream's communication tag misses Slack
 to_workspace("9", {
     { class = "^([Ss]team)$" },
