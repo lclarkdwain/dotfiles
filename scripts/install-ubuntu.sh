@@ -51,6 +51,13 @@ if [[ "$response" != "yes" && "$response" != "y" ]]; then
   log INFO "Installation aborted by the user."
   exit 0
 fi
+
+gcloud_wanted=false
+read -rp "Install the Google Cloud CLI (gcloud)? [y/N]: " gcloud_response
+gcloud_response=${gcloud_response,,}
+if [[ "$gcloud_response" == "y" || "$gcloud_response" == "yes" ]]; then
+  gcloud_wanted=true
+fi
 printf "\n%.0s" {1..1}
 
 # TODO: this is primarily used in WSL, so if native Ubuntu we might to include something like terminal, etc.
@@ -68,6 +75,9 @@ execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-nvm.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rust.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rtk.sh" "$COMMON_SCRIPTS_DIR"
+if [ "$gcloud_wanted" == "true" ]; then
+  execute_script "install-gcloud.sh" "$COMMON_SCRIPTS_DIR"
+fi
 sleep 1
 
 execute_script "configure-shell.sh"

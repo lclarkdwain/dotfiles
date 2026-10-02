@@ -155,6 +155,17 @@ else
   log INFO "Skipping scx_lavd."
 fi
 
+gcloud_wanted=false
+printf "\n%.0s" {1..1}
+read -rp "Install the Google Cloud CLI (gcloud)? [y/N]: " gcloud_response
+gcloud_response=${gcloud_response,,}
+if [[ "$gcloud_response" == "y" || "$gcloud_response" == "yes" ]]; then
+  gcloud_wanted=true
+  log INFO "Google Cloud CLI will be installed."
+else
+  log INFO "Skipping the Google Cloud CLI."
+fi
+
 # Lenovo laptops only
 conservation_wanted=false
 if grep -qs 'Long_Life' /sys/class/power_supply/BAT*/charge_types ||
@@ -292,6 +303,10 @@ execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-nvm.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rust.sh" "$COMMON_SCRIPTS_DIR"
 execute_script "install-rtk.sh" "$COMMON_SCRIPTS_DIR"
+# After install-aur.sh: google-cloud-cli comes from the AUR
+if [ "$gcloud_wanted" == "true" ]; then
+  execute_script "install-gcloud.sh" "$COMMON_SCRIPTS_DIR"
+fi
 sleep 1
 
 execute_script "install-applications.sh"
