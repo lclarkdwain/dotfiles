@@ -30,7 +30,7 @@ build_pkgs=(cmake ninja qt6-shadertools gcc git)
 
 cli_pkgs=(caelestia-cli)
 
-theme_pkgs=(adw-gtk-theme papirus-icon-theme)
+theme_pkgs=(adw-gtk-theme papirus-icon-theme ttf-nunito)
 
 # Tools the caelestia-dots configs call out to
 dots_pkgs=(
