@@ -59,6 +59,9 @@
             }
         ]
     },
+    "lock": {
+        "useWallpaper": true
+    },
     "osd": {
         "hideDelay": 4000
     },
