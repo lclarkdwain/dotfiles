@@ -2,22 +2,22 @@
     "appearance": {
         "font": {
             "body": {
-                "family": "Maple Mono NF"
+                "family": "Shantell Sans"
             },
-            "clock": "Maple Mono NF",
+            "clock": "Shantell Sans",
             "headline": {
-                "family": "Nunito"
+                "family": "Shantell Sans"
             },
             "label": {
-                "family": "Maple Mono NF"
+                "family": "Shantell Sans"
             },
             "mono": {
                 "family": "Maple Mono NF"
             },
             "title": {
-                "family": "Nunito"
+                "family": "Shantell Sans"
             },
-            "workspaces": "Maple Mono NF"
+            "workspaces": "Shantell Sans"
         },
         "transparency": {
             "enabled": false
