@@ -36,7 +36,7 @@ theme_pkgs=(adw-gtk-theme papirus-icon-theme ttf-shantell-sans-variable)
 dots_pkgs=(
   xdg-desktop-portal-hyprland xdg-desktop-portal-gtk ttf-jetbrains-mono-nerd
   foot btop fastfetch thunar pavucontrol
-  gnome-keyring polkit-gnome bluez-utils
+  gnome-keyring bluez-utils # polkit-gnome: skipped, hyprpolkitagent is the agent
   wl-clipboard cliphist trash-cli ydotool hyprpicker gammastep geoclue
 )
 
