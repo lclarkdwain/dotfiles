@@ -68,6 +68,7 @@ core_optional_pkgs=(
   nwg-displays
   pacman-contrib
   qalculate-gtk
+  smartmontools
   yt-dlp
 )
 
