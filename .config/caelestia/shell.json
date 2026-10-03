@@ -2,17 +2,22 @@
     "appearance": {
         "font": {
             "body": {
-                "family": "Rubik"
+                "family": "Maple Mono NF"
             },
+            "clock": "Maple Mono NF",
             "headline": {
-                "family": "Rubik"
+                "family": "Maple Mono NF"
             },
             "label": {
-                "family": "Rubik"
+                "family": "Maple Mono NF"
+            },
+            "mono": {
+                "family": "Maple Mono NF"
             },
             "title": {
-                "family": "Rubik"
-            }
+                "family": "Maple Mono NF"
+            },
+            "workspaces": "Maple Mono NF"
         },
         "transparency": {
             "enabled": false
