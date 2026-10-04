@@ -4,6 +4,7 @@ fonts_pkgs=(
   fonts-kalam
   maplemono-nf-unhinted
   noto-fonts
+  noto-fonts-cjk
   noto-fonts-emoji
   ttf-architects-daughter
   ttf-comic-neue
