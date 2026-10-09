@@ -13,3 +13,8 @@
 
 [github]
   user = lclarkdwain
+
+# Machine-specific settings (e.g. the Git LFS filter written by
+# install-gamedev.sh). Gitignored; silently skipped when absent.
+[include]
+	path = config.local

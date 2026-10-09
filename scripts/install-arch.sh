@@ -166,6 +166,17 @@ else
   log INFO "Skipping the Google Cloud CLI."
 fi
 
+gamedev_wanted=false
+printf "\n%.0s" {1..1}
+read -rp "Install the game dev stack (Godot, Blender, Krita, Audacity, RenderDoc, Git LFS)? [y/N]: " gamedev_response
+gamedev_response=${gamedev_response,,}
+if [[ "$gamedev_response" == "y" || "$gamedev_response" == "yes" ]]; then
+  gamedev_wanted=true
+  log INFO "Game dev stack will be installed."
+else
+  log INFO "Skipping the game dev stack."
+fi
+
 # Lenovo laptops only
 conservation_wanted=false
 if grep -qs 'Long_Life' /sys/class/power_supply/BAT*/charge_types ||
@@ -308,6 +319,12 @@ if [ "$gcloud_wanted" == "true" ]; then
   execute_script "install-gcloud.sh" "$COMMON_SCRIPTS_DIR"
 fi
 sleep 1
+
+# After install-rust.sh: install-gamedev.sh adds rust-analyzer through rustup
+if [ "$gamedev_wanted" == "true" ]; then
+  execute_script "install-gamedev.sh"
+  sleep 1
+fi
 
 execute_script "install-applications.sh"
 sleep 1

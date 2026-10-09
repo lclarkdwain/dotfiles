@@ -129,6 +129,16 @@ to_workspace("10", {
     { class = "^(.+\\.x86_64)$" },
 })
 
+-- Game dev: Godot editor with the code editors, running scenes on 6, asset tools on 7
+to_workspace("2", { { class = "^(Godot|org.godotengine.Godot)$", title = "negative:.*\\(DEBUG\\)$" } })
+to_workspace("6", { { class = "^(Godot|org.godotengine.Godot)$", title = ".*\\(DEBUG\\)$" } })
+to_workspace("7", {
+    { class = "^([Bb]lender|org.blender.Blender)$" },
+    { class = "^(krita|org.kde.krita)$" },
+    { class = "^([Aa]udacity)$" },
+    { class = "^(qrenderdoc|renderdoc)$" },
+})
+
 -- Native Unity builds, which upstream's game tag misses
 hl.window_rule({
     match        = { class = "^(.+\\.x86_64)$" },
