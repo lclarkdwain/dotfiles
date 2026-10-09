@@ -6,6 +6,7 @@ extras=(
   fd
   foot
   fzf
+  github-cli
   jq
   lazygit
   less
