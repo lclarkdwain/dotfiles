@@ -96,6 +96,8 @@ gaming_pkgs=(
   # vulkaninfo/vkcube, for verifying the stack without launching a game.
   vulkan-tools
   protontricks
+  # prime-run: native OpenGL games render on the NVIDIA dGPU on hybrid laptops.
+  nvidia-prime
 )
 
 install_pacman_packages "${gaming_pkgs[@]}"

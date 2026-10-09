@@ -24,6 +24,7 @@ gaming_packages=(
   gamescope
   lib32-vulkan-icd-loader
   protontricks
+  nvidia-prime
 )
 
 # Local packages that should be in /usr/local/bin/
