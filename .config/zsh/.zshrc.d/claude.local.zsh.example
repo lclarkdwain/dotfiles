@@ -4,6 +4,7 @@ typeset -ga CLAUDE_WORK_ROOTS=(
 
 typeset -ga CLAUDE_PERSONAL_ROOTS=(
   "$HOME/.dotfiles"
+  "$HOME/code/lclarkdwain"
   "$HOME/code/<personal-dirs>"
 )
 
