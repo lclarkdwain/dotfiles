@@ -98,7 +98,7 @@ fi
 nvidia_detected=false
 if lspci | grep -i "nvidia" &>/dev/null; then
   nvidia_detected=true
-  log NOTE "NVIDIA GPU detected in your system.\n\nNOTE: The script will install nvidia-dkms, nvidia-utils, and nvidia-settings."
+  log NOTE "NVIDIA GPU detected in your system.\n\nNOTE: The script will install nvidia-open-dkms (or keep an existing nvidia-dkms), nvidia-utils, and nvidia-settings."
 fi
 
 # Check if an Intel GPU is detected
