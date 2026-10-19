@@ -7,7 +7,7 @@ hl.monitor({ output = "", mode = "highres", position = "auto", scale = 1 })
 
 hl.monitor({ output = "desc:HKC OVERSEAS LIMITED 34E6UC 0000000000001", mode = "3440x1440@180", position = "0x0", scale = 1 })
 
--- Laptop + external: both on, panel left of the external and main. Desktop: defaults. Read from DRM
+-- Laptop + external: both on, panel left of the external, which is main. Desktop: defaults. Read from DRM
 local internal_prefixes = { "eDP", "LVDS", "DSI" }
 local function connected_outputs()
     local internal, external = {}, {}
@@ -32,8 +32,8 @@ if #internal > 0 then
         hl.monitor({ output = panel, mode = "highres", position = "auto-left", scale = 1 })
     end
     if has_external then
-        -- Main screen gets workspaces 1-10, side screen 11-20; swap to make the external main
-        local main, side = internal[1], external[1]
+        -- Main screen gets workspaces 1-10, side screen 11-20; swap to make the laptop main
+        local main, side = external[1], internal[1]
         for ws = 1, 10 do
             hl.workspace_rule({ workspace = tostring(ws), monitor = main, default = ws == 1 })
             hl.workspace_rule({ workspace = tostring(ws + 10), monitor = side, default = ws == 1 })
