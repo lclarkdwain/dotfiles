@@ -76,10 +76,7 @@ end
 -- Settings
 hl.config({ input = { kb_layout = "us" } }) -- rewritten by set_kb_layout in prompts.sh
 
-hl.config({
-    general = { allow_tearing = true },
-    render  = { direct_scanout = 2 }, -- games only
-})
+hl.config({ render = { direct_scanout = 2 } }) -- games only
 
 -- Execs: start graphical-session.target so session units run; uwsm does this itself
 hl.on("hyprland.start", function()
