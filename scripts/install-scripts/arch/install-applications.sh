@@ -8,6 +8,7 @@ application_pkgs=(
   slack-desktop
   zoom
   obsidian
+  discord
 )
 
 source_dir=$(dirname "$(realpath "$0")")
