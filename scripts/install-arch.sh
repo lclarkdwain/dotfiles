@@ -108,6 +108,13 @@ if lspci | grep -Ei "(vga|3d|display).*intel" &>/dev/null; then
   log NOTE "Intel GPU detected in your system.\n\nNOTE: The script will install intel-media-driver for video decoding."
 fi
 
+# Check if an AMD GPU is detected
+amd_gpu_detected=false
+if lspci | grep -Ei "(vga|3d|display).*\[AMD/ATI\]" &>/dev/null; then
+  amd_gpu_detected=true
+  log NOTE "AMD GPU detected in your system.\n\nNOTE: The script will install mesa and vulkan-radeon (Vulkan is left out next to an NVIDIA GPU)."
+fi
+
 # Add 'input_group' option if user is not in input group
 input_group_detected=false
 if ! groups "$(whoami)" | grep -q '\binput\b'; then
@@ -251,6 +258,12 @@ if [ "$intel_gpu_detected" == "true" ]; then
 fi
 sleep 1
 
+# After install-nvidia.sh, which decides whether vulkan-radeon is wanted
+if [ "$amd_gpu_detected" == "true" ]; then
+  execute_script "install-amd.sh"
+fi
+sleep 1
+
 execute_script "install-gtk-themes.sh"
 sleep 1
 
@@ -294,10 +307,10 @@ if [ "$scx_wanted" == "true" ]; then
   sleep 1
 fi
 
-# Runs after install-nvidia.sh so lib32-nvidia-utils can be matched against the
-# already-installed nvidia-utils, and after configure-pacman.sh has enabled
-# [multilib] -- install-gaming.sh hard-fails on either being absent rather than
-# installing something half-working.
+# Runs after install-nvidia.sh / install-amd.sh so the 32-bit driver can be
+# matched against the installed 64-bit one, and after configure-pacman.sh has
+# enabled [multilib] -- install-gaming.sh hard-fails on either being absent
+# rather than installing something half-working.
 if [ "$gaming_wanted" == "true" ]; then
   execute_script "install-gaming.sh"
   sleep 1

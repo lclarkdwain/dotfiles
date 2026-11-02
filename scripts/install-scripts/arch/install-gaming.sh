@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Gaming stack: Steam plus the tooling that makes it behave on Hyprland/NVIDIA.
+# Gaming stack: Steam plus the tooling that makes it behave on Hyprland, for
+# NVIDIA (incl. Intel+NVIDIA hybrids) and AMD Radeon machines.
 #
 # All but ProtonPlus are in official repos, so this deliberately uses
 # install_pacman_packages rather than install_packages. The latter auto-detects
@@ -22,10 +23,17 @@ if ! pacman-conf --repo-list 2>/dev/null | grep -qx multilib; then
   exit 1
 fi
 
-if ! is_package_installed nvidia-utils; then
-  log ERROR "{GOLD}nvidia-utils{RESET} is not installed. Run {GOLD}install-nvidia.sh{RESET} first so the 32-bit driver can be matched against it."
+# The 64-bit driver decides which 32-bit one to match. NVIDIA wins when both are
+# present: on a hybrid laptop the NVIDIA dGPU is the one games should use.
+if is_package_installed nvidia-utils; then
+  gpu_vendor=nvidia
+elif is_package_installed vulkan-radeon; then
+  gpu_vendor=amd
+else
+  log ERROR "No 64-bit Vulkan driver found. Run {GOLD}install-nvidia.sh{RESET} or {GOLD}install-amd.sh{RESET} first so the 32-bit driver can be matched against it."
   exit 1
 fi
+log INFO "Gaming stack will target the {SKY_BLUE}${gpu_vendor}{RESET} driver."
 
 # Installing new packages onto a system with pending upgrades is Arch's
 # partial-upgrade hazard: pacman resolves the new package against current repo
@@ -55,26 +63,31 @@ fi
 # `pacman --noconfirm` never prompts to disambiguate -- it silently takes the
 # first provider it finds, which on an NVIDIA box can install the nouveau Vulkan
 # ICD alongside the proprietary driver and leave Steam unable to create a Vulkan
-# device. Installing lib32-nvidia-utils up front satisfies both virtuals, so the
-# steam transaction has nothing left to guess at.
-driver_pkgs32=(
-  lib32-nvidia-utils
-  lib32-vulkan-icd-loader
-)
+# device. Installing the 32-bit half of the real driver up front satisfies both
+# virtuals, so the steam transaction has nothing left to guess at.
+if [[ "$gpu_vendor" == nvidia ]]; then
+  driver_pkg=nvidia-utils
+  driver_pkgs32=(lib32-nvidia-utils lib32-vulkan-icd-loader)
+  stray_icd_re='^lib32-vulkan-(nouveau|intel|radeon|swrast)$'
+else
+  driver_pkg=vulkan-radeon
+  driver_pkgs32=(lib32-mesa lib32-vulkan-radeon lib32-vulkan-icd-loader)
+  stray_icd_re='^(lib32-vulkan-(nouveau|intel|swrast)|lib32-nvidia-utils)$'
+fi
 
-log INFO "Installing the 32-bit NVIDIA userspace first, to pin provider resolution for Steam..."
+log INFO "Installing the 32-bit ${gpu_vendor} userspace first, to pin provider resolution for Steam..."
 install_pacman_packages "${driver_pkgs32[@]}"
 
-# The 32- and 64-bit halves of the NVIDIA userspace are one driver split across
-# two packages. A version skew between them breaks 32-bit Vulkan in ways that
-# surface as an unexplained in-game crash rather than a package error, so say so
-# loudly here instead of letting it be discovered later.
-nvidia_ver=$(pacman -Q nvidia-utils 2>/dev/null | awk '{print $2}')
-nvidia_ver32=$(pacman -Q lib32-nvidia-utils 2>/dev/null | awk '{print $2}')
-if [[ "$nvidia_ver" != "$nvidia_ver32" ]]; then
-  log WARN "NVIDIA userspace version skew: {GOLD}nvidia-utils $nvidia_ver{RESET} vs {GOLD}lib32-nvidia-utils $nvidia_ver32{RESET}. 32-bit Vulkan will misbehave until both come from the same driver release."
+# The 32- and 64-bit halves are one driver split across two packages. A version
+# skew between them breaks 32-bit Vulkan in ways that surface as an unexplained
+# in-game crash rather than a package error, so say so loudly here instead of
+# letting it be discovered later.
+driver_ver=$(pacman -Q "$driver_pkg" 2>/dev/null | awk '{print $2}')
+driver_ver32=$(pacman -Q "lib32-$driver_pkg" 2>/dev/null | awk '{print $2}')
+if [[ "$driver_ver" != "$driver_ver32" ]]; then
+  log WARN "Driver version skew: {GOLD}$driver_pkg $driver_ver{RESET} vs {GOLD}lib32-$driver_pkg $driver_ver32{RESET}. 32-bit Vulkan will misbehave until both come from the same release."
 else
-  log OK "NVIDIA userspace matched at {GREEN}${nvidia_ver}{RESET} across 64-bit and 32-bit."
+  log OK "Driver matched at {GREEN}${driver_ver}{RESET} across 64-bit and 32-bit."
 fi
 
 # ---------------------------------------------------------------------------
@@ -96,9 +109,9 @@ gaming_pkgs=(
   # vulkaninfo/vkcube, for verifying the stack without launching a game.
   vulkan-tools
   protontricks
-  # prime-run: native OpenGL games render on the NVIDIA dGPU on hybrid laptops.
-  nvidia-prime
 )
+# prime-run: native OpenGL games render on the NVIDIA dGPU on hybrid laptops.
+[[ "$gpu_vendor" == nvidia ]] && gaming_pkgs+=(nvidia-prime)
 
 install_pacman_packages "${gaming_pkgs[@]}"
 
@@ -201,11 +214,11 @@ else
 fi
 
 # Catch the exact failure the Stage 1 ordering exists to prevent. If a competing
-# 32-bit ICD is present next to lib32-nvidia-utils, the loader can hand a game
-# the wrong driver.
-stray_icd=$(pacman -Qq 2>/dev/null | grep -E '^lib32-vulkan-(nouveau|intel|radeon|swrast)$' || true)
+# 32-bit ICD is present next to the real driver, the loader can hand a game the
+# wrong one.
+stray_icd=$(pacman -Qq 2>/dev/null | grep -E "$stray_icd_re" || true)
 if [[ -n "$stray_icd" ]]; then
-  log WARN "A competing 32-bit Vulkan driver is installed alongside the NVIDIA one:\n$stray_icd\nThis usually means provider resolution picked the wrong ICD. Remove it unless another GPU in this machine needs it."
+  log WARN "A competing 32-bit Vulkan driver is installed alongside the ${gpu_vendor} one:\n$stray_icd\nThis usually means provider resolution picked the wrong ICD. Remove it unless another GPU in this machine needs it."
 else
   log OK "No competing 32-bit Vulkan ICD present."
 fi
