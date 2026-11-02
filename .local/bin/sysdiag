@@ -184,8 +184,13 @@ check_kernel() {
 		return
 	fi
 
+	# NVIDIA's module is DKMS-built, so a kernel update can leave a kernel without
+	# it. Only checked where an NVIDIA DKMS package is installed (not on amdgpu).
+	nvidia_dkms=0
+	pacman -Qq 2>/dev/null | grep -qxE 'nvidia(-open)?-dkms' && nvidia_dkms=1
+
 	stale=
-	for d in /usr/lib/modules/*/; do
+	[ "$nvidia_dkms" = 1 ] && for d in /usr/lib/modules/*/; do
 		k=${d%/}
 		k=${k##*/}
 		[ -e "$d/updates/dkms" ] || continue
@@ -202,9 +207,11 @@ check_kernel() {
 	if [ -n "$stale" ]; then
 		add nvidia crit "No NVIDIA module built for:$stale" "Next boot into that kernel loses the display; run: sudo dkms autoinstall"
 	elif [ "$pending" = 1 ]; then
-		add nvidia warn "Kernel update pending reboot" "Running $running, installed $installed"
-	else
+		add kernel warn "Kernel update pending reboot" "Running $running, installed $installed"
+	elif [ "$nvidia_dkms" = 1 ]; then
 		add nvidia ok "NVIDIA module present for all installed kernels" ""
+	else
+		add kernel ok "Running the installed kernel" "$running"
 	fi
 }
 
