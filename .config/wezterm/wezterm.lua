@@ -7,7 +7,7 @@ local config = wezterm.config_builder()
 
 require("mouse").setup(config)
 require("links").setup(config)
-require("nvidia").setup(config)
+require("render").setup(config)
 require("appearance").setup(config)
 require("fonts").setup(config)
 require("mux").setup(config)

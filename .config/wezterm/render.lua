@@ -2,7 +2,7 @@ local M = {}
 
 ---@param config Config
 function M.setup(config)
-  -- NVIDIA optimization settings
+  -- Renderer settings (vendor-neutral: NVIDIA, AMD, Intel)
   config.enable_wayland = true
   config.front_end = "OpenGL"
   config.webgpu_power_preference = "HighPerformance"
