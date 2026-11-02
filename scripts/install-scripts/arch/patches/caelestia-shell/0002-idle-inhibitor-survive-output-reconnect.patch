@@ -1,0 +1,46 @@
+Keep the idle inhibitor alive across monitor reconnects. Upstream creates one
+0x0 PanelWindow at startup; when its output disconnects (DisplayPort monitors
+drop on DPMS off) Hyprland destroys the layer surface and it is never recreated,
+so "Keep awake" stays on in the UI but no inhibitor exists and the session
+locks/blanks anyway. Create one inhibitor window per screen via Variants, built
+only while enabled, so screen changes and toggling rebuild it.
+
+diff --git a/services/IdleInhibitor.qml b/services/IdleInhibitor.qml
+index 9f556b3a..ffc4d049 100644
+--- a/services/IdleInhibitor.qml
++++ b/services/IdleInhibitor.qml
+@@ -24,13 +24,27 @@ Singleton {
+         reloadableId: "idleInhibitor"
+     }
+ 
+-    IdleInhibitor {
+-        enabled: props.enabled
+-        window: PanelWindow {
+-            implicitWidth: 0
+-            implicitHeight: 0
+-            color: "transparent"
+-            mask: Region {}
++    // LOCAL FIX: one inhibitor per screen, rebuilt when screens change or on toggle.
++    // A single window created at startup dies when its output disconnects (DP
++    // monitors drop on DPMS off) and is never recreated, leaving enabled=true inert.
++    Variants {
++        model: props.enabled ? Quickshell.screens : []
++
++        Scope {
++            id: inhibitorScope
++
++            required property ShellScreen modelData
++
++            IdleInhibitor {
++                enabled: true
++                window: PanelWindow {
++                    screen: inhibitorScope.modelData
++                    implicitWidth: 0
++                    implicitHeight: 0
++                    color: "transparent"
++                    mask: Region {}
++                }
++            }
+         }
+     }
+ 
