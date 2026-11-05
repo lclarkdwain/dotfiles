@@ -106,5 +106,26 @@
                 "id": "vpn"
             }
         ]
+    },
+    "general": {
+        "idle": {
+            "timeouts": [
+                {
+                    "timeout": 900,
+                    "idleAction": "lock"
+                },
+                {
+                    "timeout": 1200,
+                    "idleAction": "dpms off",
+                    "returnAction": "dpms on"
+                },
+                {
+                    "timeout": 2700,
+                    "idleAction": [
+                        "suspendThenHibernate"
+                    ]
+                }
+            ]
+        }
     }
 }
