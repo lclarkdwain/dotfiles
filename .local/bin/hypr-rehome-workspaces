@@ -1,0 +1,42 @@
+#!/bin/sh
+# Move numbered workspaces back to the monitors their rules name. A monitor that reconnects wakes on
+# the first free workspace (often 2) instead of its own. Only workspaces move: no reload, no shell
+# restart, so it is safe under the lock screen and on power-save blinks.
+
+# Let the outputs settle, and run once for a burst of events
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/hypr-rehome.lock"
+flock -n 9 || exit 0
+sleep 2
+
+rules=$(hyprctl -j workspacerules) || exit 0
+monitors=$(hyprctl -j monitors) || exit 0
+focused=$(printf '%s' "$monitors" | jq -r '.[] | select(.focused) | .activeWorkspace.id')
+moved=false
+
+# A monitor showing another monitor's workspace switches to its own default one first
+for m in $(printf '%s' "$monitors" | jq -r '.[].name'); do
+	active=$(printf '%s' "$monitors" | jq -r --arg m "$m" '.[] | select(.name == $m) | .activeWorkspace.id')
+	home=$(printf '%s' "$rules" | jq -r --arg w "$active" 'first(.[] | select(.workspaceString == $w) | .monitor // empty)')
+	[ -z "$home" ] || [ "$home" = "$m" ] && continue
+	own=$(printf '%s' "$rules" | jq -r --arg m "$m" 'first(.[] | select(.monitor == $m and .default == true) | .workspaceString)')
+	[ -n "$own" ] || continue
+	hyprctl dispatch "hl.dsp.focus({ workspace = $own })" >/dev/null
+	moved=true
+done
+
+# Then every stray numbered workspace goes home
+strays=$(hyprctl -j workspaces | jq -r --argjson r "$rules" '
+	.[] | select(.id > 0) | . as $w
+	| first($r[] | select(.workspaceString == ($w.id | tostring)) | .monitor // empty) as $home
+	| select($home != $w.monitor) | "\($w.id) \($home)"')
+if [ -n "$strays" ]; then
+	printf '%s\n' "$strays" | while read -r ws mon; do
+		hyprctl dispatch "hl.dsp.workspace.move({ workspace = $ws, monitor = \"$mon\" })" >/dev/null
+	done
+	moved=true
+fi
+
+# Give focus back to the workspace that had it
+[ "$moved" = true ] && [ -n "$focused" ] && [ "$focused" -gt 0 ] 2>/dev/null &&
+	hyprctl dispatch "hl.dsp.focus({ workspace = $focused })" >/dev/null
+exit 0

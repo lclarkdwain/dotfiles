@@ -7,7 +7,9 @@ hl.monitor({ output = "", mode = "highres", position = "auto", scale = 1 })
 
 hl.monitor({ output = "desc:HKC OVERSEAS LIMITED 34E6UC 0000000000001", mode = "3440x1440@180", position = "0x0", scale = 1 })
 
--- Laptop + external: both on, panel left of the external, which is main. Desktop: defaults. Read from DRM
+-- Main screen gets workspaces 1-10 and the cursor, side screen 11-20. Read from DRM.
+-- Laptop: the external is main, panel on its left. Desktop: the monitor whose EDID names main_model
+local main_model = "34E6UC"
 local internal_prefixes = { "eDP", "LVDS", "DSI" }
 local function connected_outputs()
     local internal, external = {}, {}
@@ -15,41 +17,53 @@ local function connected_outputs()
     if not ok or not p then return internal, external end
     local out = p:read("*a") or ""
     p:close()
-    for name in out:gmatch("card%d+%-([^/]+)/status") do
+    for dir, name in out:gmatch("(/sys/class/drm/card%d+%-([^/]+))/status") do
         local is_internal = false
         for _, prefix in ipairs(internal_prefixes) do
             if name:sub(1, #prefix) == prefix then is_internal = true end
         end
-        table.insert(is_internal and internal or external, name)
+        if is_internal then
+            table.insert(internal, name)
+        else
+            local f = io.open(dir .. "/edid", "rb")
+            local edid = f and f:read("*a") or ""
+            if f then f:close() end
+            -- The main model goes first, so external[1] is the main screen
+            table.insert(external, edid:find(main_model, 1, true) and 1 or #external + 1, name)
+        end
     end
     return internal, external
 end
 
 local internal, external = connected_outputs()
-local has_external = #external > 0
-if #internal > 0 then
-    for _, panel in ipairs(internal) do
-        hl.monitor({ output = panel, mode = "highres", position = "auto-left", scale = 1 })
-    end
-    if has_external then
-        -- Main screen gets workspaces 1-10, side screen 11-20; swap to make the laptop main
-        local main, side = external[1], internal[1]
-        for ws = 1, 10 do
-            hl.workspace_rule({ workspace = tostring(ws), monitor = main, default = ws == 1 })
-            hl.workspace_rule({ workspace = tostring(ws + 10), monitor = side, default = ws == 1 })
-        end
-        hl.config({ cursor = { default_monitor = main } })
-    end
+for _, panel in ipairs(internal) do
+    hl.monitor({ output = panel, mode = "highres", position = "auto-left", scale = 1 })
+end
 
-    -- Hotplug: reload only on change (no loop); restart shell, its bar breaks when an output vanishes.
-    -- caelestia-hotplug waits for the outputs to settle and folds a burst of events into one run
+local main, side = external[1] or internal[1], internal[1] or external[2]
+if main and side then
+    for ws = 1, 10 do
+        hl.workspace_rule({ workspace = tostring(ws), monitor = main, default = ws == 1 })
+        hl.workspace_rule({ workspace = tostring(ws + 10), monitor = side, default = ws == 1 })
+    end
+    hl.config({ cursor = { default_monitor = main } })
+end
+
+-- Hotplug, laptops only: reload when an external comes or goes (no loop); restart shell, its bar breaks
+-- when an output vanishes. Not on desktops: their monitors drop off DRM in power-save, and a shell
+-- restart under the lock screen kills it. caelestia-hotplug waits for the outputs to settle
+if #internal > 0 then
     local on_hotplug = "\"$HOME/.local/bin/caelestia-hotplug\""
+    local has_external = #external > 0
     for _, event in ipairs({ "monitor.added", "monitor.removed" }) do
         hl.on(event, function()
             local _, now_external = connected_outputs()
             if (#now_external > 0) ~= has_external then hl.exec_cmd(on_hotplug) end
         end)
     end
+elseif #internal == 0 then
+    -- Desktop: only move workspaces back to their screens when one reconnects
+    hl.on("monitor.added", function() hl.exec_cmd("\"$HOME/.local/bin/hypr-rehome-workspaces\"") end)
 end
 
 -- Env
