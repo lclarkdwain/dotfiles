@@ -22,6 +22,10 @@
 #     pkg/granted/browser.go skips computing browserPath when -b is passed, and
 #     saves an empty value.
 #
+#     DefaultBrowser + CustomBrowserPath are set to the same browser. They are a
+#     separate setting (the browser for `assume -c` consoles), and left unset,
+#     granted stops the first `assume` with an interactive browser picker.
+#
 #  2. Keyring.Backend. granted already prefers secret-service -- its default order
 #     is [secret-service kwallet keyctl pass file] -- so this is not what makes the
 #     keyring work. It forbids the silent fall back to the `file` backend, whose
@@ -64,9 +68,11 @@ mkdir -p "$CONFIG_DIR"
 [ -f "$CONFIG_FILE" ] || : >"$CONFIG_FILE"
 
 sso_browser=""
-for candidate in /usr/bin/google-chrome-stable /usr/bin/chromium /usr/bin/firefox; do
-  if [ -x "$candidate" ]; then
-    sso_browser="$candidate"
+browser_key=""
+for candidate in /usr/bin/google-chrome-stable:CHROME /usr/bin/chromium:CHROMIUM /usr/bin/firefox:FIREFOX; do
+  if [ -x "${candidate%%:*}" ]; then
+    sso_browser="${candidate%%:*}"
+    browser_key="${candidate##*:}"
     break
   fi
 done
@@ -93,6 +99,7 @@ fi
 keyring_filedir="~/.local/state/granted/keyring"
 
 SSO_BROWSER="$sso_browser" \
+  BROWSER_KEY="$browser_key" \
   KEYRING_BACKEND="$keyring_backend" \
   KEYRING_COLLECTION="$keyring_collection" \
   KEYRING_FILEDIR="$keyring_filedir" \
@@ -106,6 +113,7 @@ with open(path) as fh:
     text = fh.read()
 
 browser = os.environ.get("SSO_BROWSER", "")
+browser_key = os.environ.get("BROWSER_KEY", "")
 backend = os.environ.get("KEYRING_BACKEND", "")
 collection = os.environ.get("KEYRING_COLLECTION", "")
 filedir = os.environ.get("KEYRING_FILEDIR", "")
@@ -135,6 +143,9 @@ def set_table(body, name, entries):
 
 if browser:
     text = set_flat_key(text, "CustomSSOBrowserPath", browser)
+    if browser_key:
+        text = set_flat_key(text, "DefaultBrowser", browser_key)
+        text = set_flat_key(text, "CustomBrowserPath", browser)
 
 entries = []
 if backend:
@@ -154,6 +165,7 @@ chmod 600 "$CONFIG_FILE"
 
 log SUCCESS "granted configured at $CONFIG_FILE"
 [ -n "$sso_browser" ] && log INFO "  CustomSSOBrowserPath    = $sso_browser"
+[ -n "$browser_key" ] && log INFO "  DefaultBrowser          = $browser_key ($sso_browser)"
 [ -n "$keyring_backend" ] && log INFO "  Keyring.Backend         = $keyring_backend"
 [ -n "$keyring_collection" ] && log INFO "  LibSecretCollectionName = $keyring_collection"
 log INFO "  Keyring.FileDir         = $keyring_filedir"
