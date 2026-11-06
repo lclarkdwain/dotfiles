@@ -91,6 +91,7 @@ end
 hl.config({ input = { kb_layout = "us" } }) -- rewritten by set_kb_layout in prompts.sh
 
 hl.config({ render = { direct_scanout = 2 } }) -- games only
+hl.config({ render = { cm_auto_hdr = 0 } }) -- 34E6UC is HDR400-class; HDR fullscreen looks washed out
 
 -- Execs: start graphical-session.target so session units run; uwsm does this itself
 hl.on("hyprland.start", function()
