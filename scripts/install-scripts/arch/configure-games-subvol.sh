@@ -17,12 +17,12 @@
 # second mount of an already-mounted filesystem is not reliably honoured and
 # would create false confidence.
 #
-# This is observable, not theoretical: the compress=no below is IGNORED. The
-# kernel reports compress=zstd:3 on this mount, inherited from the / mount of
-# the same filesystem. It is left in the entry to document intent (and would
-# become correct if btrfs ever honours it per-subvolume), but nothing should be
-# read into its presence -- compression is actually avoided because NOCOW
-# extents are never compressed. `chattr +C` on an empty directory is
+# Compression works the same way: a compress=no here was observed to be
+# ignored, with the kernel reporting compress=zstd:3 inherited from the /
+# mount. So the entry carries the same options as every other subvolume, which
+# is what the kernel applies anyway, rather than an option that only looks like
+# it does something. Compression is actually avoided because NOCOW extents are
+# never compressed. `chattr +C` on an empty directory is
 # unambiguous -- files created inside it inherit NOCOW, and NOCOW extents are
 # never compressed, so it covers the compression concern too. This script
 # verifies that inheritance actually took effect rather than assuming it.
@@ -81,7 +81,7 @@ if grep -q "subvol=/${GAMES_SUBVOL}\b" "$FSTAB"; then
   exit 0
 fi
 
-fstab_opts="rw,noatime,compress=no,ssd,discard=async,space_cache=v2,nofail,subvol=/${GAMES_SUBVOL}"
+fstab_opts="rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,nofail,subvol=/${GAMES_SUBVOL}"
 fstab_line=$(printf 'UUID=%s\t%s\tbtrfs\t%s\t0 0' "$fs_uuid" "$GAMES_MOUNT" "$fstab_opts")
 
 printf "\n%.0s" {1..1}
