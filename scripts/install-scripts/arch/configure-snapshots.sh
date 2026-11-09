@@ -67,6 +67,49 @@ fs_uuid=$(findmnt -no UUID /)
 # Same options as the / mount, minus the subvolume selection
 base_opts=$(findmnt -no OPTIONS / | tr ',' '\n' | grep -vE '^subvol(id)?=' | paste -sd,)
 
+# --- Preflight: checked before anything changes ----------------------------
+
+# / must be a subvolume (normally @), not the filesystem top level, or a
+# restore has nothing to swap
+if [ "$(findmnt -no FSROOT /)" = "/" ]; then
+  log NOTE "/ is the btrfs top level, not a subvolume like @; this layout needs one. Skipping snapshots"
+  exit 0
+fi
+
+# The kernel must live inside @ to roll back with its modules. A separate
+# /boot (e.g. the ESP mounted there) keeps the newest kernel after a restore,
+# with modules for it missing from the restored @, and the boot fails.
+if mountpoint -q /boot; then
+  log WARN "/boot is a separate mount, so kernels are not in the snapshots: restoring across a kernel update leaves the kernel without its modules. Keep /boot inside @ and mount the ESP at /efi instead"
+fi
+
+# Home gets its own config only as a separate subvolume on the same
+# filesystem: its snapshots subvolume is created at this filesystem's top level
+home_wanted=no
+if [ "$(findmnt -no UUID /home 2>/dev/null)" = "$fs_uuid" ] &&
+  [ "$(btrfs inspect-internal rootid /home)" != "$(btrfs inspect-internal rootid /)" ]; then
+  home_wanted=yes
+else
+  log NOTE "/home is not a separate subvolume on the root filesystem; snapshotting the system only"
+fi
+
+# btrfs refuses to snapshot a subvolume holding an active swapfile, so every
+# snapshot (and every pacman run, through snap-pac) would fail. A swapfile
+# for hibernation belongs in its own subvolume, e.g. @swap mounted at /swap.
+protected_ids=$(btrfs inspect-internal rootid /)
+[ "$home_wanted" = yes ] && protected_ids="$protected_ids $(btrfs inspect-internal rootid /home)"
+while read -r swap_name swap_type; do
+  [ "$swap_type" = file ] || continue
+  [ "$(findmnt -no UUID -T "$swap_name")" = "$fs_uuid" ] || continue
+  swap_id=$(sudo btrfs inspect-internal rootid "$swap_name")
+  for id in $protected_ids; do
+    if [ "$swap_id" = "$id" ]; then
+      log ERROR "Swapfile $swap_name is inside a subvolume that would be snapshotted. Move it to its own subvolume (e.g. @swap at /swap) and re-run"
+      exit 1
+    fi
+  done
+done < <(swapon --show=NAME,TYPE --noheadings --raw)
+
 sudo pacman -S --needed --noconfirm snapper snap-pac inotify-tools
 if pacman -Q grub >/dev/null 2>&1; then
   sudo pacman -S --needed --noconfirm grub-btrfs
@@ -110,7 +153,16 @@ add_fstab_entry() {
 # setup_config <name> <path> <top-level subvolume for its snapshots>
 setup_config() {
   local name=$1 path=$2 subvol=$3
-  local snapdir="${path%/}/.snapshots"
+  local snapdir="${path%/}/.snapshots" existing
+
+  # An installer may already mount a subvolume here (archinstall uses
+  # @.snapshots). Keep it rather than adding a second fstab entry for the
+  # same mountpoint.
+  existing=$(findmnt -s -no OPTIONS "$snapdir" 2>/dev/null | tr ',' '\n' | sed -n 's:^subvol=/\{0,1\}::p')
+  if [ -n "$existing" ] && [ "$existing" != "$subvol" ]; then
+    log NOTE "$FSTAB already mounts $existing at $snapdir; using it"
+    subvol=$existing
+  fi
 
   if [ ! -f "/etc/snapper/configs/$name" ]; then
     # create-config refuses to run if .snapshots already exists
@@ -145,7 +197,7 @@ setup_config() {
 }
 
 setup_config root / @snapshots
-setup_config home /home @home_snapshots
+[ "$home_wanted" = yes ] && setup_config home /home @home_snapshots
 
 # Retention. snap-pac's pre/post pairs use the "number" cleanup algorithm; the
 # timeline ones are pruned by snapper-cleanup.timer. ALLOW_GROUPS lets wheel
@@ -156,12 +208,15 @@ sudo snapper -c root set-config \
   TIMELINE_CREATE=yes TIMELINE_CLEANUP=yes \
   TIMELINE_LIMIT_HOURLY=5 TIMELINE_LIMIT_DAILY=7 \
   TIMELINE_LIMIT_WEEKLY=0 TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0
-sudo snapper -c home set-config \
-  ALLOW_GROUPS=wheel SYNC_ACL=yes \
-  TIMELINE_CREATE=yes TIMELINE_CLEANUP=yes \
-  TIMELINE_LIMIT_HOURLY=5 TIMELINE_LIMIT_DAILY=7 \
-  TIMELINE_LIMIT_WEEKLY=0 TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0
-log SUCCESS "Retention: root 10 pacman pairs + 5 hourly + 7 daily; home 5 hourly + 7 daily"
+log SUCCESS "Retention: root 10 pacman pairs + 5 hourly + 7 daily"
+if [ "$home_wanted" = yes ]; then
+  sudo snapper -c home set-config \
+    ALLOW_GROUPS=wheel SYNC_ACL=yes \
+    TIMELINE_CREATE=yes TIMELINE_CLEANUP=yes \
+    TIMELINE_LIMIT_HOURLY=5 TIMELINE_LIMIT_DAILY=7 \
+    TIMELINE_LIMIT_WEEKLY=0 TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0
+  log SUCCESS "Retention: home 5 hourly + 7 daily"
+fi
 
 # Directories under $HOME that become their own subvolume, so they are left
 # out of the home snapshots. Unprivileged: btrfs lets the owner create a

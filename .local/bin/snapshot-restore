@@ -75,18 +75,27 @@ cleanup_mount() {
 trap cleanup_mount EXIT
 mount -o subvolid=5 "$root_dev" "$top"
 
+# Subvolume names come from fstab rather than being assumed (a snapshot boot
+# carries the same fstab): the system is normally @, its snapshots @snapshots,
+# or @.snapshots on an archinstall layout.
+fstab_subvol() { findmnt -s -no OPTIONS "$1" 2>/dev/null | tr ',' '\n' | sed -n 's:^subvol=/\{0,1\}::p'; }
+ROOT_SV=$(fstab_subvol /)
+ROOT_SV=${ROOT_SV:-@}
+SNAP_SV=$(fstab_subvol /.snapshots)
+SNAP_SV=${SNAP_SV:-@snapshots}
+
 # --- cleanup: delete old @.broken-* copies --------------------------------
 if [ "$MODE" = cleanup ]; then
 	shopt -s nullglob
-	broken=("$top"/@.broken-*)
+	broken=("$top/$ROOT_SV".broken-*)
 	if [ ${#broken[@]} -eq 0 ]; then
-		echo "No @.broken-* subvolumes to delete."
+		echo "No ${ROOT_SV}.broken-* subvolumes to delete."
 		exit 0
 	fi
 	say "These pre-restore systems would be deleted for good:"
 	for b in "${broken[@]}"; do printf '   %s\n' "${b#"$top"/}"; done
-	if [ "$(findmnt -no FSROOT /)" != /@ ]; then
-		echo "Not booted from @ (booted from $(findmnt -no FSROOT /)); reboot into the restored system first." >&2
+	if [ "$(findmnt -no FSROOT /)" != "/$ROOT_SV" ]; then
+		echo "Not booted from $ROOT_SV (booted from $(findmnt -no FSROOT /)); reboot into the restored system first." >&2
 		exit 1
 	fi
 	[ "$DRY_RUN" = 1 ] || confirm "Only do this once the restored system has proven itself."
@@ -97,25 +106,25 @@ if [ "$MODE" = cleanup ]; then
 fi
 
 # --- restore --------------------------------------------------------------
-src="$top/@snapshots/$NUM/snapshot"
-info="$top/@snapshots/$NUM/info.xml"
+src="$top/$SNAP_SV/$NUM/snapshot"
+info="$top/$SNAP_SV/$NUM/info.xml"
 
-if [ ! -d "$top/@snapshots" ]; then
-	echo "No @snapshots subvolume; this layout was not set up by configure-snapshots.sh" >&2
+if [ ! -d "$top/$SNAP_SV" ]; then
+	echo "No $SNAP_SV subvolume at the top level; this layout was not set up by configure-snapshots.sh" >&2
 	exit 1
 fi
 if [ ! -d "$src" ] || [ "$(stat -c %i "$src")" != 256 ]; then
 	echo "Snapshot $NUM does not exist. Available: snapshot-restore --list" >&2
 	exit 1
 fi
-if [ ! -d "$top/@" ]; then
-	echo "No @ subvolume at the top level; refusing to guess the layout" >&2
+if [ ! -d "$top/$ROOT_SV" ]; then
+	echo "No $ROOT_SV subvolume at the top level; refusing to guess the layout" >&2
 	exit 1
 fi
 
 xml() { sed -n "s:.*<$1>\(.*\)</$1>.*:\1:p" "$info" 2>/dev/null | head -1; }
 stamp=$(date +%Y%m%d-%H%M%S)
-broken="@.broken-$stamp"
+broken="${ROOT_SV}.broken-$stamp"
 
 say "Restore system to snapshot $NUM"
 # snapper stores UTC; show local time
@@ -123,18 +132,18 @@ printf '   date:        %s\n' "$(date -d "$(xml date) UTC" '+%a %d %b %Y %H:%M %
 printf '   type:        %s\n' "$(xml type)"
 printf '   description: %s\n' "$(xml description)"
 printf '   booted from: %s\n' "$(findmnt -no FSROOT /)"
-printf '   current @ becomes %s (kept, not deleted)\n\n' "$broken"
+printf '   current %s becomes %s (kept, not deleted)\n\n' "$ROOT_SV" "$broken"
 
 [ "$DRY_RUN" = 1 ] || confirm "Your current system is set aside and snapshot $NUM replaces it at next boot."
 
 # Subvolumes nested inside @ (systemd's /var/lib/machines and portables, any
 # container storage) are not part of the snapshot. Note them before the move.
-mapfile -t nested < <(btrfs subvolume list -o "$top/@" | awk '{print $NF}' | sed 's:^<FS_TREE>/::; s:^@/::')
+mapfile -t nested < <(btrfs subvolume list -o "$top/$ROOT_SV" | awk '{print $NF}' | sed "s:^<FS_TREE>/::; s:^$ROOT_SV/::")
 
-run mv "$top/@" "$top/$broken"
-if ! run btrfs subvolume snapshot "$src" "$top/@"; then
-	echo "Snapshot copy failed; putting the original @ back." >&2
-	mv "$top/$broken" "$top/@"
+run mv "$top/$ROOT_SV" "$top/$broken"
+if ! run btrfs subvolume snapshot "$src" "$top/$ROOT_SV"; then
+	echo "Snapshot copy failed; putting the original $ROOT_SV back." >&2
+	mv "$top/$broken" "$top/$ROOT_SV"
 	exit 1
 fi
 
@@ -142,7 +151,7 @@ fi
 # left an empty directory in their place
 for rel in "${nested[@]}"; do
 	[ -n "$rel" ] || continue
-	dest="$top/@/$rel"
+	dest="$top/$ROOT_SV/$rel"
 	if [ "$DRY_RUN" = 1 ] || { [ -d "$dest" ] && [ -z "$(ls -A "$dest")" ]; }; then
 		run rmdir "$dest" 2>/dev/null || true
 		run mkdir -p "$(dirname "$dest")"
@@ -171,5 +180,5 @@ cat <<EOF
 
    Changed your mind before rebooting? Restore another number, or undo with:
      sudo mount -o subvolid=5 $root_dev /mnt
-     sudo mv /mnt/@ /mnt/@.discard && sudo mv /mnt/$broken /mnt/@
+     sudo mv /mnt/$ROOT_SV /mnt/$ROOT_SV.discard && sudo mv /mnt/$broken /mnt/$ROOT_SV
 EOF
