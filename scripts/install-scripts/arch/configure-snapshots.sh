@@ -9,9 +9,9 @@
 #                 overwritten files.
 #
 # Excluded on purpose, because btrfs never descends into a nested or separately
-# mounted subvolume: @games, @cache (/var/cache), @log (/var/log), and ~/.cache,
-# which this script turns into its own subvolume so cache churn stays out of
-# the home snapshots.
+# mounted subvolume: @games, @cache (/var/cache), @log (/var/log), and ~/.cache
+# and ~/.local/share/Steam, which this script turns into their own subvolumes
+# so their churn stays out of the home snapshots.
 #
 # Layout: each config's snapshots live in a top-level subvolume (@snapshots,
 # @home_snapshots) mounted at .snapshots, NOT in the subvolume snapper nests
@@ -162,28 +162,72 @@ sudo snapper -c home set-config \
   TIMELINE_LIMIT_WEEKLY=0 TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0
 log SUCCESS "Retention: root 10 pacman pairs + 5 hourly + 7 daily; home 5 hourly + 7 daily"
 
-# ~/.cache as its own subvolume, so it is left out of the home snapshots.
-# Inode 256 marks a subvolume root.
-cache="$HOME/.cache"
-if [ "$(stat -c %i "$cache" 2>/dev/null)" != 256 ]; then
-  log INFO "Turning $cache into a subvolume..."
-  # Left behind only if an earlier run was interrupted
-  rm -rf "$cache.old"
-  if [ -e "$cache" ]; then
-    # Apps with open files keep writing to the old copy until they restart
-    mv "$cache" "$cache.old"
+# Directories under $HOME that become their own subvolume, so they are left
+# out of the home snapshots. Unprivileged: btrfs lets the owner create a
+# subvolume, and rmdir an empty one.
+#
+# own_subvolume <dir> <disposable: yes|no>
+#   yes  contents are regenerable; anything that fails to copy is dropped
+#   no   a failed copy puts the original directory back untouched
+own_subvolume() {
+  local dir=$1 disposable=$2 old="$1.pre-subvol"
+
+  # Inode 256 marks a subvolume root
+  [ "$(stat -c %i "$dir" 2>/dev/null)" = 256 ] && return 0
+  log INFO "Turning $dir into a subvolume..."
+
+  if [ -e "$old" ]; then
+    if [ "$disposable" = yes ]; then
+      rm -rf "$old"
+    else
+      log ERROR "$old is left from an interrupted run; check it, restore or remove it, and re-run"
+      return 1
+    fi
   fi
-  sudo btrfs subvolume create "$cache"
-  sudo chown "$(id -u):$(id -g)" "$cache"
-  chmod 700 "$cache"
-  if [ -d "$cache.old" ]; then
-    # Reflinks share extents, so this copies no data. It is only cache, so
-    # anything that fails to copy is dropped rather than stopping the script.
-    cp -a --reflink=always "$cache.old/." "$cache/" 2>/dev/null ||
-      log WARN "Some cache files were not copied; they will be regenerated"
-    rm -rf "$cache.old"
+
+  mkdir -p "$(dirname "$dir")"
+  if [ -e "$dir" ]; then
+    mv "$dir" "$old" || return 1
   fi
-  log SUCCESS "$cache is a subvolume"
+  if ! btrfs subvolume create "$dir" >/dev/null; then
+    [ -e "$old" ] && mv "$old" "$dir"
+    log ERROR "Could not create a subvolume at $dir"
+    return 1
+  fi
+
+  if [ -d "$old" ]; then
+    chmod --reference="$old" "$dir"
+    # Reflinks share extents, so this copies no data
+    if cp -a --reflink=always "$old/." "$dir/" 2>/dev/null; then
+      rm -rf "$old"
+    elif [ "$disposable" = yes ]; then
+      log WARN "Some files in $dir were not copied; they will be regenerated"
+      rm -rf "$old"
+    else
+      log ERROR "Copying into the new $dir failed; putting the original back"
+      rm -rf "$dir" && mv "$old" "$dir"
+      return 1
+    fi
+  else
+    chmod 700 "$dir"
+  fi
+  log SUCCESS "$dir is a subvolume"
+}
+
+# Apps with open cache files keep writing to the old copy until they restart
+own_subvolume "$HOME/.cache" yes
+
+# The Steam client, its runtimes, Proton builds and the default library
+# rewrite gigabytes on every update. Game libraries belong on @games
+# (configure-games-subvol.sh). Steam must be closed: it holds its files open
+# and would recreate the directory mid-move.
+if pacman -Q steam >/dev/null 2>&1; then
+  if pgrep -u "$(id -u)" -x steam >/dev/null || pgrep -u "$(id -u)" -x steamwebhelper >/dev/null; then
+    log WARN "Steam is running; quit it and re-run to move ~/.local/share/Steam into a subvolume"
+  else
+    own_subvolume "$HOME/.local/share/Steam" no ||
+      log WARN "~/.local/share/Steam stays part of the home snapshots"
+  fi
 fi
 
 sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer

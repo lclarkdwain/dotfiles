@@ -298,8 +298,6 @@ execute_script "install-zram.sh"
 sleep 1
 execute_script "configure-maintenance.sh"
 sleep 1
-execute_script "configure-snapshots.sh"
-sleep 1
 execute_script "install-rapl-access.sh"
 sleep 1
 
@@ -327,6 +325,11 @@ if [ "$gaming_wanted" == "true" ]; then
     sleep 1
   fi
 fi
+
+# After the gaming stack, so ~/.local/share/Steam can become its own subvolume,
+# and so the baseline snapshot captures the installed system
+execute_script "configure-snapshots.sh"
+sleep 1
 
 COMMON_SCRIPTS_DIR="scripts/install-scripts/common"
 execute_script "install-awscli.sh" "$COMMON_SCRIPTS_DIR"
