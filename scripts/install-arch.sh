@@ -298,6 +298,8 @@ execute_script "install-zram.sh"
 sleep 1
 execute_script "configure-maintenance.sh"
 sleep 1
+execute_script "configure-snapshots.sh"
+sleep 1
 execute_script "install-rapl-access.sh"
 sleep 1
 
