@@ -215,6 +215,72 @@ check_kernel() {
 	fi
 }
 
+# --- graphics ----------------------------------------------------------------
+# Every GPU with a bound driver, so hybrid laptops report both. NVIDIA's DKMS
+# module is checked in check_kernel; this covers what applies to any vendor.
+check_gpu() {
+	gpus=
+	issues=
+	sev=ok
+	nvidia_loaded=0
+	[ -e /proc/driver/nvidia/version ] && nvidia_loaded=1
+	steam=0
+	pacman -Q steam >/dev/null 2>&1 && steam=1
+
+	for c in /sys/class/drm/card*; do
+		case ${c##*/} in *-*) continue ;; esac   # connectors, not cards
+		[ -e "$c/device/driver" ] || continue
+		drv=$(basename "$(readlink -f "$c/device/driver")")
+		slot=$(basename "$(readlink -f "$c/device")")
+		# Marketing name is the last [...] in lspci's line, e.g. [Radeon RX 9060 XT]
+		name=$(lspci -s "$slot" 2>/dev/null | sed -n 's/.*\[\([^]]*\)\][^[]*$/\1/p')
+		gpus="${gpus:+$gpus, }$drv ${name:-$slot}"
+
+		vk=
+		case $drv in
+			amdgpu) vk=radeon ;;
+			i915|xe) vk=intel ;;
+		esac
+		if [ -n "$vk" ]; then
+			[ -e "/usr/lib/libvulkan_$vk.so" ] || issues="$issues · no Vulkan driver (vulkan-$vk)"
+			if [ "$steam" = 1 ] && [ ! -e "/usr/lib32/libvulkan_$vk.so" ]; then
+				issues="$issues · no 32-bit Vulkan for Steam (lib32-vulkan-$vk)"
+			fi
+		fi
+	done
+	[ -n "$gpus" ] || return 0
+	[ -n "$issues" ] && sev=warn
+
+	# Left over from an NVIDIA setup, these send Vulkan, VA-API and GLX to a
+	# driver that is not there
+	if [ "$nvidia_loaded" = 0 ] && systemctl --user show-environment 2>/dev/null |
+		grep -qE '^(__GLX_VENDOR_LIBRARY_NAME|LIBVA_DRIVER_NAME)=nvidia|^GBM_BACKEND=nvidia'; then
+		issues="$issues · NVIDIA environment variables set without the NVIDIA driver"
+		sev=warn
+	fi
+
+	# Hangs, resets and faults; not the harmless probe noise drivers also log
+	faults='(amdgpu|i915|xe |nvrm).*(ring [^ ]+ timeout|gpu reset|gpu hang|page fault|failed to load firmware)|NVRM: Xid'
+	total=$(journalctl -k -b --no-pager -q 2>/dev/null | grep -ciE "$faults")
+	recent=$(journalctl -k --since "$SINCE" --no-pager -q 2>/dev/null | grep -ciE "$faults")
+	if [ "$recent" -gt 0 ]; then
+		sev=crit
+		issues="$issues · $recent GPU fault(s) since $SINCE"
+	elif [ "$total" -gt 0 ]; then
+		sev=warn
+		issues="$issues · $total GPU fault(s) earlier this boot"
+	fi
+
+	if [ "$sev" = ok ]; then
+		mesa=$(pacman -Q mesa 2>/dev/null | awk '{sub(/^[0-9]+:/, "", $2); sub(/-[0-9]+$/, "", $2); print "Mesa " $2}')
+		add gpu ok "$gpus" "$mesa"
+	else
+		hint=
+		[ "$total" -gt 0 ] && hint=" · details: journalctl -k -b | grep -iE 'ring|reset|fault'"
+		add gpu "$sev" "$gpus" "${issues# · }$hint"
+	fi
+}
+
 # --- storage -----------------------------------------------------------------
 check_storage() {
 	root_pct=$(df --output=pcent / 2>/dev/null | tail -1 | tr -dc '0-9')
@@ -326,6 +392,7 @@ check_journal
 check_coredumps
 check_boot
 check_kernel
+check_gpu
 check_storage
 check_snapshots
 check_packages
