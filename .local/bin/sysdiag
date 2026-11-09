@@ -237,6 +237,54 @@ check_storage() {
 	fi
 }
 
+# --- snapshots ---------------------------------------------------------------
+# The timeline snapshots hourly, so anything older than 2h means it stopped.
+# Not judged in the first 2h of a boot: the timer is not persistent, so the
+# newest snapshot can legitimately predate a night switched off.
+SNAP_MAX_AGE=7200
+check_snapshots() {
+	command -v snapper >/dev/null 2>&1 || return 0
+	configs=$(ls /etc/snapper/configs 2>/dev/null)
+	[ -n "$configs" ] || return 0
+
+	now=$(date +%s)
+	up=$(cut -d. -f1 /proc/uptime)
+	ages=
+	stale=
+	for c in $configs; do
+		# Number 0 is "current", not a snapshot; it has an empty date
+		newest=$(snapper --csvout --no-headers -c "$c" list --columns date 2>/dev/null | sed '/^$/d' | tail -1)
+		if [ -z "$newest" ]; then
+			ages="$ages $c:none"
+			# A config created within the window has not reached its first hour yet
+			created=$(stat -c %Y "/etc/snapper/configs/$c" 2>/dev/null || echo 0)
+			[ $(( now - created )) -gt "$SNAP_MAX_AGE" ] && stale="$stale $c"
+			continue
+		fi
+		age=$(( now - $(date -d "$newest" +%s) ))
+		if [ "$age" -ge 3600 ]; then
+			ages="$ages $c:$(( age / 3600 ))h"
+		else
+			ages="$ages $c:$(( age / 60 ))m"
+		fi
+		[ "$age" -gt "$SNAP_MAX_AGE" ] && stale="$stale $c"
+	done
+
+	timers=
+	for t in snapper-timeline.timer snapper-cleanup.timer grub-btrfsd.service; do
+		systemctl is-enabled "$t" >/dev/null 2>&1 || continue
+		systemctl is-active "$t" >/dev/null 2>&1 || timers="$timers $t"
+	done
+
+	if [ -n "$timers" ]; then
+		add snapshots warn "Snapshot units inactive:$timers" "Newest:$ages"
+	elif [ -n "$stale" ] && [ "$up" -gt "$SNAP_MAX_AGE" ]; then
+		add snapshots warn "No recent snapshot for:$stale" "Newest:$ages · check: systemctl status snapper-timeline.timer"
+	else
+		add snapshots ok "Snapshots current (newest:$ages)" ""
+	fi
+}
+
 # --- packages ----------------------------------------------------------------
 check_packages() {
 	orphans=$(pacman -Qtdq 2>/dev/null | wc -l)
@@ -279,6 +327,7 @@ check_coredumps
 check_boot
 check_kernel
 check_storage
+check_snapshots
 check_packages
 check_pressure
 
