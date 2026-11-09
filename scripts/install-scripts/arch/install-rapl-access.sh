@@ -10,14 +10,18 @@ fi
 UDEV_RULE="/etc/udev/rules.d/99-rapl-access.rules"
 
 # Exposes energy_uj (CVE-2020-8694 power side-channel) to wheel only, not world.
-if [ -f "$UDEV_RULE" ]; then
-  log WARN "$UDEV_RULE already exists; leaving it untouched"
+# KERNEL== skips the parent "intel-rapl" control device, which has no energy_uj
+# and made the rule fail once per boot.
+RULE_CONTENT='# Let wheel read RAPL energy counters (CPU package watts)
+SUBSYSTEM=="powercap", KERNEL=="intel-rapl:*", ACTION=="add", RUN+="/bin/sh -c '"'"'chgrp wheel /sys%p/energy_uj && chmod 0440 /sys%p/energy_uj'"'"'"'
+
+# Rewrite a rule that predates the KERNEL== match, so machines carrying the old
+# version pick up the fix by re-running this script.
+if [ -f "$UDEV_RULE" ] && grep -qF 'KERNEL=="intel-rapl:*"' "$UDEV_RULE"; then
+  log INFO "$UDEV_RULE is up to date"
 else
   log INFO "Writing $UDEV_RULE..."
-  sudo tee "$UDEV_RULE" >/dev/null <<'RULE'
-# Let wheel read RAPL energy counters (CPU package watts)
-SUBSYSTEM=="powercap", ACTION=="add", RUN+="/bin/sh -c 'chgrp wheel /sys%p/energy_uj && chmod 0440 /sys%p/energy_uj'"
-RULE
+  printf '%s\n' "$RULE_CONTENT" | sudo tee "$UDEV_RULE" >/dev/null
   log SUCCESS "udev rule written"
 fi
 
