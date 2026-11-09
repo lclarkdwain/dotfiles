@@ -23,7 +23,8 @@
 #
 # --- Restoring ---------------------------------------------------------------
 # GRUB boots `rootflags=subvol=@` by name, so `snapper rollback` (which sets
-# the default subvolume) does not apply here. Restore by replacing @ instead:
+# the default subvolume) does not apply here. Restore by replacing @ instead.
+# `snapshot-restore <N>` (~/.local/bin) does this; by hand it is:
 #
 #   snapper -c root list                              # pick snapshot N
 #   sudo mount -o subvolid=5 <root device> /mnt

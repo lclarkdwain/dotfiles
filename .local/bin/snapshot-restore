@@ -1,0 +1,175 @@
+#!/bin/bash
+# Roll the whole system (@) back to a snapper snapshot. Takes effect on reboot.
+# Usage: snapshot-restore [--dry-run] <N> · snapshot-restore --list · snapshot-restore --cleanup
+#
+# GRUB boots `rootflags=subvol=@` by name, so `snapper rollback` does not apply
+# on this layout. Instead the current @ is renamed to @.broken-<time> and a
+# writable copy of snapshot N becomes the new @. Nothing is deleted: if N turns
+# out wrong too, restore another one, or rename @.broken-<time> back to @.
+#
+# Works from the running system and from a read-only snapshot booted through
+# GRUB's "Arch Linux snapshots" menu (switch to a TTY with Ctrl+Alt+F3).
+# /home, /var/log, /var/cache and the snapshots themselves are separate
+# subvolumes and are not touched.
+
+set -euo pipefail
+
+ARGS=("$@")
+DRY_RUN=0
+MODE=restore
+NUM=
+
+usage() { sed -n '2,3p' "$0" | sed 's/^# \{0,1\}//'; }
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		--dry-run|-n) DRY_RUN=1 ;;
+		--list|-l) MODE=list ;;
+		--cleanup) MODE=cleanup ;;
+		-h|--help) usage; exit 0 ;;
+		[0-9]*) NUM=$1 ;;
+		*) echo "snapshot-restore: unknown argument: $1" >&2; usage >&2; exit 2 ;;
+	esac
+	shift
+done
+
+if [ "$MODE" = list ]; then
+	exec snapper -c root list
+fi
+
+if [ "$MODE" = restore ] && ! [[ $NUM =~ ^[1-9][0-9]*$ ]]; then
+	echo "snapshot-restore: give a snapshot number; see: snapshot-restore --list" >&2
+	exit 2
+fi
+
+if [ "$(id -u)" -ne 0 ]; then
+	exec sudo "$0" "${ARGS[@]}"
+fi
+
+if [ "$(findmnt -no FSTYPE /)" != btrfs ]; then
+	echo "snapshot-restore: / is not btrfs" >&2
+	exit 1
+fi
+
+say() { printf '\033[1m==>\033[0m %s\n' "$*"; }
+run() {
+	if [ "$DRY_RUN" = 1 ]; then
+		printf '   dry-run: %s\n' "$*"
+	else
+		"$@"
+	fi
+}
+confirm() {
+	local reply
+	read -rp "$1 Type 'yes' to continue: " reply
+	[ "$reply" = yes ] || { echo "Aborted; nothing changed."; exit 1; }
+}
+
+# Mount the filesystem top level, where @ and @snapshots live side by side
+root_dev=$(findmnt -no SOURCE --nofsroot /)
+top=$(mktemp -d /run/snapshot-restore.XXXXXX)
+cleanup_mount() {
+	mountpoint -q "$top" && umount "$top"
+	rmdir "$top" 2>/dev/null || true
+}
+trap cleanup_mount EXIT
+mount -o subvolid=5 "$root_dev" "$top"
+
+# --- cleanup: delete old @.broken-* copies --------------------------------
+if [ "$MODE" = cleanup ]; then
+	shopt -s nullglob
+	broken=("$top"/@.broken-*)
+	if [ ${#broken[@]} -eq 0 ]; then
+		echo "No @.broken-* subvolumes to delete."
+		exit 0
+	fi
+	say "These pre-restore systems would be deleted for good:"
+	for b in "${broken[@]}"; do printf '   %s\n' "${b#"$top"/}"; done
+	if [ "$(findmnt -no FSROOT /)" != /@ ]; then
+		echo "Not booted from @ (booted from $(findmnt -no FSROOT /)); reboot into the restored system first." >&2
+		exit 1
+	fi
+	[ "$DRY_RUN" = 1 ] || confirm "Only do this once the restored system has proven itself."
+	for b in "${broken[@]}"; do
+		run btrfs subvolume delete --recursive "$b"
+	done
+	exit 0
+fi
+
+# --- restore --------------------------------------------------------------
+src="$top/@snapshots/$NUM/snapshot"
+info="$top/@snapshots/$NUM/info.xml"
+
+if [ ! -d "$top/@snapshots" ]; then
+	echo "No @snapshots subvolume; this layout was not set up by configure-snapshots.sh" >&2
+	exit 1
+fi
+if [ ! -d "$src" ] || [ "$(stat -c %i "$src")" != 256 ]; then
+	echo "Snapshot $NUM does not exist. Available: snapshot-restore --list" >&2
+	exit 1
+fi
+if [ ! -d "$top/@" ]; then
+	echo "No @ subvolume at the top level; refusing to guess the layout" >&2
+	exit 1
+fi
+
+xml() { sed -n "s:.*<$1>\(.*\)</$1>.*:\1:p" "$info" 2>/dev/null | head -1; }
+stamp=$(date +%Y%m%d-%H%M%S)
+broken="@.broken-$stamp"
+
+say "Restore system to snapshot $NUM"
+# snapper stores UTC; show local time
+printf '   date:        %s\n' "$(date -d "$(xml date) UTC" '+%a %d %b %Y %H:%M %Z' 2>/dev/null || xml date)"
+printf '   type:        %s\n' "$(xml type)"
+printf '   description: %s\n' "$(xml description)"
+printf '   booted from: %s\n' "$(findmnt -no FSROOT /)"
+printf '   current @ becomes %s (kept, not deleted)\n\n' "$broken"
+
+[ "$DRY_RUN" = 1 ] || confirm "Your current system is set aside and snapshot $NUM replaces it at next boot."
+
+# Subvolumes nested inside @ (systemd's /var/lib/machines and portables, any
+# container storage) are not part of the snapshot. Note them before the move.
+mapfile -t nested < <(btrfs subvolume list -o "$top/@" | awk '{print $NF}' | sed 's:^<FS_TREE>/::; s:^@/::')
+
+run mv "$top/@" "$top/$broken"
+if ! run btrfs subvolume snapshot "$src" "$top/@"; then
+	echo "Snapshot copy failed; putting the original @ back." >&2
+	mv "$top/$broken" "$top/@"
+	exit 1
+fi
+
+# Carry the nested subvolumes over to the restored system, where the snapshot
+# left an empty directory in their place
+for rel in "${nested[@]}"; do
+	[ -n "$rel" ] || continue
+	dest="$top/@/$rel"
+	if [ "$DRY_RUN" = 1 ] || { [ -d "$dest" ] && [ -z "$(ls -A "$dest")" ]; }; then
+		run rmdir "$dest" 2>/dev/null || true
+		run mkdir -p "$(dirname "$dest")"
+		run mv "$top/$broken/$rel" "$dest"
+		if [ "$DRY_RUN" = 1 ]; then
+			say "Would move nested subvolume /$rel into the restored system"
+		else
+			say "Moved nested subvolume /$rel into the restored system"
+		fi
+	else
+		echo "   /$rel left in $broken: the restored system has its own files there" >&2
+	fi
+done
+
+if [ "$DRY_RUN" = 1 ]; then
+	say "Dry run complete; nothing changed."
+	exit 0
+fi
+
+say "Done. Snapshot $NUM is the system from next boot; reboot now, since changes made before then stay in $broken."
+cat <<EOF
+
+   1. reboot, and boot the normal top GRUB entry (not the snapshots menu)
+   2. check it works: sysdiag
+   3. after a few good days: snapshot-restore --cleanup  (deletes $broken)
+
+   Changed your mind before rebooting? Restore another number, or undo with:
+     sudo mount -o subvolid=5 $root_dev /mnt
+     sudo mv /mnt/@ /mnt/@.discard && sudo mv /mnt/$broken /mnt/@
+EOF

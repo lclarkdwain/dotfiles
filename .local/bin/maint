@@ -43,7 +43,9 @@ snap|Diff one file between snapshots|snapper -c root diff <a>..<b> <file>
 snap|Revert one file to snapshot <a>|sudo snapper -c root undochange <a>..<b> <file>
 snap|Recover a deleted home file|cp -a /home/.snapshots/<n>/snapshot/$USER/<path> ~/<path>
 snap|Delete a snapshot|sudo snapper -c root delete <n>
-snap|Full system rollback steps|sed -n '/Restoring/,/^# Undo/p' ~/.dotfiles/scripts/install-scripts/arch/configure-snapshots.sh
+snap|Preview a full system rollback (changes nothing)|snapshot-restore --dry-run <n>
+snap|Roll the whole system back to snapshot <n>; reboot after|snapshot-restore <n>
+snap|Delete the pre-rollback copy once the restored system is fine|snapshot-restore --cleanup
 logs|Journal size|journalctl --disk-usage
 logs|Trim the journal|sudo journalctl --vacuum-time=4weeks
 logs|One service's log this boot|journalctl -u <unit> -b
