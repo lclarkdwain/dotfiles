@@ -296,6 +296,10 @@ sleep 1
 
 execute_script "install-zram.sh"
 sleep 1
+execute_script "configure-maintenance.sh"
+sleep 1
+execute_script "install-rapl-access.sh"
+sleep 1
 
 if [ "$conservation_wanted" == "true" ]; then
   execute_script "configure-battery-conservation.sh"
