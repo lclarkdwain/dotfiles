@@ -1,0 +1,104 @@
+#!/bin/sh
+# Maintenance cheat sheet for this machine.
+# Usage: maint [section]   e.g. maint snap · sections: health update pkg disk snap logs hw dots
+
+set -u
+
+# Root disk, so the hardware commands are copy-pasteable as printed
+root_src=$(findmnt -no SOURCE --nofsroot / 2>/dev/null)
+root_disk=$(lsblk -no PKNAME "$root_src" 2>/dev/null | head -1)
+root_disk=${root_disk:-nvme0n1}
+
+# section|what it does|command (last, so it may contain |)
+sheet() {
+	cat <<EOF
+health|One-screen health report (also runs after every login)|sysdiag
+health|Failed services|systemctl --failed; systemctl --user --failed
+health|Errors this boot|journalctl -b -p 3
+health|Errors last boot (after a crash or freeze)|journalctl -b -1 -p 3
+health|Crashed programs|coredumpctl list
+health|When scrub, cleanup and snapshots next run|systemctl list-timers
+update|Pending updates, without touching the system|checkupdates
+update|Update everything (repos + AUR); snap-pac snapshots before and after|paru
+update|Merge .pacnew files after an update|sudo DIFFPROG='nvim -d' pacdiff
+update|Needed after a kernel update (sysdiag says when)|reboot
+update|Refresh mirrors when downloads are slow|sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+pkg|Orphans: dependencies nothing needs any more|pacman -Qtdq
+pkg|Remove all orphans (review the list first)|sudo pacman -Rns \$(pacman -Qtdq)
+pkg|Foreign packages (AUR or manual)|pacman -Qm
+pkg|Which package owns a file|pacman -Qo <file>
+pkg|Check a package's files against the database|pacman -Qkk <pkg> 2>&1 | grep -v ' 0 altered'
+pkg|Preview package-cache cleanup (paccache.timer runs it weekly)|paccache -dk3
+pkg|Clean the AUR build cache|paru -Sc
+disk|Space used, and how much btrfs has left unallocated|df -h /; btrfs filesystem usage /
+disk|Read, write and corruption error counters (should all be 0)|btrfs device stats /
+disk|Result of the last monthly scrub|sudo btrfs scrub status /
+disk|Scrub now: verify every block's checksum|sudo btrfs scrub start /
+disk|Return half-empty data chunks to unallocated (when that runs low)|sudo btrfs balance start -dusage=50 /
+disk|What is filling home|du -xh -d1 ~ | sort -h
+snap|List system and home snapshots|snapper -c root list; snapper -c home list
+snap|Manual snapshot before risky work|snapper -c root create -d "before <change>"
+snap|Files changed between two snapshots|snapper -c root status <a>..<b>
+snap|Diff one file between snapshots|snapper -c root diff <a>..<b> <file>
+snap|Revert one file to snapshot <a>|sudo snapper -c root undochange <a>..<b> <file>
+snap|Recover a deleted home file|cp -a /home/.snapshots/<n>/snapshot/$USER/<path> ~/<path>
+snap|Delete a snapshot|sudo snapper -c root delete <n>
+snap|Full system rollback steps|sed -n '/Restoring/,/^# Undo/p' ~/.dotfiles/scripts/install-scripts/arch/configure-snapshots.sh
+logs|Journal size|journalctl --disk-usage
+logs|Trim the journal|sudo journalctl --vacuum-time=4weeks
+logs|One service's log this boot|journalctl -u <unit> -b
+logs|Follow the log live|journalctl -f
+hw|SSD health: wear, spare, media errors|sudo smartctl -a /dev/$root_disk
+hw|Temperatures and fans|sensors
+hw|Live CPU, memory, disk and network|btop
+dots|Preview what make link would change|make -C ~/.dotfiles dry-run
+dots|Re-link configs (read the dry run first)|make -C ~/.dotfiles link
+dots|Uncommitted config changes|git -C ~/.dotfiles status
+dots|Broken config symlinks|find ~/.config -maxdepth 1 -xtype l
+EOF
+}
+
+title() {
+	case $1 in
+		health) echo "Health" ;;
+		update) echo "Updates" ;;
+		pkg) echo "Packages" ;;
+		disk) echo "Disk and btrfs" ;;
+		snap) echo "Snapshots" ;;
+		logs) echo "Logs" ;;
+		hw) echo "Hardware" ;;
+		dots) echo "Dotfiles" ;;
+	esac
+}
+
+want=${1:-}
+case $want in
+	-h|--help) sed -n '2,3p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+esac
+
+if [ -n "$want" ] && ! sheet | cut -d'|' -f1 | grep -q "^$want"; then
+	echo "maint: no section matching '$want' (health update pkg disk snap logs hw dots)" >&2
+	exit 2
+fi
+
+if [ -t 1 ]; then
+	B=$(printf '\033[1m'); C=$(printf '\033[36m'); D=$(printf '\033[2m'); O=$(printf '\033[0m')
+else
+	B=; C=; D=; O=
+fi
+
+prev=
+sheet | while IFS='|' read -r sec desc cmd; do
+	# Prefix match, so "maint snap" and "maint s" both work
+	case $sec in
+		"$want"*) ;;
+		*) continue ;;
+	esac
+	if [ "$sec" != "$prev" ]; then
+		printf '\n%s%s%s\n' "$B" "$(title "$sec")" "$O"
+		prev=$sec
+	fi
+	printf '  %s%s%s\n      %s%s%s\n' "$C" "$cmd" "$O" "$D" "$desc" "$O"
+done
+printf '\n'
+
